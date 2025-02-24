@@ -20,7 +20,13 @@ new #[Layout('layouts.guest')] class extends Component
 
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        $user = auth()->user();
+        
+        if ($user->role === 'customer') {
+            $this->redirect(route('client-portal'), navigate: true);
+        } else {
+            $this->redirect(route('dashboard'), navigate: true);
+        }
     }
 }; ?>
 
