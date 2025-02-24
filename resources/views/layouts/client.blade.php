@@ -20,9 +20,9 @@
                 <livewire:layout.client-navigation />
                 
                 <!-- Page Content -->
-                <div class="lg:pl-72">
+                <div>
                     <main class="py-10">
-                        <div class="px-4 sm:px-6 lg:px-8">
+                        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             {{ $slot }}
                         </div>
                     </main>
