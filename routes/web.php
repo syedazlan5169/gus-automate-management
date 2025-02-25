@@ -4,16 +4,20 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
 
-Route::view('dashboard', 'admin.dashboard')
-    ->middleware(['auth', 'verified', 'staff.access'])
-    ->name('admin.dashboard');
-
-Route::view('client-portal', 'client.dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('client.dashboard');
-
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
+// Auth middleware Group
+Route::middleware(['auth'])->group(function () {
+    Route::view('profile', 'profile')->name('profile');
+    
+    // Client middleware Group
+    Route::middleware(['verified'])->group(function () {
+        Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
+        
+        // Admin middleware Group
+        Route::middleware(['staff.access'])->group(function () {
+            Route::view('dashboard', 'admin.dashboard')->name('admin.dashboard');
+            // Add more admin routes here that need the same middleware
+        });
+    });
+});
 
 require __DIR__.'/auth.php';

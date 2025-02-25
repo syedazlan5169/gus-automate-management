@@ -23,7 +23,7 @@ new #[Layout('layouts.guest')] class extends Component
         $user = auth()->user();
         
         if ($user->role === 'customer') {
-            $this->redirect(route('client-portal'), navigate: true);
+            $this->redirect(route('client.dashboard'), navigate: true);
         } else {
             $this->redirect(route('dashboard'), navigate: true);
         }
