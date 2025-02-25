@@ -18,7 +18,7 @@ class StaffAccessOnly
         $allowedRoles = ['staff', 'manager', 'admin'];
         
         if (!in_array($request->user()->role, $allowedRoles)) {
-            return redirect()->route('client-portal')->with('error', 'Access denied. Staff only area.');
+            return redirect()->route('client.dashboard')->with('error', 'Access denied. Staff only area.');
         }
 
         return $next($request);
