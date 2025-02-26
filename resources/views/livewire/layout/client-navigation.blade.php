@@ -63,7 +63,7 @@ new class extends Component
                 <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                     <div class="flex h-16 shrink-0 items-center">
                         <a href="{{ route('client.dashboard') }}" wire:navigate>
-                            <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                            <x-application-logo class="block h-14 w-auto p-2 fill-current text-gray-800" />
                         </a>
                     </div>
                     <nav class="flex flex-1 flex-col">
@@ -126,7 +126,7 @@ new class extends Component
         <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
             <div class="flex h-16 shrink-0 items-center">
                 <a href="{{ route('client.dashboard') }}" wire:navigate>
-                    <x-application-logo class="block h-14 w-auto fill-current text-gray-800" />
+                    <x-application-logo class="block h-14 w-auto p-2 fill-current text-gray-800" />
                 </a>
             </div>
             <nav class="flex flex-1 flex-col">
