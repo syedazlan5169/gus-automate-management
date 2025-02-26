@@ -25,7 +25,7 @@ new #[Layout('layouts.guest')] class extends Component
         if ($user->role === 'customer') {
             $this->redirect(route('client.dashboard'), navigate: true);
         } else {
-            $this->redirect(route('dashboard'), navigate: true);
+            $this->redirect(route('admin.dashboard'), navigate: true);
         }
     }
 }; ?>
