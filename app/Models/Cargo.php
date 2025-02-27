@@ -44,4 +44,12 @@ class Cargo extends Model
     {
         return $this->hasMany(CargoContainer::class);
     }
-} 
+
+    /**
+     * Get only the allocated containers for this cargo
+     */
+    public function allocatedContainers(): HasMany
+    {
+        return $this->hasMany(CargoContainer::class)->whereNotNull('shipping_instruction_id');
+    }
+}

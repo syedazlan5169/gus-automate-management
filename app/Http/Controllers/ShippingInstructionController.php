@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\ShippingInstruction;
 use Illuminate\Http\Request;
 use App\Models\Cargo;
+use Illuminate\Support\Facades\DB;
 
 class ShippingInstructionController extends Controller
 {
@@ -28,74 +29,82 @@ class ShippingInstructionController extends Controller
      */
     public function store(Request $request, Booking $booking)
     {
-        $validated = $request->validate([
-            'shipper' => 'required|string|max:255',
-            'contact_shipper' => 'required|string|max:255',
-            'consignee' => 'required|string|max:255',
-            'contact_consignee' => 'required|string|max:255',
-            'customer_instructions' => 'nullable|string',
-            
-            // Cargo allocation
-            'cargo_allocations' => 'required|array',
-            'cargo_allocations.*.cargo_id' => 'required|exists:cargos,id',
-            'cargo_allocations.*.container_count' => 'required|integer|min:1',
-        ]);
+        // Start a database transaction
+        DB::beginTransaction();
+        
+        try {
+            $validated = $request->validate([
+                'shipper' => 'required|string|max:255',
+                'contact_shipper' => 'required|string|max:255',
+                'consignee' => 'required|string|max:255',
+                'contact_consignee' => 'required|string|max:255',
+                'customer_instructions' => 'nullable|string',
+                'cargo_allocations' => 'required|array',
+                'cargo_allocations.*.cargo_id' => 'required|exists:cargos,id',
+                'cargo_allocations.*.container_count' => 'required|integer|min:0',
+            ]);
 
-        // Create shipping instruction
-        $shippingInstruction = $booking->shippingInstructions()->create([
-            'shipper' => $validated['shipper'],
-            'contact_shipper' => $validated['contact_shipper'],
-            'consignee' => $validated['consignee'],
-            'contact_consignee' => $validated['contact_consignee'],
-            'customer_instructions' => $validated['customer_instructions'],
-        ]);
+            // Create the shipping instruction
+            $shippingInstruction = $booking->shippingInstructions()->create([
+                'shipper' => $validated['shipper'],
+                'contact_shipper' => $validated['contact_shipper'],
+                'consignee' => $validated['consignee'],
+                'contact_consignee' => $validated['contact_consignee'],
+                'customer_instructions' => $validated['customer_instructions'],
+            ]);
 
-        // Handle cargo allocations
-        foreach ($validated['cargo_allocations'] as $allocation) {
-            $originalCargo = $booking->cargos()->findOrFail($allocation['cargo_id']);
-            
-            // Validate that we're not over-allocating containers
-            $totalAllocated = $booking->cargos()
-                ->where('container_type', $originalCargo->container_type)
-                ->whereNotNull('shipping_instruction_id')
-                ->sum('container_count');
+            // Process cargo allocations
+            foreach ($validated['cargo_allocations'] as $allocation) {
+                $cargo = Cargo::findOrFail($allocation['cargo_id']);
                 
-            if ($totalAllocated + $allocation['container_count'] > $originalCargo->container_count) {
-                return back()->withErrors(['allocation' => 'Cannot allocate more containers than available']);
+                // Check if allocation is greater than 0
+                if ($allocation['container_count'] > 0) {
+                    // Verify available containers
+                    $availableContainers = $cargo->container_count - $cargo->allocatedContainers()->count();
+                    
+                    if ($allocation['container_count'] > $availableContainers) {
+                        throw new \Exception("Cannot allocate more containers than available for cargo ID {$cargo->id}");
+                    }
+
+                    // Create new cargo for this shipping instruction
+                    $newCargo = $cargo->replicate();
+                    $newCargo->container_count = $allocation['container_count'];
+                    $newCargo->shipping_instruction_id = $shippingInstruction->id;
+                    $newCargo->save();
+
+                    // Move the containers to the new cargo
+                    $containersToMove = $cargo->containers()
+                        ->whereNull('shipping_instruction_id')
+                        ->limit($allocation['container_count'])
+                        ->get();
+
+                    foreach ($containersToMove as $container) {
+                        $container->update([
+                            'cargo_id' => $newCargo->id,
+                            'shipping_instruction_id' => $shippingInstruction->id
+                        ]);
+                    }
+
+                    // Update original cargo container count
+                    $cargo->container_count = $availableContainers - $allocation['container_count'];
+                    if ($cargo->container_count == 0) {
+                        $cargo->delete(); // Delete the original cargo if no containers left
+                    } else {
+                        $cargo->save();
+                    }
+                }
             }
 
-            // Create new cargo record for this shipping instruction
-            $newCargo = $booking->cargos()->create([
-                'shipping_instruction_id' => $shippingInstruction->id,
-                'container_type' => $originalCargo->container_type,
-                'container_count' => $allocation['container_count'],
-                'total_weight' => ($originalCargo->total_weight / $originalCargo->container_count) * $allocation['container_count'],
-                'cargo_description' => $originalCargo->cargo_description,
-            ]);
+            DB::commit();
+            return redirect()->route('booking.show', $booking)
+                ->with('success', 'Shipping instruction created successfully.');
 
-            // Move the appropriate number of containers to the new cargo
-            $containersToMove = $originalCargo->containers()
-                ->whereNull('container_number')
-                ->limit($allocation['container_count'])
-                ->get();
-
-            foreach ($containersToMove as $container) {
-                $container->update(['cargo_id' => $newCargo->id]);
-            }
-
-            // Update original cargo count
-            $originalCargo->update([
-                'container_count' => $originalCargo->container_count - $allocation['container_count']
-            ]);
-
-            // If original cargo has no containers left, delete it
-            if ($originalCargo->container_count <= 0) {
-                $originalCargo->delete();
-            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
-
-        return redirect()->route('booking.show', $booking)
-            ->with('success', 'Shipping instruction added successfully.');
     }
 
     /**
