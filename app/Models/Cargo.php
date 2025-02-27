@@ -5,15 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Booking;
+use App\Models\ShippingInstruction;
+use App\Models\CargoContainer;
+use App\Models\User;
 
 class Cargo extends Model
 {
     protected $fillable = [
+        'booking_id',
+        'shipping_instruction_id',
         'container_type',
         'container_count',
         'total_weight',
-        'cargo_description',
-        'booking_id',
+        'cargo_description'
     ];
 
     /**
@@ -22,6 +27,14 @@ class Cargo extends Model
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    /**
+     * Get the shipping instruction that owns the cargo
+     */
+    public function shippingInstruction(): BelongsTo
+    {
+        return $this->belongsTo(ShippingInstruction::class);
     }
 
     /**

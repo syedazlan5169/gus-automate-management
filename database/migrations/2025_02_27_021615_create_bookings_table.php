@@ -18,10 +18,6 @@ return new class extends Migration
             $table->string('quotation_number')->nullable();
             $table->string('service')->nullable();
             $table->string('liner_address')->nullable();
-            $table->string('shipper')->nullable();
-            $table->string('contact_shipper')->nullable();
-            $table->string('consignee')->nullable();
-            $table->string('contact_consignee')->nullable();
             $table->string('vessel')->nullable();
             $table->string('place_of_receipt')->nullable();
             $table->string('pol')->nullable(); // Port of Loading
@@ -32,8 +28,42 @@ return new class extends Migration
             $table->datetime('eta')->nullable(); // Estimated Time of Arrival
             $table->enum('status', ['New', 'Pending', 'Confirmed', 'Shipped', 'Completed', 'Cancelled'])->default('New');
             $table->text('remarks')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable(); // Booking created by which user
+            $table->text('internal_instructions')->nullable();
+            $table->text('customer_instructions')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->timestamps();
+        });
+
+        // New table for shipping instructions
+        Schema::create('shipping_instructions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+            $table->string('shipper');
+            $table->string('contact_shipper');
+            $table->string('consignee');
+            $table->string('contact_consignee');
+            $table->text('customer_instructions')->nullable();
+            $table->timestamps();
+        });
+
+        // Modified cargos table to link with shipping instructions
+        Schema::create('cargos', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('booking_id')->constrained();
+            $table->foreignId('shipping_instruction_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('container_type');
+            $table->integer('container_count');
+            $table->decimal('total_weight', 10, 2);
+            $table->string('cargo_description');
+            $table->timestamps();
+        });
+
+        Schema::create('cargo_containers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('cargo_id')->constrained()->onDelete('cascade');
+            $table->string('container_number')->nullable();
+            $table->string('seal_number')->nullable();
             $table->timestamps();
         });
     }
@@ -44,5 +74,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('bookings');
+        Schema::dropIfExists('shipping_instructions');
+        Schema::dropIfExists('cargos');
+        Schema::dropIfExists('cargo_containers');
     }
 };

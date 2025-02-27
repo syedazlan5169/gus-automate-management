@@ -1,11 +1,44 @@
 <x-app-layout>
+    <script>
+        // Create a unique identifier for our event handler
+        const cargoEventHandler = function(e) {
+            // Handle Add Container button
+            if (e.target.matches('#add-cargo-row')) {
+                e.preventDefault(); // Prevent any default behavior
+                e.stopPropagation(); // Stop event bubbling
+                const container = document.getElementById('cargo-container');
+                const template = container.querySelector('.cargo-row').cloneNode(true);
+                // Clear input values
+                template.querySelectorAll('input').forEach(input => input.value = '');
+                template.querySelector('select').selectedIndex = 0;
+                container.appendChild(template);
+            }
+            
+            // Handle Remove Container button
+            if (e.target.closest('.remove-cargo-row')) {
+                e.preventDefault(); // Prevent any default behavior
+                e.stopPropagation(); // Stop event bubbling
+                const container = document.getElementById('cargo-container');
+                const row = e.target.closest('.cargo-row');
+                // Only remove if there's more than one row
+                if (container.querySelectorAll('.cargo-row').length > 1) {
+                    row.remove();
+                }
+            }
+        };
+
+        // Remove existing event listener before adding a new one
+        document.removeEventListener('click', cargoEventHandler);
+        document.addEventListener('click', cargoEventHandler);
+    </script>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h2 class="text-2xl font-semibold mb-6">Create New Booking</h2>
                     
-                    <form method="POST" action="" class="space-y-6">
+                    <form method="POST" action="{{ route('booking.store') }}" class="space-y-6">
                         @csrf
                         
                         <!-- Service Information -->
@@ -283,37 +316,7 @@
                             </div>
                         </div>
 
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const container = document.getElementById('cargo-container');
-                                const addButton = document.getElementById('add-cargo-row');
-
-                                // Add new cargo row
-                                addButton.addEventListener('click', function() {
-                                    const template = container.querySelector('.cargo-row').cloneNode(true);
-                                    // Clear input values
-                                    template.querySelectorAll('input').forEach(input => input.value = '');
-                                    template.querySelector('select').selectedIndex = 0;
-                                    container.appendChild(template);
-                                });
-
-                                // Remove cargo row
-                                container.addEventListener('click', function(e) {
-                                    if (e.target.closest('.remove-cargo-row')) {
-                                        const row = e.target.closest('.cargo-row');
-                                        // Only remove if there's more than one row
-                                        if (container.querySelectorAll('.cargo-row').length > 1) {
-                                            row.remove();
-                                        }
-                                    }
-                                });
-                            });
-                        </script>
-
                         <div class="flex justify-end">
-                            <x-secondary-button type="button" class="mr-3">
-                                Cancel
-                            </x-secondary-button>
                             <x-primary-button>
                                 Create Booking
                             </x-primary-button>
