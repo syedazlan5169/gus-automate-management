@@ -53,46 +53,46 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div>
-    <form x-data="{ industries: @entangle('industries') }" wire:submit="register">
+<div class="py-4">
+    <form x-data="{ industries: @entangle('industries') }" wire:submit="register" >
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
+            <x-input-label for="name" :value="__('Full Name')" />
             <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
         <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
+            <x-input-label for="email" :value="__('Enter Your Email Address')" />
             <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Phone -->
         <div class="mt-4">
-            <x-input-label for="phone" :value="__('Phone')" />
+            <x-input-label for="phone" :value="__('Enter Your Phone Number')" />
             <x-text-input wire:model="phone" id="phone" class="block mt-1 w-full" type="tel" name="phone" required autocomplete="tel" />
             <x-input-error :messages="$errors->get('phone')" class="mt-2" />
         </div>
 
         <!-- Company Name -->
         <div class="mt-4">
-            <x-input-label for="company_name" :value="__('Company Name')" />
+            <x-input-label for="company_name" :value="__('Enter Your Company Name')" />
             <x-text-input wire:model="company_name" id="company_name" class="block mt-1 w-full" type="text" name="company_name" required />
             <x-input-error :messages="$errors->get('company_name')" class="mt-2" />
         </div>
 
         <!-- Company Address -->
         <div class="mt-4">
-            <x-input-label for="company_address" :value="__('Company Address')" />
+            <x-input-label for="company_address" :value="__('Enter Your Company Address')" />
             <x-text-input wire:model="company_address" id="company_address" class="block mt-1 w-full" type="text" name="company_address" required />
             <x-input-error :messages="$errors->get('company_address')" class="mt-2" />
         </div>
 
         <!-- Company Phone -->
         <div class="mt-4">
-            <x-input-label for="company_phone" :value="__('Company Phone')" />
+            <x-input-label for="company_phone" :value="__('Enter Your Company Phone Number')" />
             <x-text-input wire:model="company_phone" id="company_phone" class="block mt-1 w-full" type="tel" name="company_phone" required />
             <x-input-error :messages="$errors->get('company_phone')" class="mt-2" />
         </div>
