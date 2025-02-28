@@ -91,7 +91,6 @@ class BookingController extends Controller
                 'container_type' => $containerType,
                 'container_count' => $validated['container_count'][$index],
                 'total_weight' => $validated['total_weight'][$index],
-                'cargo_description' => '', // Empty for now
                 'shipping_instruction_id' => null // Will be assigned later
             ]);
 

@@ -38,10 +38,13 @@ class ShippingInstructionController extends Controller
                 'contact_shipper' => 'required|string|max:255',
                 'consignee' => 'required|string|max:255',
                 'contact_consignee' => 'required|string|max:255',
+                'cargo_description' => 'required|string',
                 'customer_instructions' => 'nullable|string',
                 'cargo_allocations' => 'required|array',
                 'cargo_allocations.*.cargo_id' => 'required|exists:cargos,id',
-                'cargo_allocations.*.container_count' => 'required|integer|min:0',
+                'cargo_allocations.*.containers' => 'required|array',
+                'cargo_allocations.*.containers.*.number' => 'required|string',
+                'cargo_allocations.*.containers.*.seal' => 'required|string',
             ]);
 
             // Create the shipping instruction
@@ -50,43 +53,40 @@ class ShippingInstructionController extends Controller
                 'contact_shipper' => $validated['contact_shipper'],
                 'consignee' => $validated['consignee'],
                 'contact_consignee' => $validated['contact_consignee'],
+                'cargo_description' => $validated['cargo_description'],
                 'customer_instructions' => $validated['customer_instructions'],
             ]);
 
             // Process cargo allocations
             foreach ($validated['cargo_allocations'] as $allocation) {
                 $cargo = Cargo::findOrFail($allocation['cargo_id']);
+                $containerCount = count($allocation['containers']);
                 
-                // Check if allocation is greater than 0
-                if ($allocation['container_count'] > 0) {
+                if ($containerCount > 0) {
                     // Verify available containers
                     $availableContainers = $cargo->container_count - $cargo->allocatedContainers()->count();
                     
-                    if ($allocation['container_count'] > $availableContainers) {
+                    if ($containerCount > $availableContainers) {
                         throw new \Exception("Cannot allocate more containers than available for cargo ID {$cargo->id}");
                     }
 
                     // Create new cargo for this shipping instruction
                     $newCargo = $cargo->replicate();
-                    $newCargo->container_count = $allocation['container_count'];
+                    $newCargo->container_count = $containerCount;
                     $newCargo->shipping_instruction_id = $shippingInstruction->id;
                     $newCargo->save();
 
-                    // Move the containers to the new cargo
-                    $containersToMove = $cargo->containers()
-                        ->whereNull('shipping_instruction_id')
-                        ->limit($allocation['container_count'])
-                        ->get();
-
-                    foreach ($containersToMove as $container) {
-                        $container->update([
-                            'cargo_id' => $newCargo->id,
+                    // Create containers for the new cargo
+                    foreach ($allocation['containers'] as $container) {
+                        $newCargo->containers()->create([
+                            'container_number' => $container['number'],
+                            'seal_number' => $container['seal'],
                             'shipping_instruction_id' => $shippingInstruction->id
                         ]);
                     }
 
                     // Update original cargo container count
-                    $cargo->container_count = $availableContainers - $allocation['container_count'];
+                    $cargo->container_count = $availableContainers - $containerCount;
                     if ($cargo->container_count == 0) {
                         $cargo->delete(); // Delete the original cargo if no containers left
                     } else {

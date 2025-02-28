@@ -15,7 +15,8 @@ class ShippingInstruction extends Model
         'contact_shipper',
         'consignee',
         'contact_consignee',
-        'customer_instructions'
+        'customer_instructions',
+        'cargo_description',
     ];
 
     public function booking()
