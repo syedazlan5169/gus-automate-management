@@ -33,7 +33,7 @@ new #[Layout('layouts.guest-split')] class extends Component
 <div class="flex min-h-screen">
     <!-- Left side - Image -->
     <div class="relative hidden w-1/2 lg:block">
-        <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('images/sign-in-img-02.jpg') }}" alt="Background image">
+        <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('images/sign-in-img-02.webp') }}" alt="Background image">
         <div class="absolute inset-0 bg-black/60"></div>
         <div class="absolute inset-0 bg-indigo-900/30 mix-blend-multiply"></div>
         <div class="absolute inset-0 flex items-center justify-center">
