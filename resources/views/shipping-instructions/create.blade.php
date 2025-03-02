@@ -71,6 +71,21 @@
                             </div>
                         </div>
 
+                        <!-- Cargo Description -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium mb-4">Cargo Description</h3>
+                            <div>
+                                <x-input-label for="cargo_description" value="Cargo Description" />
+                                <textarea 
+                                    id="cargo_description" 
+                                    name="cargo_description" 
+                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    rows="3"
+                                    required>{{ old('cargo_description') }}</textarea>
+                                <x-input-error :messages="$errors->get('cargo_description')" class="mt-2" />
+                            </div>
+                        </div>
+
                         <!-- Container Allocation -->
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <h3 class="text-lg font-medium mb-4">Container Allocation</h3>
@@ -82,37 +97,65 @@
                                     <div class="mb-4 p-4 border rounded">
                                         <h4 class="font-medium mb-2">{{ $containerType }}</h4>
                                         @foreach($cargos as $cargo)
-                                            <div class="space-y-4">
-                                                <input type="hidden" 
-                                                    name="cargo_allocations[{{ $loop->parent->index }}_{{ $loop->index }}][cargo_id]" 
-                                                    value="{{ $cargo->id }}">
+                                            <div class="space-y-4" data-cargo-index="{{ $loop->parent->index }}_{{ $loop->index }}">
+                                                <input type="hidden" name="cargo_allocations[{{ $loop->parent->index }}_{{ $loop->index }}][cargo_id]" value="{{ $cargo->id }}">
                                                 
                                                 <div class="text-sm text-gray-600">
                                                     Available slots: {{ $cargo->container_count }} containers
                                                 </div>
-                                                
-                                                <div>
-                                                    <x-input-label 
-                                                        :for="'container_list_' . $cargo->id" 
-                                                        value="Container Numbers with Seal Numbers (Format: CONT1/SEAL1, CONT2/SEAL2)" />
-                                                    <textarea 
-                                                        id="container_list_{{ $cargo->id }}"
-                                                        name="cargo_allocations[{{ $loop->parent->index }}_{{ $loop->index }}][container_list]"
-                                                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                                        rows="3"
-                                                        placeholder="MSCU1234567/SL123456, TEMU7654321/SL654321"
-                                                    >{{ old('cargo_allocations.' . $loop->parent->index . '_' . $loop->index . '.container_list') }}</textarea>
-                                                </div>
-                                                
-                                                <div class="text-sm space-y-2">
-                                                    <div class="text-gray-600">
-                                                        Total Weight: {{ number_format($cargo->total_weight, 2) }} kg
+
+                                                <!-- Bulk Import Section -->
+                                                <div class="space-y-4 border-b pb-4 mb-4">
+                                                    <h4 class="font-medium">Bulk Import Containers</h4>
+                                                    <div class="flex gap-4 items-start">
+                                                        <div class="flex-1">
+                                                            <textarea 
+                                                                id="bulk_containers_{{ $cargo->id }}"
+                                                                class="w-full h-32 border-gray-300 rounded-md"
+                                                                placeholder="Paste container data here...&#10;Format: CONTAINER_NUMBER,SEAL_NUMBER&#10;Example:&#10;CONT123456,SEAL789012&#10;CONT234567,SEAL890123"
+                                                            ></textarea>
+                                                            <p class="text-sm text-gray-500 mt-1">One container per line, comma-separated (Container Number, Seal Number)</p>
+                                                        </div>
+                                                        <button type="button"
+                                                            class="bulk-import-btn bg-blue-500 text-white px-4 py-2 rounded"
+                                                            data-cargo-id="{{ $cargo->id }}"
+                                                            data-cargo-index="{{ $loop->parent->index }}_{{ $loop->index }}">
+                                                            Import Containers
+                                                        </button>
                                                     </div>
+                                                    
+                                                    <!-- Sample file download -->
+                                                    <div class="text-sm">
+                                                        <a href="#" class="text-blue-600 hover:text-blue-800" onclick="downloadSampleCSV(event)">
+                                                            Download Sample Format
+                                                        </a>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Manual Entry Section -->
+                                                <div>
+                                                    <h4 class="font-medium mb-2">Manual Entry</h4>
+                                                    <div class="container-inputs-{{ $cargo->id }} max-h-[400px] overflow-y-auto border border-gray-200 rounded-md p-2">
+                                                        <!-- Dynamic container inputs will be added here -->
+                                                    </div>
+                                                    
+                                                    <button type="button" 
+                                                        class="add-container-btn bg-green-500 text-white px-3 py-1 rounded text-sm mt-2"
+                                                        data-cargo-id="{{ $cargo->id }}"
+                                                        data-max-containers="{{ $cargo->container_count }}">
+                                                        Add Single Container
+                                                    </button>
+                                                </div>
+
+                                                <!-- Container Count Display -->
+                                                <div class="text-sm space-y-2 mt-4">
                                                     <div>
                                                         Containers Listed: <span id="container_count_{{ $cargo->id }}" class="font-semibold">0</span>
                                                     </div>
                                                     <div>
-                                                        Remaining Slots: <span id="remaining_slots_{{ $cargo->id }}" class="font-semibold">{{ $cargo->container_count }}</span>
+                                                        Remaining Slots: <span id="remaining_slots_{{ $cargo->id }}" 
+                                                            class="font-semibold" 
+                                                            data-max="{{ $cargo->container_count }}">{{ $cargo->container_count }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -135,9 +178,6 @@
                         </div>
 
                         <div class="flex justify-end gap-4">
-                            <x-secondary-button onclick="window.history.back()">
-                                Cancel
-                            </x-secondary-button>
                             <x-primary-button>
                                 Create Shipping Instruction
                             </x-primary-button>
@@ -150,74 +190,178 @@
 
     @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const containerTextareas = document.querySelectorAll('textarea[id^="container_list_"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded');
+
+        const addButtons = document.querySelectorAll('.add-container-btn');
+        console.log('Found add buttons:', addButtons.length);
+
+        addButtons.forEach(button => {
+            button.onclick = function() {
+                console.log('Button clicked');
+                const cargoId = this.getAttribute('data-cargo-id');
+                const maxContainers = parseInt(this.getAttribute('data-max-containers'));
+                const containerInputsDiv = document.querySelector(`.container-inputs-${cargoId}`);
+                const cargoIndex = this.closest('[data-cargo-index]').getAttribute('data-cargo-index');
+                
+                console.log('CargoId:', cargoId);
+                console.log('MaxContainers:', maxContainers);
+                console.log('CargoIndex:', cargoIndex);
+
+                const currentCount = containerInputsDiv.querySelectorAll('.container-input-group').length;
+                
+                if (currentCount < maxContainers) {
+                    const html = `
+                        <div class="container-input-group flex gap-2 mb-2">
+                            <div class="flex-1">
+                                <input type="text" 
+                                    name="cargo_allocations[${cargoIndex}][containers][${currentCount}][number]" 
+                                    class="container-number w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" 
+                                    placeholder="Container Number"
+                                    required>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" 
+                                    name="cargo_allocations[${cargoIndex}][containers][${currentCount}][seal]" 
+                                    class="seal-number w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" 
+                                    placeholder="Seal Number"
+                                    required>
+                            </div>
+                            <button type="button" 
+                                class="remove-container-btn bg-red-500 text-white px-3 py-1 rounded text-sm"
+                                onclick="removeContainer(this, '${cargoId}')">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                    
+                    containerInputsDiv.insertAdjacentHTML('beforeend', html);
+                    updateContainerCount(cargoId);
+                }
+            };
+        });
+
+        // Global function for removing containers
+        window.removeContainer = function(button, cargoId) {
+            button.closest('.container-input-group').remove();
+            updateContainerCount(cargoId);
+        };
+
+        function updateContainerCount(cargoId) {
+            console.log('Updating count for cargo:', cargoId);
+            const containerInputsDiv = document.querySelector(`.container-inputs-${cargoId}`);
+            const containerCount = containerInputsDiv.querySelectorAll('.container-input-group').length;
+            const maxContainers = parseInt(document.querySelector(`#remaining_slots_${cargoId}`).dataset.max);
             
-            containerTextareas.forEach(textarea => {
-                // Function to update container counts
-                const updateContainerCount = (element) => {
-                    const cargoId = element.id.split('_').pop();
-                    const maxContainers = parseInt(document.querySelector(`#remaining_slots_${cargoId}`).getAttribute('data-max') || 0);
-                    
-                    // Split by commas and filter out empty entries
-                    const containerList = element.value
-                        .split(',')
-                        .map(item => item.trim())
-                        .filter(item => item.length > 0);
-                    
-                    // Update the container count
-                    const countElement = document.querySelector(`#container_count_${cargoId}`);
-                    const remainingElement = document.querySelector(`#remaining_slots_${cargoId}`);
-                    
-                    const currentCount = containerList.length;
-                    countElement.textContent = currentCount;
-                    remainingElement.textContent = maxContainers - currentCount;
-                    
-                    // Validate format
-                    const isValidFormat = containerList.every(item => {
-                        const parts = item.split('/');
-                        return parts.length === 2 && parts[0].trim() && parts[1].trim();
-                    });
-                    
-                    // Visual feedback
-                    if (!isValidFormat && element.value.trim() !== '') {
-                        element.classList.add('border-red-500');
-                        element.title = 'Invalid format. Please use: CONTAINER/SEAL, CONTAINER/SEAL';
-                    } else {
-                        element.classList.remove('border-red-500');
-                        element.title = '';
-                    }
-                    
-                    // Validate count
-                    if (currentCount > maxContainers) {
-                        remainingElement.classList.add('text-red-600');
-                    } else {
-                        remainingElement.classList.remove('text-red-600');
-                    }
-                };
+            // Update display counts
+            document.querySelector(`#container_count_${cargoId}`).textContent = containerCount;
+            document.querySelector(`#remaining_slots_${cargoId}`).textContent = maxContainers - containerCount;
+            
+            // Update add button state
+            const addButton = document.querySelector(`[data-cargo-id="${cargoId}"]`);
+            addButton.classList.toggle('opacity-50', containerCount >= maxContainers);
+            addButton.classList.toggle('cursor-not-allowed', containerCount >= maxContainers);
+            
+            // Update remaining slots color
+            const remainingElement = document.querySelector(`#remaining_slots_${cargoId}`);
+            remainingElement.classList.toggle('text-red-600', containerCount > maxContainers);
+        }
 
-                // Listen for all possible events that might change the content
-                ['input', 'change', 'blur', 'keyup'].forEach(eventType => {
-                    textarea.addEventListener(eventType, () => updateContainerCount(textarea));
-                });
-
-                // Special handling for paste event
-                textarea.addEventListener('paste', function(e) {
-                    // Update immediately after paste
-                    setTimeout(() => {
-                        updateContainerCount(this);
-                    }, 0);
+        // Bulk Import functionality
+        document.querySelectorAll('.bulk-import-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const cargoId = this.dataset.cargoId;
+                const cargoIndex = this.dataset.cargoIndex;
+                const textarea = document.querySelector(`#bulk_containers_${cargoId}`);
+                const containerInputsDiv = document.querySelector(`.container-inputs-${cargoId}`);
+                
+                const lines = textarea.value.trim().split('\n');
+                let validContainers = [];
+                
+                // Validate input
+                for (let line of lines) {
+                    const [containerNum, sealNum] = line.split(',').map(item => item.trim());
+                    if (containerNum && sealNum) {
+                        validContainers.push({ containerNum, sealNum });
+                    }
+                }
+                
+                // Add valid containers
+                validContainers.forEach((container, index) => {
+                    const currentCount = containerInputsDiv.querySelectorAll('.container-input-group').length;
+                    const html = `
+                        <div class="container-input-group flex gap-2 mb-2">
+                            <div class="flex-1">
+                                <input type="text" 
+                                    name="cargo_allocations[${cargoIndex}][containers][${currentCount + index}][number]" 
+                                    value="${container.containerNum}"
+                                    class="container-number w-full border-gray-300 rounded-md" 
+                                    required>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" 
+                                    name="cargo_allocations[${cargoIndex}][containers][${currentCount + index}][seal]" 
+                                    value="${container.sealNum}"
+                                    class="seal-number w-full border-gray-300 rounded-md" 
+                                    required>
+                            </div>
+                            <button type="button" 
+                                class="remove-container-btn bg-red-500 text-white px-3 py-1 rounded text-sm"
+                                onclick="removeContainer(this, '${cargoId}')">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                    containerInputsDiv.insertAdjacentHTML('beforeend', html);
                 });
                 
-                // Set initial max value and run initial count
-                const cargoId = textarea.id.split('_').pop();
-                const remainingElement = document.querySelector(`#remaining_slots_${cargoId}`);
-                remainingElement.setAttribute('data-max', remainingElement.textContent);
-                
-                // Run initial count in case there's pre-filled data
-                updateContainerCount(textarea);
+                updateContainerCount(cargoId);
+                textarea.value = ''; // Clear textarea after import
             });
         });
+
+        // Download sample CSV
+        window.downloadSampleCSV = function(event) {
+            event.preventDefault();
+            const sampleData = "CONT123456,SEAL789012\nCONT234567,SEAL890123";
+            const blob = new Blob([sampleData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sample_containers.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        };
+    });
     </script>
+
+    @push('styles')
+    <style>
+        /* Webkit browsers custom scrollbar */
+        .container-inputs-{{ $cargo->id }} {
+            scrollbar-width: thin;
+            scrollbar-color: #CBD5E1 #F1F5F9;
+        }
+        
+        .container-inputs-{{ $cargo->id }}::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .container-inputs-{{ $cargo->id }}::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+        
+        .container-inputs-{{ $cargo->id }}::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 4px;
+            border: 2px solid #F1F5F9;
+        }
+        
+        .container-inputs-{{ $cargo->id }}::-webkit-scrollbar-thumb:hover {
+            background-color: #94A3B8;
+        }
+    </style>
+    @endpush
     @endpush
 </x-app-layout> 

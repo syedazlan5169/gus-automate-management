@@ -94,7 +94,7 @@
                     <!-- Cargo Information -->
                     <div class="bg-gray-50 p-4 rounded-lg mb-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium">Cargo Information</h3>
+                            <h3 class="text-lg font-medium">Unallocated Cargo</h3>
                             @if($booking->status === 'New')
                                 <a href="{{ route('shipping-instructions.create', $booking) }}" 
                                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
@@ -113,17 +113,13 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($booking->cargos as $cargo)
+                                    @foreach($booking->cargos->whereNull('shipping_instruction_id') as $cargo)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $cargo->container_type }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $cargo->container_count }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ number_format($cargo->total_weight, 2) }} kg</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                @if($cargo->shipping_instruction_id)
-                                                    <span class="text-green-600">Allocated</span>
-                                                @else
-                                                    <span class="text-yellow-600">Pending Allocation</span>
-                                                @endif
+                                                <span class="text-yellow-600">Pending Allocation</span>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -149,6 +145,17 @@
                                                 <p class="text-sm text-gray-600">Consignee</p>
                                                 <p class="font-medium">{{ $si->consignee }}</p>
                                                 <p class="text-sm text-gray-500">{{ $si->contact_consignee }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                @foreach($booking->cargos->where('shipping_instruction_id', $si->id) as $cargo)
+                                                    <div class="text-sm">
+                                                        <span class="font-medium">{{ $cargo->container_type }}:</span>
+                                                        {{ $cargo->container_count }} units ({{ number_format($cargo->total_weight, 2) }} kg)
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
                                         <div class="mt-4">

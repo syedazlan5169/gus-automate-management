@@ -12,6 +12,7 @@ class CargoContainer extends Model
         'cargo_id',
         'container_number',
         'seal_number',
+        'shipping_instruction_id',
     ];
 
     /**
