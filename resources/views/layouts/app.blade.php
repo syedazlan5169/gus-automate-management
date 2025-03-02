@@ -34,7 +34,7 @@
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="lg:pl-72">
                 {{ $slot }}
             </main>
         </div>
