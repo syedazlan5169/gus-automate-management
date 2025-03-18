@@ -6,6 +6,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+/resources/views/sailing-schedule/create-new-ui.blade.php
 .env
 .env.backup
 .env.production
