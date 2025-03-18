@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest-split')] class extends Component
-{
+new #[Layout('layouts.guest-split')] class extends Component {
     public LoginForm $form;
 
     /**
@@ -21,7 +20,7 @@ new #[Layout('layouts.guest-split')] class extends Component
         Session::regenerate();
 
         $user = auth()->user();
-        
+
         if ($user->role === 'customer') {
             $this->redirect(route('client.dashboard'), navigate: true);
         } else {
@@ -33,7 +32,8 @@ new #[Layout('layouts.guest-split')] class extends Component
 <div class="flex min-h-screen">
     <!-- Left side - Image -->
     <div class="relative hidden w-1/2 lg:block">
-        <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('images/sign-in-img-02.webp') }}" alt="Background image">
+        <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('images/sign-in-img-02.webp') }}"
+            alt="Background image">
         <div class="absolute inset-0 bg-black/60"></div>
         <div class="absolute inset-0 bg-indigo-900/30 mix-blend-multiply"></div>
         <div class="absolute inset-0 flex items-center justify-center">
@@ -49,7 +49,7 @@ new #[Layout('layouts.guest-split')] class extends Component
         <div class="sm:mx-auto sm:w-full sm:max-w-sm">
             <div class="mb-10 flex flex-col items-center">
                 <a href="/" wire:navigate>
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+                    <x-application-logo-color class="fill-current text-gray-500" />
                 </a>
                 <h2 class="mt-6 text-2xl/9 font-bold tracking-tight text-gray-900">Sign in to your account</h2>
             </div>
@@ -60,7 +60,8 @@ new #[Layout('layouts.guest-split')] class extends Component
                 <!-- Email Address -->
                 <div>
                     <x-input-label for="email" :value="__('Email')" />
-                    <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
+                    <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email"
+                        required autofocus autocomplete="username" />
                     <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
                 </div>
 
@@ -69,16 +70,15 @@ new #[Layout('layouts.guest-split')] class extends Component
                     <div class="flex justify-between items-center">
                         <x-input-label for="password" :value="__('Password')" />
                         @if (Route::has('password.request'))
-                            <a class="text-sm text-blue-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}" wire:navigate>
+                            <a class="text-sm text-blue-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                href="{{ route('password.request') }}" wire:navigate>
                                 {{ __('Forgot your password?') }}
                             </a>
                         @endif
                     </div>
 
-                    <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
-                                type="password"
-                                name="password"
-                                required autocomplete="current-password" />
+                    <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full" type="password"
+                        name="password" required autocomplete="current-password" />
 
                     <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
                 </div>
@@ -86,7 +86,9 @@ new #[Layout('layouts.guest-split')] class extends Component
                 <!-- Remember Me -->
                 <div class="block mt-4">
                     <label for="remember" class="inline-flex items-center">
-                        <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
+                        <input wire:model="form.remember" id="remember" type="checkbox"
+                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            name="remember">
                         <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
                     </label>
                 </div>
@@ -100,7 +102,8 @@ new #[Layout('layouts.guest-split')] class extends Component
 
             <p class="mt-10 text-center text-sm/6 text-gray-500">
                 {{ __("Don't have an account?") }}
-                <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-indigo-500" wire:navigate>
+                <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-indigo-500"
+                    wire:navigate>
                     {{ __('Create new account here.') }}
                 </a>
             </p>

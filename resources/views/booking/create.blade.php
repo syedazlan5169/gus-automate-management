@@ -1,7 +1,7 @@
 <x-app-layout>
     <script>
         // Create a unique identifier for our event handler
-        const cargoEventHandler = function(e) {
+        const cargoEventHandler = function (e) {
             // Handle Add Container button
             if (e.target.matches('#add-cargo-row')) {
                 e.preventDefault(); // Prevent any default behavior
@@ -13,7 +13,7 @@
                 template.querySelector('select').selectedIndex = 0;
                 container.appendChild(template);
             }
-            
+
             // Handle Remove Container button
             if (e.target.closest('.remove-cargo-row')) {
                 e.preventDefault(); // Prevent any default behavior
@@ -32,208 +32,159 @@
         document.addEventListener('click', cargoEventHandler);
     </script>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h2 class="text-2xl font-semibold mb-6">Create New Booking</h2>
-                    
-                    <form method="POST" action="{{ route('booking.store') }}" class="space-y-6">
-                        @csrf
-                        
-                        <!-- Service Information -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Service Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <x-input-label for="service" value="Service Type" />
-                                    <select id="service" name="service" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                        <option value="">Select a service type</option>
-                                        <option value="SOC">Shipper Owned Container (SOC)</option>
-                                        <option value="COC">Carrier Owned Container (COC)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+    <div class="mx-auto flex w-full max-w-10xl flex-col px-4 py-10 sm:px-6 lg:px-8">
+        <!-- Header section -->
+        <div class="max-w-xl pb-8">
+            <h1 id="create-booking-heading" class="text-3xl font-bold tracking-tight text-gray-900">Create Booking</h1>
+            <p class="mt-2 text-sm text-gray-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam,
+                quos.</p>
+        </div>
 
-                        <!-- Schedule Selection -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Select Available Schedule</h3>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vessel</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voyage</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">POL</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">POD</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETS</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Space</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach([
-                                            [
-                                                'vessel' => 'EVER GIVEN',
-                                                'voyage' => 'EG123',
-                                                'liner_address' => '123 Shipping Lane, Port City',
-                                                'place_of_receipt' => 'Jakarta Warehouse',
-                                                'pol' => 'Singapore',
-                                                'pod' => 'Rotterdam',
-                                                'place_of_delivery' => 'Amsterdam DC',
-                                                'ets' => '2024-03-20T08:00',
-                                                'eta' => '2024-04-05T16:00',
-                                                'available_tonnage' => '500 TEU',
-                                                'vessel_capacity' => '20,000 TEU',
-                                                'transit_time' => '16 days',
-                                                'route' => 'Via Suez Canal',
-                                                'vessel_type' => 'Container Ship',
-                                                'service_type' => 'Weekly Service',
-                                                'remarks' => 'Reefer points available'
-                                            ],
-                                            [
-                                                'vessel' => 'MAERSK SEALAND',
-                                                'voyage' => 'MS456',
-                                                'liner_address' => '456 Harbor Road, Sea City',
-                                                'place_of_receipt' => 'Shenzhen DC',
-                                                'pol' => 'Shanghai',
-                                                'pod' => 'Hamburg',
-                                                'place_of_delivery' => 'Berlin Terminal',
-                                                'ets' => '2024-03-22T10:00',
-                                                'eta' => '2024-04-08T14:00',
-                                                'available_tonnage' => '300 TEU',
-                                                'vessel_capacity' => '15,000 TEU',
-                                                'transit_time' => '17 days',
-                                                'route' => 'Direct Service',
-                                                'vessel_type' => 'Container Ship',
-                                                'service_type' => 'Express Service',
-                                                'remarks' => 'Limited reefer points'
-                                            ],
-                                            [
-                                                'vessel' => 'CMA CGM MARCO POLO',
-                                                'voyage' => 'MP789',
-                                                'liner_address' => '789 Ocean Drive, Port Town',
-                                                'place_of_receipt' => 'Dubai Logistics Hub',
-                                                'pol' => 'Jebel Ali',
-                                                'pod' => 'Felixstowe',
-                                                'place_of_delivery' => 'London Gateway',
-                                                'ets' => '2024-03-25T09:00',
-                                                'eta' => '2024-04-12T11:00',
-                                                'available_tonnage' => '400 TEU',
-                                                'vessel_capacity' => '16,000 TEU',
-                                                'transit_time' => '18 days',
-                                                'route' => 'Via Mediterranean',
-                                                'vessel_type' => 'Container Ship',
-                                                'service_type' => 'Premium Service',
-                                                'remarks' => 'Dangerous goods accepted'
-                                            ],
-                                            [
-                                                'vessel' => 'COSCO SHIPPING UNIVERSE',
-                                                'voyage' => 'CSU101',
-                                                'liner_address' => '101 Port Avenue, Maritime City',
-                                                'place_of_receipt' => 'Busan Terminal',
-                                                'pol' => 'Busan',
-                                                'pod' => 'Los Angeles',
-                                                'place_of_delivery' => 'LA Distribution Center',
-                                                'ets' => '2024-03-28T14:00',
-                                                'eta' => '2024-04-11T08:00',
-                                                'available_tonnage' => '600 TEU',
-                                                'vessel_capacity' => '21,000 TEU',
-                                                'transit_time' => '14 days',
-                                                'route' => 'Trans-Pacific',
-                                                'vessel_type' => 'Container Ship',
-                                                'service_type' => 'Fast Service',
-                                                'remarks' => 'Special equipment available'
-                                            ],
-                                            [
-                                                'vessel' => 'MSC GÜLSÜN',
-                                                'voyage' => 'MG202',
-                                                'liner_address' => '202 Shipping Boulevard, Port Zone',
-                                                'place_of_receipt' => 'Ho Chi Minh City Depot',
-                                                'pol' => 'Ho Chi Minh City',
-                                                'pod' => 'Valencia',
-                                                'place_of_delivery' => 'Madrid Inland Terminal',
-                                                'ets' => '2024-03-30T16:00',
-                                                'eta' => '2024-04-18T10:00',
-                                                'available_tonnage' => '450 TEU',
-                                                'vessel_capacity' => '23,000 TEU',
-                                                'transit_time' => '19 days',
-                                                'route' => 'Asia-Mediterranean',
-                                                'vessel_type' => 'Container Ship',
-                                                'service_type' => 'Standard Service',
-                                                'remarks' => 'Oversized cargo accepted'
-                                            ]
-                                        ] as $schedule)
-                                        <tr class="hover:bg-gray-50 cursor-pointer" 
-                                            onclick="selectSchedule('{{ $schedule['vessel'] }}', '{{ $schedule['voyage'] }}', '{{ $schedule['liner_address'] }}', '{{ $schedule['place_of_receipt'] }}', '{{ $schedule['pol'] }}', '{{ $schedule['pod'] }}', '{{ $schedule['place_of_delivery'] }}', '{{ $schedule['ets'] }}', '{{ $schedule['eta'] }}')">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $schedule['vessel'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $schedule['voyage'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $schedule['pol'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $schedule['pod'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ date('Y-m-d H:i', strtotime($schedule['ets'])) }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $schedule['available_tonnage'] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <button type="button" 
-                                                    onclick="event.stopPropagation(); showDetails({{ json_encode($schedule) }})" 
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Details
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+        <!-- Content section with flex layout -->
+        <div class="flex items-start gap-x-8">
+            <main class="flex-1">
 
-                        <!-- Modal for voyage details -->
-                        <div id="detailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-                            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-                                <div class="mt-3">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900" id="modalTitle"></h3>
-                                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
-                                        <div id="modalContentLeft"></div>
-                                        <div id="modalContentRight"></div>
+                <!-- Main area -->
+                <div class="py-12">
+                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div class="p-6 text-gray-900">
+                                <h2 class="text-2xl font-semibold mb-6">Create New Booking</h2>
+
+                                <form method="POST" action="{{ route('booking.store') }}" class="space-y-6">
+                                    @csrf
+
+                                    <!-- Service Information -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Service Information</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <x-input-label for="service" value="Service Type" />
+                                                <select id="service" name="service"
+                                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                                    <option value="">Select a service type</option>
+                                                    <option value="SOC">Shipper Owned Container (SOC)</option>
+                                                    <option value="COC">Carrier Owned Container (COC)</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="mt-4">
-                                        <button type="button" 
-                                            onclick="closeModal()"
-                                            class="mt-3 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
-                                            Close
-                                        </button>
+
+                                    <!-- Schedule Selection -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Select Available Schedule</h3>
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Vessel</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Voyage</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            POL</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            POD</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            ETS</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Available Space</th>
+                                                        <th
+                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                            Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200">
+                                                    @foreach([['vessel' => 'EVER GIVEN', 'voyage' => 'EG123', 'liner_address' => '123 Shipping Lane, Port City', 'place_of_receipt' => 'Jakarta Warehouse', 'pol' => 'Singapore', 'pod' => 'Rotterdam', 'place_of_delivery' => 'Amsterdam DC', 'ets' => '2024-03-20T08:00', 'eta' => '2024-04-05T16:00', 'available_tonnage' => '500 TEU', 'vessel_capacity' => '20,000 TEU', 'transit_time' => '16 days', 'route' => 'Via Suez Canal', 'vessel_type' => 'Container Ship', 'service_type' => 'Weekly Service', 'remarks' => 'Reefer points available'], ['vessel' => 'MAERSK SEALAND', 'voyage' => 'MS456', 'liner_address' => '456 Harbor Road, Sea City', 'place_of_receipt' => 'Shenzhen DC', 'pol' => 'Shanghai', 'pod' => 'Hamburg', 'place_of_delivery' => 'Berlin Terminal', 'ets' => '2024-03-22T10:00', 'eta' => '2024-04-08T14:00', 'available_tonnage' => '300 TEU', 'vessel_capacity' => '15,000 TEU', 'transit_time' => '17 days', 'route' => 'Direct Service', 'vessel_type' => 'Container Ship', 'service_type' => 'Express Service', 'remarks' => 'Limited reefer points'], ['vessel' => 'CMA CGM MARCO POLO', 'voyage' => 'MP789', 'liner_address' => '789 Ocean Drive, Port Town', 'place_of_receipt' => 'Dubai Logistics Hub', 'pol' => 'Jebel Ali', 'pod' => 'Felixstowe', 'place_of_delivery' => 'London Gateway', 'ets' => '2024-03-25T09:00', 'eta' => '2024-04-12T11:00', 'available_tonnage' => '400 TEU', 'vessel_capacity' => '16,000 TEU', 'transit_time' => '18 days', 'route' => 'Via Mediterranean', 'vessel_type' => 'Container Ship', 'service_type' => 'Premium Service', 'remarks' => 'Dangerous goods accepted'], ['vessel' => 'COSCO SHIPPING UNIVERSE', 'voyage' => 'CSU101', 'liner_address' => '101 Port Avenue, Maritime City', 'place_of_receipt' => 'Busan Terminal', 'pol' => 'Busan', 'pod' => 'Los Angeles', 'place_of_delivery' => 'LA Distribution Center', 'ets' => '2024-03-28T14:00', 'eta' => '2024-04-11T08:00', 'available_tonnage' => '600 TEU', 'vessel_capacity' => '21,000 TEU', 'transit_time' => '14 days', 'route' => 'Trans-Pacific', 'vessel_type' => 'Container Ship', 'service_type' => 'Fast Service', 'remarks' => 'Special equipment available'], ['vessel' => 'MSC GÜLSÜN', 'voyage' => 'MG202', 'liner_address' => '202 Shipping Boulevard, Port Zone', 'place_of_receipt' => 'Ho Chi Minh City Depot', 'pol' => 'Ho Chi Minh City', 'pod' => 'Valencia', 'place_of_delivery' => 'Madrid Inland Terminal', 'ets' => '2024-03-30T16:00', 'eta' => '2024-04-18T10:00', 'available_tonnage' => '450 TEU', 'vessel_capacity' => '23,000 TEU', 'transit_time' => '19 days', 'route' => 'Asia-Mediterranean', 'vessel_type' => 'Container Ship', 'service_type' => 'Standard Service', 'remarks' => 'Oversized cargo accepted']] as $schedule)
+                                                        <tr class="hover:bg-gray-50 cursor-pointer"
+                                                            onclick="selectSchedule('{{ $schedule['vessel'] }}', '{{ $schedule['voyage'] }}', '{{ $schedule['liner_address'] }}', '{{ $schedule['place_of_receipt'] }}', '{{ $schedule['pol'] }}', '{{ $schedule['pod'] }}', '{{ $schedule['place_of_delivery'] }}', '{{ $schedule['ets'] }}', '{{ $schedule['eta'] }}')">
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ $schedule['vessel'] }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ $schedule['voyage'] }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ $schedule['pol'] }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ $schedule['pod'] }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ date('Y-m-d H:i', strtotime($schedule['ets'])) }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                {{ $schedule['available_tonnage'] }}
+                                                            </td>
+                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                <button type="button"
+                                                                    onclick="event.stopPropagation(); showDetails({{ json_encode($schedule) }})"
+                                                                    class="text-indigo-600 hover:text-indigo-900">
+                                                                    Details
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <script>
-                            function selectSchedule(vessel, voyage, linerAddress, placeOfReceipt, pol, pod, placeOfDelivery, ets, eta) {
-                                // Populate Shipping Details
-                                document.getElementById('vessel').value = vessel;
-                                document.getElementById('voyage').value = voyage;
-                                document.getElementById('liner_address').value = linerAddress;
-                                
-                                // Populate Route Information
-                                document.getElementById('place_of_receipt').value = placeOfReceipt;
-                                document.getElementById('pol').value = pol;
-                                document.getElementById('pod').value = pod;
-                                document.getElementById('place_of_delivery').value = placeOfDelivery;
-                                
-                                // Populate Schedule
-                                document.getElementById('ets').value = ets;
-                                document.getElementById('eta').value = eta;
-                            }
+                                    <!-- Modal for voyage details -->
+                                    <div id="detailsModal"
+                                        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                                        <div
+                                            class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+                                            <div class="mt-3">
+                                                <h3 class="text-lg font-medium leading-6 text-gray-900" id="modalTitle">
+                                                </h3>
+                                                <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                                                    <div id="modalContentLeft"></div>
+                                                    <div id="modalContentRight"></div>
+                                                </div>
+                                                <div class="mt-4">
+                                                    <button type="button" onclick="closeModal()"
+                                                        class="mt-3 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
+                                                        Close
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            function showDetails(schedule) {
-                                const modal = document.getElementById('detailsModal');
-                                const title = document.getElementById('modalTitle');
-                                const contentLeft = document.getElementById('modalContentLeft');
-                                const contentRight = document.getElementById('modalContentRight');
-                                
-                                title.textContent = `${schedule.vessel} - ${schedule.voyage}`;
-                                
-                                const leftContent = `
+                                    <script>
+                                        function selectSchedule(vessel, voyage, linerAddress, placeOfReceipt, pol, pod, placeOfDelivery, ets, eta) {
+                                            // Populate Shipping Details
+                                            document.getElementById('vessel').value = vessel;
+                                            document.getElementById('voyage').value = voyage;
+                                            document.getElementById('liner_address').value = linerAddress;
+
+                                            // Populate Route Information
+                                            document.getElementById('place_of_receipt').value = placeOfReceipt;
+                                            document.getElementById('pol').value = pol;
+                                            document.getElementById('pod').value = pod;
+                                            document.getElementById('place_of_delivery').value = placeOfDelivery;
+
+                                            // Populate Schedule
+                                            document.getElementById('ets').value = ets;
+                                            document.getElementById('eta').value = eta;
+                                        }
+
+                                        function showDetails(schedule) {
+                                            const modal = document.getElementById('detailsModal');
+                                            const title = document.getElementById('modalTitle');
+                                            const contentLeft = document.getElementById('modalContentLeft');
+                                            const contentRight = document.getElementById('modalContentRight');
+
+                                            title.textContent = `${schedule.vessel} - ${schedule.voyage}`;
+
+                                            const leftContent = `
                                     <p class="font-medium mb-2">Vessel Information</p>
                                     <p>Vessel Type: ${schedule.vessel_type}</p>
                                     <p>Vessel Capacity: ${schedule.vessel_capacity}</p>
@@ -244,7 +195,7 @@
                                     <p>Transit Time: ${schedule.transit_time}</p>
                                 `;
 
-                                const rightContent = `
+                                            const rightContent = `
                                     <p class="font-medium mb-2">Route Details</p>
                                     <p>Place of Receipt: ${schedule.place_of_receipt}</p>
                                     <p>Port of Loading: ${schedule.pol}</p>
@@ -256,128 +207,303 @@
                                     <p>Remarks: ${schedule.remarks}</p>
                                 `;
 
-                                contentLeft.innerHTML = leftContent;
-                                contentRight.innerHTML = rightContent;
-                                
-                                modal.classList.remove('hidden');
-                            }
+                                            contentLeft.innerHTML = leftContent;
+                                            contentRight.innerHTML = rightContent;
 
-                            function formatDateTime(dateTimeStr) {
-                                return new Date(dateTimeStr).toLocaleString();
-                            }
+                                            modal.classList.remove('hidden');
+                                        }
 
-                            function closeModal() {
-                                document.getElementById('detailsModal').classList.add('hidden');
-                            }
-                        </script>
+                                        function formatDateTime(dateTimeStr) {
+                                            return new Date(dateTimeStr).toLocaleString();
+                                        }
 
-                        <!-- Shipping Details -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Shipping Details</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <x-input-label for="vessel" value="Vessel" />
-                                    <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="voyage" value="Voyage" />
-                                    <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="liner_address" value="Liner Address" />
-                                    <x-text-input id="liner_address" name="liner_address" type="text" class="mt-1 block w-full" />
-                                </div>
-                            </div>
-                        </div>
+                                        function closeModal() {
+                                            document.getElementById('detailsModal').classList.add('hidden');
+                                        }
+                                    </script>
 
-                        <!-- Route Information -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Route Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <x-input-label for="place_of_receipt" value="Place of Receipt" />
-                                    <x-text-input id="place_of_receipt" name="place_of_receipt" type="text" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="pol" value="Port of Loading (POL)" />
-                                    <x-text-input id="pol" name="pol" type="text" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="pod" value="Port of Discharge (POD)" />
-                                    <x-text-input id="pod" name="pod" type="text" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="place_of_delivery" value="Place of Delivery" />
-                                    <x-text-input id="place_of_delivery" name="place_of_delivery" type="text" class="mt-1 block w-full" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Schedule -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Schedule</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
-                                    <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
-                                    <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Cargo Details -->
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="text-lg font-medium mb-4">Cargo Details</h3>
-                            <div id="cargo-container">
-                                <!-- Template for cargo rows -->
-                                <div class="cargo-row grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                                    <div>
-                                        <x-input-label for="container_type[]" value="Container Type" />
-                                        <select name="container_type[]" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            <option value="">Select container type</option>
-                                            <option value="20GP">20' General Purpose</option>
-                                            <option value="40GP">40' General Purpose</option>
-                                            <option value="40HC">40' High Cube</option>
-                                            <option value="20RF">20' Reefer</option>
-                                            <option value="40RF">40' Reefer</option>
-                                        </select>
+                                    <!-- Shipping Details -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Shipping Details</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <x-input-label for="vessel" value="Vessel" />
+                                                <x-text-input id="vessel" name="vessel" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="voyage" value="Voyage" />
+                                                <x-text-input id="voyage" name="voyage" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="liner_address" value="Liner Address" />
+                                                <x-text-input id="liner_address" name="liner_address" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <x-input-label for="container_count[]" value="Number of Containers" />
-                                        <x-text-input name="container_count[]" type="number" min="1" class="mt-1 block w-full" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="total_weight[]" value="Total Weight (kg)" />
-                                        <x-text-input name="total_weight[]" type="number" step="0.01" class="mt-1 block w-full" />
-                                    </div>
-                                    <div class="flex items-end">
-                                        <button type="button" class="remove-cargo-row text-red-600 hover:text-red-800 mt-1">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-4">
-                                <button type="button" id="add-cargo-row" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                                    Add Container
-                                </button>
-                            </div>
-                        </div>
 
-                        <div class="flex justify-end">
-                            <x-primary-button>
-                                Create Booking
-                            </x-primary-button>
+                                    <!-- Route Information -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Route Information</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <x-input-label for="place_of_receipt" value="Place of Receipt" />
+                                                <x-text-input id="place_of_receipt" name="place_of_receipt" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="pol" value="Port of Loading (POL)" />
+                                                <x-text-input id="pol" name="pol" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="pod" value="Port of Discharge (POD)" />
+                                                <x-text-input id="pod" name="pod" type="text"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="place_of_delivery" value="Place of Delivery" />
+                                                <x-text-input id="place_of_delivery" name="place_of_delivery"
+                                                    type="text" class="mt-1 block w-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Schedule -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Schedule</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
+                                                <x-text-input id="ets" name="ets" type="datetime-local"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
+                                                <x-text-input id="eta" name="eta" type="datetime-local"
+                                                    class="mt-1 block w-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cargo Details -->
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="text-lg font-medium mb-4">Cargo Details</h3>
+                                        <div id="cargo-container">
+                                            <!-- Template for cargo rows -->
+                                            <div class="cargo-row grid grid-cols-10 gap-4 mb-4">
+                                                <div class="col-span-3">
+                                                    <x-input-label for="container_type[]" value="Container Type" />
+                                                    <select name="container_type[]"
+                                                        class="mt-2 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                                        <option value="">Select container type</option>
+                                                        <option value="20GP">20' General Purpose</option>
+                                                        <option value="40GP">40' General Purpose</option>
+                                                        <option value="40HC">40' High Cube</option>
+                                                        <option value="20RF">20' Reefer</option>
+                                                        <option value="40RF">40' Reefer</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-span-3">
+                                                    <x-input-label for="container_count[]"
+                                                        value="Number of Containers" />
+                                                    <x-text-input name="container_count[]" type="number" min="1"
+                                                        class="mt-1 block w-full" />
+                                                </div>
+                                                <div class="col-span-3">
+                                                    <x-input-label for="total_weight[]" value="Total Weight (kg)" />
+                                                    <x-text-input name="total_weight[]" type="number" step="0.01"
+                                                        class="mt-1 block w-full" />
+                                                </div>
+                                                <div class="col-span-1 flex items-end">
+                                                    <button type="button"
+                                                        class="remove-cargo-row text-red-600 hover:text-red-800 mt-1">
+                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button type="button" id="add-cargo-row"
+                                                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                                                Add Container
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-end">
+                                        <x-primary-button>
+                                            Create Booking
+                                        </x-primary-button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+            </main>
+
+            <aside class="sticky top-8 hidden w-96 shrink-0 xl:block">
+                <!-- Right column area -->
+                <div class="overflow-hidden rounded-lg bg-white shadow">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="flow-root">
+                            <ul role="list" class="-mb-8">
+                                <li>
+                                    <div class="relative pb-8">
+                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                            aria-hidden="true"></span>
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span
+                                                    class="flex size-8 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white">
+                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                        <path
+                                                            d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Applied to <a href="#"
+                                                            class="font-medium text-gray-900">Front
+                                                            End Developer</a></p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time datetime="2020-09-20">Sep 20</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                            aria-hidden="true"></span>
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span
+                                                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 ring-8 ring-white">
+                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                        <path
+                                                            d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0 1 14 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 0 1-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 0 1-1.341-.317l-2.734-1.366A3 3 0 0 0 6.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 0 1 2.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388Z" />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Advanced to phone screening by <a
+                                                            href="#" class="font-medium text-gray-900">Bethany Blake</a>
+                                                    </p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time datetime="2020-09-22">Sep 22</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                            aria-hidden="true"></span>
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span
+                                                    class="flex size-8 items-center justify-center rounded-full bg-green-500 ring-8 ring-white">
+                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                        <path fill-rule="evenodd"
+                                                            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Completed phone screening with <a
+                                                            href="#" class="font-medium text-gray-900">Martha
+                                                            Gardner</a>
+                                                    </p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time datetime="2020-09-28">Sep 28</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                                            aria-hidden="true"></span>
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span
+                                                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 ring-8 ring-white">
+                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                        <path
+                                                            d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0 1 14 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 0 1-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 0 1-1.341-.317l-2.734-1.366A3 3 0 0 0 6.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 0 1 2.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388Z" />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Advanced to interview by <a
+                                                            href="#" class="font-medium text-gray-900">Bethany Blake</a>
+                                                    </p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time datetime="2020-09-30">Sep 30</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span
+                                                    class="flex size-8 items-center justify-center rounded-full bg-green-500 ring-8 ring-white">
+                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
+                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                        <path fill-rule="evenodd"
+                                                            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-500">Completed interview with <a
+                                                            href="#" class="font-medium text-gray-900">Katherine
+                                                            Snyder</a></p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time datetime="2020-10-04">Oct 4</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 </x-app-layout>

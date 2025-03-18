@@ -9,13 +9,19 @@ Route::redirect('/', '/login');
 // Auth middleware Group
 Route::middleware(['auth'])->group(function () {
     Route::view('profile', 'profile')->name('profile');
-    
-    
+
+
     // Client middleware Group
     Route::middleware(['verified'])->group(function () {
         Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
         Route::view('client-portal/booking/create', 'booking.create')->name('booking.create');
         Route::get('client-portal/booking/index', [BookingController::class, 'clientIndex'])->name('client.bookings.index');
+
+        // Temporary route for testing
+        Route::view('client-portal/booking/create-new-ui', 'booking.create-new-ui')->name('booking.create');
+        Route::view('client-portal/booking/index-new-ui', 'booking.index-new-ui')->name('booking.index-new-ui');
+        Route::view('client-portal/sailing-schedule/create-new-ui', 'sailing-schedule.create-new-ui')->name('sailing-schedule.create-new-ui');
+
 
         // Booking routes
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
@@ -37,6 +43,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('shipping-instructions/{shippingInstruction}/bl', [ShippingInstructionController::class, 'generateBL'])
             ->name('shipping-instructions.bl');
 
+        // New UI routes
+        Route::view('client-portal/shipping-instructions/create-new-ui', 'shipping-instructions.create-new-ui-si')->name('shipping-instructions.create-new-ui');
+
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
             Route::view('dashboard', 'admin.dashboard')->name('admin.dashboard');
@@ -46,4 +55,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
