@@ -10,13 +10,13 @@ class BookingController extends Controller
     /**
      * Display a listing of the bookings.
      */
-    public function index()
+    public function adminBookingIndex()
     {
         $bookings = Booking::all();
         return view('booking.index', compact('bookings'));
     }
 
-    public function clientIndex()
+    public function clientBookingIndex()
     {
         $bookings = Booking::where('user_id', auth()->id())->get();
         return view('booking.index', compact('bookings'));

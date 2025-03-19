@@ -15,13 +15,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['verified'])->group(function () {
         Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
         Route::view('client-portal/booking/create', 'booking.create')->name('booking.create');
-        Route::get('client-portal/booking/index', [BookingController::class, 'clientIndex'])->name('client.bookings.index');
-
-        // Temporary route for testing
-        Route::view('client-portal/booking/create-new-ui', 'booking.create-new-ui')->name('booking.create');
-        Route::view('client-portal/booking/index-new-ui', 'booking.index-new-ui')->name('booking.index-new-ui');
-        Route::view('client-portal/sailing-schedule/create-new-ui', 'sailing-schedule.create-new-ui')->name('sailing-schedule.create-new-ui');
-
+        Route::get('client-portal/booking/index', [BookingController::class, 'clientBookingIndex'])->name('client.bookings.index');
 
         // Booking routes
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');

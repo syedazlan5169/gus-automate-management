@@ -1,506 +1,860 @@
 <x-app-layout>
-    <script>
-        // Create a unique identifier for our event handler
-        const cargoEventHandler = function (e) {
-            // Handle Add Container button
-            if (e.target.matches('#add-cargo-row')) {
-                e.preventDefault(); // Prevent any default behavior
-                e.stopPropagation(); // Stop event bubbling
-                const container = document.getElementById('cargo-container');
-                const template = container.querySelector('.cargo-row').cloneNode(true);
-                // Clear input values
-                template.querySelectorAll('input').forEach(input => input.value = '');
-                template.querySelector('select').selectedIndex = 0;
-                container.appendChild(template);
-            }
-
-            // Handle Remove Container button
-            if (e.target.closest('.remove-cargo-row')) {
-                e.preventDefault(); // Prevent any default behavior
-                e.stopPropagation(); // Stop event bubbling
-                const container = document.getElementById('cargo-container');
-                const row = e.target.closest('.cargo-row');
-                // Only remove if there's more than one row
-                if (container.querySelectorAll('.cargo-row').length > 1) {
-                    row.remove();
-                }
-            }
-        };
-
-        // Remove existing event listener before adding a new one
-        document.removeEventListener('click', cargoEventHandler);
-        document.addEventListener('click', cargoEventHandler);
-    </script>
-
     <div class="mx-auto flex w-full max-w-10xl flex-col px-4 py-10 sm:px-6 lg:px-8">
         <!-- Header section -->
-        <div class="max-w-xl pb-8">
+        <div class="max-w-xl pb-8 space-y-2">
+            <!-- Breadcrumb -->
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol role="list" class="flex items-center space-x-4">
+                    <li>
+                        <div>
+                            <a href="#" class="text-gray-400 hover:text-gray-500">
+                                <svg class="size-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                                    data-slot="icon">
+                                    <path fill-rule="evenodd"
+                                        d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                <span class="sr-only">Home</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
+                                aria-hidden="true" data-slot="icon">
+                                <path fill-rule="evenodd"
+                                    d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Projects</a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
+                                aria-hidden="true" data-slot="icon">
+                                <path fill-rule="evenodd"
+                                    d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                aria-current="page">Project
+                                Nero</a>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Heading -->
             <h1 id="create-booking-heading" class="text-3xl font-bold tracking-tight text-gray-900">Create Booking</h1>
-            <p class="mt-2 text-sm text-gray-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam,
-                quos.</p>
         </div>
 
         <!-- Content section with flex layout -->
         <div class="flex items-start gap-x-8">
+            <!-- Left column area -->
             <main class="flex-1">
+                <div class="overflow-hidden rounded-lg bg-white shadow">
+                    <div class="px-4 py-5 sm:p-6">
+                        <form>
+                            <div class="space-y-12">
+                                <!-- Service Information -->
+                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                    <fieldset>
+                                        <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
+                                        <div class="mt-6 flex gap-x-6">
+                                            <div class="flex items-center gap-x-3">
+                                                <input id="push-everything" name="push-notifications" type="radio"
+                                                    checked
+                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
+                                                <label for="push-everything"
+                                                    class="block text-sm/6 font-medium text-gray-900">Shipped Owned
+                                                    Container (SOC)</label>
+                                            </div>
+                                            <div class="flex items-center gap-x-3">
+                                                <input id="push-email" name="push-notifications" type="radio"
+                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
+                                                <label for="push-email"
+                                                    class="block text-sm/6 font-medium text-gray-900">Carrier Owned
+                                                    Container (COC)</label>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
 
-                <!-- Main area -->
-                <div class="py-12">
-                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                            <div class="p-6 text-gray-900">
-                                <h2 class="text-2xl font-semibold mb-6">Create New Booking</h2>
+                                <!-- Shipping Schedule -->
+                                <div class="hidden border-b border-gray-900/10 pb-12 space-y-6">
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Shipping Schedule</h2>
+                                    <div class="md:grid md:grid-cols-3 md:divide-x md:divide-gray-200">
+                                        <div class="md:pr-14">
+                                            <div class="flex items-center">
+                                                <h2 class="flex-auto text-sm font-semibold text-gray-900">January 2022
+                                                </h2>
+                                                <button type="button"
+                                                    class="-my-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500">
+                                                    <span class="sr-only">Previous month</span>
+                                                    <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"
+                                                        aria-hidden="true" data-slot="icon">
+                                                        <path fill-rule="evenodd"
+                                                            d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                <button type="button"
+                                                    class="-my-1.5 -mr-1.5 ml-2 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500">
+                                                    <span class="sr-only">Next month</span>
+                                                    <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"
+                                                        aria-hidden="true" data-slot="icon">
+                                                        <path fill-rule="evenodd"
+                                                            d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="mt-10 grid grid-cols-7 text-center text-xs/6 text-gray-500">
+                                                <div>M</div>
+                                                <div>T</div>
+                                                <div>W</div>
+                                                <div>T</div>
+                                                <div>F</div>
+                                                <div>S</div>
+                                                <div>S</div>
+                                            </div>
+                                            <div class="mt-2 grid grid-cols-7 text-sm">
+                                                <div class="py-2">
+                                                    <!--
+                                                    Always include: "mx-auto flex size-8 items-center justify-center rounded-full"
+                                                    Is selected, include: "text-white"
+                                                    Is not selected and is today, include: "text-indigo-600"
+                                                    Is not selected and is not today and is current month, include: "text-gray-900"
+                                                    Is not selected and is not today and is not current month, include: "text-gray-400"
+                                                    Is selected and is today, include: "bg-indigo-600"
+                                                    Is selected and is not today, include: "bg-gray-900"
+                                                    Is not selected, include: "hover:bg-gray-200"
+                                                    Is selected or is today, include: "font-semibold"
+                                                    -->
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2021-12-27">27</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2021-12-28">28</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2021-12-29">29</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2021-12-30">30</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2021-12-31">31</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-01">1</time>
+                                                    </button>
+                                                </div>
+                                                <div class="py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-02">2</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-03">3</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-04">4</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-05">5</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-06">6</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-07">7</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-08">8</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-09">9</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-10">10</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-11">11</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full font-semibold text-indigo-600 hover:bg-gray-200">
+                                                        <time datetime="2022-01-12">12</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-13">13</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-14">14</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-15">15</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-16">16</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-17">17</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-18">18</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-19">19</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-20">20</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
+                                                        <time datetime="2022-01-21">21</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-22">22</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-23">23</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-24">24</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-25">25</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-26">26</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-27">27</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-28">28</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-29">29</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-30">30</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-900 hover:bg-gray-200">
+                                                        <time datetime="2022-01-31">31</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-01">1</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-02">2</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-03">3</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-04">4</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-05">5</time>
+                                                    </button>
+                                                </div>
+                                                <div class="border-t border-gray-200 py-2">
+                                                    <button type="button"
+                                                        class="mx-auto flex size-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200">
+                                                        <time datetime="2022-02-06">6</time>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <section class="mt-12 md:mt-0 md:pl-14 col-span-2 space-y-4">
+                                            <h2 class="text-base font-semibold text-gray-900">Schedule for <time
+                                                    datetime="2022-01-21">January 21, 2022</time></h2>
+                                            <ul role="list" class="space-y-4">
+                                                <li
+                                                    class="flex items-center justify-between gap-x-6 py-5 border border-gray-200 rounded-lg p-4">
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-start gap-x-3">
+                                                            <p class="text-sm/6 font-semibold text-gray-900">MAERSK
+                                                                Sailing Ship
+                                                            </p> <span
+                                                                class="rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Voyage
+                                                                No: ECG 441</span>
+                                                        </div>
+                                                        <div
+                                                            class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+                                                            <p class="whitespace-nowrap">Singapore | <time
+                                                                    datetime="2023-03-17T00:00Z">8:00 AM</time>
+                                                            </p>
+                                                            <p>→</p>
+                                                            <p class="truncate">Johor Port | <time
+                                                                    datetime="2023-03-17T00:00Z">01:00 PM</time>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex flex-none items-center gap-x-4">
+                                                        <a href="#"
+                                                            class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">View
+                                                            details
+                                                            <span class="sr-only">, GraphQL API</span></a>
+                                                    </div>
+                                                </li>
 
-                                <form method="POST" action="{{ route('booking.store') }}" class="space-y-6">
-                                    @csrf
+                                                <li
+                                                    class="flex items-center justify-between gap-x-6 py-5 border border-gray-200 rounded-lg p-4">
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-start gap-x-3">
+                                                            <p class="text-sm/6 font-semibold text-gray-900">MAERSK
+                                                                Sailing Ship
+                                                            </p> <span
+                                                                class="rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Voyage
+                                                                No: ECG 441</span>
+                                                        </div>
+                                                        <div
+                                                            class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+                                                            <p class="whitespace-nowrap">Singapore | <time
+                                                                    datetime="2023-03-17T00:00Z">8:00 AM</time>
+                                                            </p>
+                                                            <p>→</p>
+                                                            <p class="truncate">Johor Port | <time
+                                                                    datetime="2023-03-17T00:00Z">01:00 PM</time>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex flex-none items-center gap-x-4">
+                                                        <a href="#"
+                                                            class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">View
+                                                            details
+                                                            <span class="sr-only">, GraphQL API</span></a>
+                                                    </div>
+                                                </li>
 
-                                    <!-- Service Information -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Service Information</h3>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <x-input-label for="service" value="Service Type" />
-                                                <select id="service" name="service"
-                                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                                    <option value="">Select a service type</option>
-                                                    <option value="SOC">Shipper Owned Container (SOC)</option>
-                                                    <option value="COC">Carrier Owned Container (COC)</option>
-                                                </select>
+                                                <li
+                                                    class="flex items-center justify-between gap-x-6 py-5 border border-gray-200 rounded-lg p-4">
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-start gap-x-3">
+                                                            <p class="text-sm/6 font-semibold text-gray-900">MAERSK
+                                                                Sailing Ship
+                                                            </p> <span
+                                                                class="rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Voyage
+                                                                No: ECG 441</span>
+                                                        </div>
+                                                        <div
+                                                            class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+                                                            <p class="whitespace-nowrap">Singapore | <time
+                                                                    datetime="2023-03-17T00:00Z">8:00 AM</time>
+                                                            </p>
+                                                            <p>→</p>
+                                                            <p class="truncate">Johor Port | <time
+                                                                    datetime="2023-03-17T00:00Z">01:00 PM</time>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex flex-none items-center gap-x-4">
+                                                        <a href="#"
+                                                            class="hidden rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:block">View
+                                                            details
+                                                            <span class="sr-only">, GraphQL API</span></a>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </section>
+                                    </div>
+
+                                </div>
+
+                                <!-- Route Information -->
+                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Route Information</h2>
+                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                        <div class="sm:col-span-3">
+                                            <label for="first-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Place of
+                                                Receipt</label>
+                                            <div class="mt-2">
+                                                <input type="text" name="first-name" id="first-name"
+                                                    autocomplete="given-name"
+                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                            </div>
+                                        </div>
+
+                                        <div class="sm:col-span-3">
+                                            <label for="last-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Port of Loading
+                                                (POL)</label>
+                                            <div class="mt-2">
+                                                <input type="text" name="last-name" id="last-name"
+                                                    autocomplete="family-name"
+                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                            </div>
+                                        </div>
+
+                                        <div class="sm:col-span-3">
+                                            <label for="first-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Place of
+                                                Delivery</label>
+                                            <div class="mt-2">
+                                                <input type="text" name="first-name" id="first-name"
+                                                    autocomplete="given-name"
+                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                            </div>
+                                        </div>
+
+                                        <div class="sm:col-span-3">
+                                            <label for="last-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Port of Discharge
+                                                (POD)</label>
+                                            <div class="mt-2">
+                                                <input type="text" name="last-name" id="last-name"
+                                                    autocomplete="family-name"
+                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Schedule Selection -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Select Available Schedule</h3>
-                                        <div class="overflow-x-auto">
-                                            <table class="min-w-full divide-y divide-gray-200">
-                                                <thead class="bg-gray-50">
-                                                    <tr>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            Vessel</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            Voyage</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            POL</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            POD</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            ETS</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            Available Space</th>
-                                                        <th
-                                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                            Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="bg-white divide-y divide-gray-200">
-                                                    @foreach([['vessel' => 'EVER GIVEN', 'voyage' => 'EG123', 'liner_address' => '123 Shipping Lane, Port City', 'place_of_receipt' => 'Jakarta Warehouse', 'pol' => 'Singapore', 'pod' => 'Rotterdam', 'place_of_delivery' => 'Amsterdam DC', 'ets' => '2024-03-20T08:00', 'eta' => '2024-04-05T16:00', 'available_tonnage' => '500 TEU', 'vessel_capacity' => '20,000 TEU', 'transit_time' => '16 days', 'route' => 'Via Suez Canal', 'vessel_type' => 'Container Ship', 'service_type' => 'Weekly Service', 'remarks' => 'Reefer points available'], ['vessel' => 'MAERSK SEALAND', 'voyage' => 'MS456', 'liner_address' => '456 Harbor Road, Sea City', 'place_of_receipt' => 'Shenzhen DC', 'pol' => 'Shanghai', 'pod' => 'Hamburg', 'place_of_delivery' => 'Berlin Terminal', 'ets' => '2024-03-22T10:00', 'eta' => '2024-04-08T14:00', 'available_tonnage' => '300 TEU', 'vessel_capacity' => '15,000 TEU', 'transit_time' => '17 days', 'route' => 'Direct Service', 'vessel_type' => 'Container Ship', 'service_type' => 'Express Service', 'remarks' => 'Limited reefer points'], ['vessel' => 'CMA CGM MARCO POLO', 'voyage' => 'MP789', 'liner_address' => '789 Ocean Drive, Port Town', 'place_of_receipt' => 'Dubai Logistics Hub', 'pol' => 'Jebel Ali', 'pod' => 'Felixstowe', 'place_of_delivery' => 'London Gateway', 'ets' => '2024-03-25T09:00', 'eta' => '2024-04-12T11:00', 'available_tonnage' => '400 TEU', 'vessel_capacity' => '16,000 TEU', 'transit_time' => '18 days', 'route' => 'Via Mediterranean', 'vessel_type' => 'Container Ship', 'service_type' => 'Premium Service', 'remarks' => 'Dangerous goods accepted'], ['vessel' => 'COSCO SHIPPING UNIVERSE', 'voyage' => 'CSU101', 'liner_address' => '101 Port Avenue, Maritime City', 'place_of_receipt' => 'Busan Terminal', 'pol' => 'Busan', 'pod' => 'Los Angeles', 'place_of_delivery' => 'LA Distribution Center', 'ets' => '2024-03-28T14:00', 'eta' => '2024-04-11T08:00', 'available_tonnage' => '600 TEU', 'vessel_capacity' => '21,000 TEU', 'transit_time' => '14 days', 'route' => 'Trans-Pacific', 'vessel_type' => 'Container Ship', 'service_type' => 'Fast Service', 'remarks' => 'Special equipment available'], ['vessel' => 'MSC GÜLSÜN', 'voyage' => 'MG202', 'liner_address' => '202 Shipping Boulevard, Port Zone', 'place_of_receipt' => 'Ho Chi Minh City Depot', 'pol' => 'Ho Chi Minh City', 'pod' => 'Valencia', 'place_of_delivery' => 'Madrid Inland Terminal', 'ets' => '2024-03-30T16:00', 'eta' => '2024-04-18T10:00', 'available_tonnage' => '450 TEU', 'vessel_capacity' => '23,000 TEU', 'transit_time' => '19 days', 'route' => 'Asia-Mediterranean', 'vessel_type' => 'Container Ship', 'service_type' => 'Standard Service', 'remarks' => 'Oversized cargo accepted']] as $schedule)
-                                                        <tr class="hover:bg-gray-50 cursor-pointer"
-                                                            onclick="selectSchedule('{{ $schedule['vessel'] }}', '{{ $schedule['voyage'] }}', '{{ $schedule['liner_address'] }}', '{{ $schedule['place_of_receipt'] }}', '{{ $schedule['pol'] }}', '{{ $schedule['pod'] }}', '{{ $schedule['place_of_delivery'] }}', '{{ $schedule['ets'] }}', '{{ $schedule['eta'] }}')">
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $schedule['vessel'] }}
+                                <!-- Schedule Information -->
+                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
+                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                        <div class="sm:col-span-3">
+                                            <label for="first-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Estimated Time of
+                                                Sailing (ETS)</label>
+                                            <x-text-input id="ets" name="ets" type="datetime-local"
+                                                class="mt-1 block w-full" />
+                                        </div>
+
+                                        <div class="sm:col-span-3">
+                                            <label for="last-name"
+                                                class="block text-sm/6 font-medium text-gray-900">Estimated Time of
+                                                Arrival (ETA)</label>
+                                            <x-text-input id="eta" name="eta" type="datetime-local"
+                                                class="mt-1 block w-full" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cargo Information -->
+                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Cargo Information</h2>
+
+                                    <div class="mt-8 flow-root">
+                                        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                                            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                                <table class="min-w-full divide-y divide-gray-300">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col"
+                                                                class="w-1/3 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                                Container Type</th>
+                                                            <th scope="col"
+                                                                class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Number of Containers</th>
+                                                            <th scope="col"
+                                                                class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Total Weight (kg)</th>
+                                                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                                                                <span class="sr-only">Edit</span>
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-200">
+                                                        <tr>
+                                                            <td
+                                                                class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                                                                <select name="container_type[]"
+                                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                                                    <option value="">Select container type</option>
+                                                                    <option value="20GP">20' General Purpose</option>
+                                                                    <option value="40GP">40' General Purpose</option>
+                                                                    <option value="40HC">40' High Cube</option>
+                                                                    <option value="20RF">20' Reefer</option>
+                                                                    <option value="40RF">40' Reefer</option>
+                                                                </select>
                                                             </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $schedule['voyage'] }}
+                                                            <td
+                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="container_count[]" type="number"
+                                                                    min="1" class="" />
                                                             </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $schedule['pol'] }}
+                                                            <td
+                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="total_weight[]" type="number"
+                                                                    step="0.01" class="" />
                                                             </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $schedule['pod'] }}
-                                                            </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ date('Y-m-d H:i', strtotime($schedule['ets'])) }}
-                                                            </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $schedule['available_tonnage'] }}
-                                                            </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td
+                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
                                                                 <button type="button"
-                                                                    onclick="event.stopPropagation(); showDetails({{ json_encode($schedule) }})"
-                                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                                    Details
+                                                                    class="text-red-600 hover:text-red-900">
+                                                                    <span class="sr-only">Delete</span>
+                                                                    <svg class="size-5" viewBox="0 0 20 20"
+                                                                        fill="currentColor" aria-hidden="true">
+                                                                        <path fill-rule="evenodd"
+                                                                            d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                                                                            clip-rule="evenodd" />
+                                                                    </svg>
+                                                                </button>
+                                                            </td>
+                                                            <td
+                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
+                                                                <button type="button"
+                                                                    class="text-gray-400 hover:text-gray-500">
+                                                                    <span class="sr-only">Add</span>
+                                                                    <svg class="size-5" viewBox="0 0 20 20"
+                                                                        fill="currentColor" aria-hidden="true">
+                                                                        <path
+                                                                            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                                                    </svg>
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+
+                                                        <tr>
+                                                            <td
+                                                                class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                                                                <select name="container_type[]"
+                                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                                                    <option value="">Select container type</option>
+                                                                    <option value="20GP">20' General Purpose</option>
+                                                                    <option value="40GP">40' General Purpose</option>
+                                                                    <option value="40HC">40' High Cube</option>
+                                                                    <option value="20RF">20' Reefer</option>
+                                                                    <option value="40RF">40' Reefer</option>
+                                                                </select>
+                                                            </td>
+                                                            <td
+                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="container_count[]" type="number"
+                                                                    min="1" class="" />
+                                                            </td>
+                                                            <td
+                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="total_weight[]" type="number"
+                                                                    step="0.01" class="" />
+                                                            </td>
+                                                            <td
+                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                                                                <button type="button"
+                                                                    class="text-red-600 hover:text-red-900">
+                                                                    <span class="sr-only">Delete</span>
+                                                                    <svg class="size-5" viewBox="0 0 20 20"
+                                                                        fill="currentColor" aria-hidden="true">
+                                                                        <path fill-rule="evenodd"
+                                                                            d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                                                                            clip-rule="evenodd" />
+                                                                    </svg>
+                                                                </button>
+                                                            </td>
+                                                            <td
+                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
+                                                                <button type="button"
+                                                                    class="text-gray-400 hover:text-gray-500">
+                                                                    <span class="sr-only">Add</span>
+                                                                    <svg class="size-5" viewBox="0 0 20 20"
+                                                                        fill="currentColor" aria-hidden="true">
+                                                                        <path
+                                                                            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Modal for voyage details -->
-                                    <div id="detailsModal"
-                                        class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                                <!-- Modal -->
+                                <div id="confirm-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                    role="dialog" aria-modal="true">
+                                    <!--
+                                    Background backdrop, show/hide based on modal state.
+
+                                    Entering: "ease-out duration-300"
+                                    From: "opacity-0"
+                                    To: "opacity-100"
+                                    Leaving: "ease-in duration-200"
+                                    From: "opacity-100"
+                                    To: "opacity-0"
+                                -->
+                                    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true">
+                                    </div>
+
+                                    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
                                         <div
-                                            class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-                                            <div class="mt-3">
-                                                <h3 class="text-lg font-medium leading-6 text-gray-900" id="modalTitle">
-                                                </h3>
-                                                <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
-                                                    <div id="modalContentLeft"></div>
-                                                    <div id="modalContentRight"></div>
-                                                </div>
-                                                <div class="mt-4">
-                                                    <button type="button" onclick="closeModal()"
-                                                        class="mt-3 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
-                                                        Close
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                            <!--
+                                            Modal panel, show/hide based on modal state.
 
-                                    <script>
-                                        function selectSchedule(vessel, voyage, linerAddress, placeOfReceipt, pol, pod, placeOfDelivery, ets, eta) {
-                                            // Populate Shipping Details
-                                            document.getElementById('vessel').value = vessel;
-                                            document.getElementById('voyage').value = voyage;
-                                            document.getElementById('liner_address').value = linerAddress;
-
-                                            // Populate Route Information
-                                            document.getElementById('place_of_receipt').value = placeOfReceipt;
-                                            document.getElementById('pol').value = pol;
-                                            document.getElementById('pod').value = pod;
-                                            document.getElementById('place_of_delivery').value = placeOfDelivery;
-
-                                            // Populate Schedule
-                                            document.getElementById('ets').value = ets;
-                                            document.getElementById('eta').value = eta;
-                                        }
-
-                                        function showDetails(schedule) {
-                                            const modal = document.getElementById('detailsModal');
-                                            const title = document.getElementById('modalTitle');
-                                            const contentLeft = document.getElementById('modalContentLeft');
-                                            const contentRight = document.getElementById('modalContentRight');
-
-                                            title.textContent = `${schedule.vessel} - ${schedule.voyage}`;
-
-                                            const leftContent = `
-                                    <p class="font-medium mb-2">Vessel Information</p>
-                                    <p>Vessel Type: ${schedule.vessel_type}</p>
-                                    <p>Vessel Capacity: ${schedule.vessel_capacity}</p>
-                                    <p>Available Space: ${schedule.available_tonnage}</p>
-                                    <p class="font-medium mt-4 mb-2">Schedule</p>
-                                    <p>ETS: ${formatDateTime(schedule.ets)}</p>
-                                    <p>ETA: ${formatDateTime(schedule.eta)}</p>
-                                    <p>Transit Time: ${schedule.transit_time}</p>
-                                `;
-
-                                            const rightContent = `
-                                    <p class="font-medium mb-2">Route Details</p>
-                                    <p>Place of Receipt: ${schedule.place_of_receipt}</p>
-                                    <p>Port of Loading: ${schedule.pol}</p>
-                                    <p>Port of Discharge: ${schedule.pod}</p>
-                                    <p>Place of Delivery: ${schedule.place_of_delivery}</p>
-                                    <p class="font-medium mt-4 mb-2">Service Information</p>
-                                    <p>Service Type: ${schedule.service_type}</p>
-                                    <p>Route: ${schedule.route}</p>
-                                    <p>Remarks: ${schedule.remarks}</p>
-                                `;
-
-                                            contentLeft.innerHTML = leftContent;
-                                            contentRight.innerHTML = rightContent;
-
-                                            modal.classList.remove('hidden');
-                                        }
-
-                                        function formatDateTime(dateTimeStr) {
-                                            return new Date(dateTimeStr).toLocaleString();
-                                        }
-
-                                        function closeModal() {
-                                            document.getElementById('detailsModal').classList.add('hidden');
-                                        }
-                                    </script>
-
-                                    <!-- Shipping Details -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Shipping Details</h3>
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <x-input-label for="vessel" value="Vessel" />
-                                                <x-text-input id="vessel" name="vessel" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="voyage" value="Voyage" />
-                                                <x-text-input id="voyage" name="voyage" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="liner_address" value="Liner Address" />
-                                                <x-text-input id="liner_address" name="liner_address" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Route Information -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Route Information</h3>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <x-input-label for="place_of_receipt" value="Place of Receipt" />
-                                                <x-text-input id="place_of_receipt" name="place_of_receipt" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="pol" value="Port of Loading (POL)" />
-                                                <x-text-input id="pol" name="pol" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="pod" value="Port of Discharge (POD)" />
-                                                <x-text-input id="pod" name="pod" type="text"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="place_of_delivery" value="Place of Delivery" />
-                                                <x-text-input id="place_of_delivery" name="place_of_delivery"
-                                                    type="text" class="mt-1 block w-full" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Schedule -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Schedule</h3>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
-                                                <x-text-input id="ets" name="ets" type="datetime-local"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                            <div>
-                                                <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
-                                                <x-text-input id="eta" name="eta" type="datetime-local"
-                                                    class="mt-1 block w-full" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Cargo Details -->
-                                    <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h3 class="text-lg font-medium mb-4">Cargo Details</h3>
-                                        <div id="cargo-container">
-                                            <!-- Template for cargo rows -->
-                                            <div class="cargo-row grid grid-cols-10 gap-4 mb-4">
-                                                <div class="col-span-3">
-                                                    <x-input-label for="container_type[]" value="Container Type" />
-                                                    <select name="container_type[]"
-                                                        class="mt-2 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                                        <option value="">Select container type</option>
-                                                        <option value="20GP">20' General Purpose</option>
-                                                        <option value="40GP">40' General Purpose</option>
-                                                        <option value="40HC">40' High Cube</option>
-                                                        <option value="20RF">20' Reefer</option>
-                                                        <option value="40RF">40' Reefer</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-span-3">
-                                                    <x-input-label for="container_count[]"
-                                                        value="Number of Containers" />
-                                                    <x-text-input name="container_count[]" type="number" min="1"
-                                                        class="mt-1 block w-full" />
-                                                </div>
-                                                <div class="col-span-3">
-                                                    <x-input-label for="total_weight[]" value="Total Weight (kg)" />
-                                                    <x-text-input name="total_weight[]" type="number" step="0.01"
-                                                        class="mt-1 block w-full" />
-                                                </div>
-                                                <div class="col-span-1 flex items-end">
-                                                    <button type="button"
-                                                        class="remove-cargo-row text-red-600 hover:text-red-800 mt-1">
-                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
+                                            Entering: "ease-out duration-300"
+                                            From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                            To: "opacity-100 translate-y-0 sm:scale-100"
+                                            Leaving: "ease-in duration-200"
+                                            From: "opacity-100 translate-y-0 sm:scale-100"
+                                            To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                        -->
+                                            <div
+                                                class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+                                                <div>
+                                                    <div
+                                                        class="mx-auto flex size-12 items-center justify-center rounded-full bg-green-100">
+                                                        <svg class="size-6 text-green-600" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                            aria-hidden="true" data-slot="icon">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                d="m4.5 12.75 6 6 9-13.5" />
                                                         </svg>
-                                                    </button>
+                                                    </div>
+                                                    <div class="mt-3 text-center sm:mt-5">
+                                                        <h3 class="text-base font-semibold text-gray-900"
+                                                            id="modal-title">Booking Created Successfully</h3>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-5 sm:mt-6">
+                                                    <button type="button"
+                                                        onclick="document.getElementById('confirm-modal').classList.add('hidden')"
+                                                        class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">View
+                                                        my bookings</button>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div class="mt-4">
-                                            <button type="button" id="add-cargo-row"
-                                                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                                                Add Container
-                                            </button>
-                                        </div>
                                     </div>
+                                </div>
 
-                                    <div class="flex justify-end">
-                                        <x-primary-button>
-                                            Create Booking
-                                        </x-primary-button>
-                                    </div>
-                                </form>
+                                <!-- Submit button -->
+                                <div class="mt-6 flex items-center justify-end gap-x-6">
+                                    <button type="button" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
+                                    <button type="button"
+                                        onclick="document.getElementById('confirm-modal').classList.remove('hidden')"
+                                        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                        Submit Booking
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
-
             </main>
 
+            <!-- Right column area -->
             <aside class="sticky top-8 hidden w-96 shrink-0 xl:block">
-                <!-- Right column area -->
                 <div class="overflow-hidden rounded-lg bg-white shadow">
                     <div class="px-4 py-5 sm:p-6">
-                        <div class="flow-root">
-                            <ul role="list" class="-mb-8">
-                                <li>
-                                    <div class="relative pb-8">
-                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        <div class="relative flex space-x-3">
-                                            <div>
-                                                <span
-                                                    class="flex size-8 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white">
-                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
-                                                        <path
-                                                            d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">Applied to <a href="#"
-                                                            class="font-medium text-gray-900">Front
-                                                            End Developer</a></p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time datetime="2020-09-20">Sep 20</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <nav aria-label="Progress">
+                            <ol role="list" class="overflow-hidden">
+                                <li class="relative pb-10">
+                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-indigo-600"
+                                        aria-hidden="true"></div>
+                                    <!-- Complete Step -->
+                                    <a href="#" class="group relative flex items-start">
+                                        <span class="flex h-9 items-center">
+                                            <span
+                                                class="relative z-10 flex size-8 items-center justify-center rounded-full bg-indigo-600 group-hover:bg-indigo-800">
+                                                <svg class="size-5 text-white" viewBox="0 0 20 20" fill="currentColor"
+                                                    aria-hidden="true" data-slot="icon">
+                                                    <path fill-rule="evenodd"
+                                                        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </span>
+                                        </span>
+                                        <span class="ml-4 flex min-w-0 flex-col">
+                                            <span class="text-sm font-medium">Service Information</span>
+                                            <span class="text-sm text-gray-500">Select type of service.</span>
+                                        </span>
+                                    </a>
                                 </li>
-                                <li>
-                                    <div class="relative pb-8">
-                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        <div class="relative flex space-x-3">
-                                            <div>
-                                                <span
-                                                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 ring-8 ring-white">
-                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
-                                                        <path
-                                                            d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0 1 14 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 0 1-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 0 1-1.341-.317l-2.734-1.366A3 3 0 0 0 6.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 0 1 2.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388Z" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">Advanced to phone screening by <a
-                                                            href="#" class="font-medium text-gray-900">Bethany Blake</a>
-                                                    </p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time datetime="2020-09-22">Sep 22</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <li class="relative pb-10">
+                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
+                                        aria-hidden="true"></div>
+                                    <!-- Current Step -->
+                                    <a href="#" class="group relative flex items-start" aria-current="step">
+                                        <span class="flex h-9 items-center" aria-hidden="true">
+                                            <span
+                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white">
+                                                <span class="size-2.5 rounded-full bg-indigo-600"></span>
+                                            </span>
+                                        </span>
+                                        <span class="ml-4 flex min-w-0 flex-col">
+                                            <span class="text-sm font-medium text-indigo-600">Shipping Schedule</span>
+                                            <span class="text-sm text-gray-500">Select sailing date.</span>
+                                        </span>
+                                    </a>
                                 </li>
-                                <li>
-                                    <div class="relative pb-8">
-                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        <div class="relative flex space-x-3">
-                                            <div>
+                                <li class="relative pb-10">
+                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
+                                        aria-hidden="true"></div>
+                                    <!-- Upcoming Step -->
+                                    <a href="#" class="group relative flex items-start">
+                                        <span class="flex h-9 items-center" aria-hidden="true">
+                                            <span
+                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
                                                 <span
-                                                    class="flex size-8 items-center justify-center rounded-full bg-green-500 ring-8 ring-white">
-                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
-                                                        <path fill-rule="evenodd"
-                                                            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">Completed phone screening with <a
-                                                            href="#" class="font-medium text-gray-900">Martha
-                                                            Gardner</a>
-                                                    </p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time datetime="2020-09-28">Sep 28</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
+                                            </span>
+                                        </span>
+                                        <span class="ml-4 flex min-w-0 flex-col">
+                                            <span class="text-sm font-medium text-gray-500">Route Information</span>
+                                            <span class="text-sm text-gray-500">Provide route details.</span>
+                                        </span>
+                                    </a>
                                 </li>
-                                <li>
-                                    <div class="relative pb-8">
-                                        <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                                            aria-hidden="true"></span>
-                                        <div class="relative flex space-x-3">
-                                            <div>
+                                <li class="relative pb-10">
+                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
+                                        aria-hidden="true"></div>
+                                    <!-- Upcoming Step -->
+                                    <a href="#" class="group relative flex items-start">
+                                        <span class="flex h-9 items-center" aria-hidden="true">
+                                            <span
+                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
                                                 <span
-                                                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 ring-8 ring-white">
-                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
-                                                        <path
-                                                            d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0 1 14 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 0 1-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 0 1-1.341-.317l-2.734-1.366A3 3 0 0 0 6.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 0 1 2.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388Z" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">Advanced to interview by <a
-                                                            href="#" class="font-medium text-gray-900">Bethany Blake</a>
-                                                    </p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time datetime="2020-09-30">Sep 30</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
+                                            </span>
+                                        </span>
+                                        <span class="ml-4 flex min-w-0 flex-col">
+                                            <span class="text-sm font-medium text-gray-500">Schedule Information</span>
+                                            <span class="text-sm text-gray-500">Select ETS and ETA.</span>
+                                        </span>
+                                    </a>
                                 </li>
-                                <li>
-                                    <div class="relative pb-8">
-                                        <div class="relative flex space-x-3">
-                                            <div>
+                                <li class="relative">
+                                    <!-- Upcoming Step -->
+                                    <a href="#" class="group relative flex items-start">
+                                        <span class="flex h-9 items-center" aria-hidden="true">
+                                            <span
+                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
                                                 <span
-                                                    class="flex size-8 items-center justify-center rounded-full bg-green-500 ring-8 ring-white">
-                                                    <svg class="size-5 text-white" viewBox="0 0 20 20"
-                                                        fill="currentColor" aria-hidden="true" data-slot="icon">
-                                                        <path fill-rule="evenodd"
-                                                            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                                <div>
-                                                    <p class="text-sm text-gray-500">Completed interview with <a
-                                                            href="#" class="font-medium text-gray-900">Katherine
-                                                            Snyder</a></p>
-                                                </div>
-                                                <div class="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time datetime="2020-10-04">Oct 4</time>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
+                                            </span>
+                                        </span>
+                                        <span class="ml-4 flex min-w-0 flex-col">
+                                            <span class="text-sm font-medium text-gray-500">Cargo Information</span>
+                                            <span class="text-sm text-gray-500">Provide cargo details.</span>
+                                        </span>
+                                    </a>
                                 </li>
-                            </ul>
-                        </div>
+                            </ol>
+                        </nav>
                     </div>
                 </div>
             </aside>
