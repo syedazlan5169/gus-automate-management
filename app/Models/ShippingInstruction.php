@@ -9,15 +9,7 @@ use App\Models\Cargo;
 
 class ShippingInstruction extends Model
 {
-    protected $fillable = [
-        'booking_id',
-        'shipper',
-        'contact_shipper',
-        'consignee',
-        'contact_consignee',
-        'customer_instructions',
-        'cargo_description',
-    ];
+    protected $guarded = [];
 
     public function booking()
     {

@@ -78,23 +78,23 @@
                       <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                         Booking Number</th>
                       <th scope="col"
-                        class="text-center hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                         Service
                       </th>
                       <th scope="col"
-                        class="text-center hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                         Vessel |
                         Voyage
                       </th>
                       <th scope="col"
-                        class="text-center hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                         Route
                       </th>
                       <th scope="col"
-                        class="text-center hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                         Schedule
                       </th>
-                      <th scope="col" class="text-center px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
                         Status
                       </th>
                       <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -103,419 +103,101 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
+                    @foreach($bookings as $booking)
                     <tr>
                       <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
+                          <div class="font-medium text-gray-900">{{ $booking->booking_number }}</div>
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
+                            <span>{{ $booking->vessel }} | {{ $booking->voyage }}</span>
                           <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port Klang</span>
+                            <span>{{ $booking->pol }} → {{ $booking->pod }}</span>
                         </div>
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
+                            <span>ETS : {{ $booking->ets->format('d-m-Y | g:i A') }}</span>
                           <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
+                            <span>ETA : {{ $booking->eta->format('d-m-Y | g:i A') }}</span>
                         </div>
                       </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
+                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->service }}</td>
+                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->vessel }} | {{ $booking->voyage }}</td>
+                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->pol }} → {{ $booking->pod }}</td>
                       <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <!-- 
-                      Status for customer
-                      1. Pending SI
-                      2. Draft
-                      3. Processing
-                      4. Sailing
-                      5. Completed
-                      6. Cancelled
-                      https://tailwindui.com/components/application-ui/elements/badges
-                      -->
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Completed</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Completed</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <!-- Dropdown Button -->
-                        <button type="button" id="options-menu-0-button" aria-expanded="false" aria-haspopup="true"
-                          class="inline-flex items-center rounded-md text-gray-700 hover:text-gray-900">
-                          <span class="sr-only">Open options</span>
-                          <!-- Three dots/ellipsis icon -->
-                          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path
-                              d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
-                          </svg>
-                        </button>
-
-                        <!-- Dropdown Menu (hidden by default) -->
-                        <div
-                          class="text-start hidden absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
-                          role="menu" aria-orientation="vertical" aria-labelledby="options-menu-0-button" tabindex="-1">
-                          <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                            class="block px-3 py-1 text-sm text-gray-900 hover:bg-gray-50" role="menuitem" tabindex="-1"
-                            id="options-menu-0-item-0">
-                            Update SI
-                          </a>
-                          <a href="/booking/1" class="block px-3 py-1 text-sm text-gray-900 hover:bg-gray-50"
-                            role="menuitem" tabindex="-1" id="options-menu-0-item-1">
-                            View Booking
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
+                          <div class="mt-1 flex flex-col text-gray-500 sm:block">
+                            <p>ETS : {{ $booking->ets->format('d-m-Y | g:i A') }}</p>
+                            <p>ETA : {{ $booking->eta->format('d-m-Y | g:i A') }}</p>
                         </div>
                       </td>
                       <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
+                          <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                            {{ $booking->status }}
+                          </div>
+                          <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                            {{ $booking->status }}
+                          </div>
                       </td>
                       <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                          Create SI
-                        </a>
+                          @if($booking->status === 'Pending SI')
+                            <a href="{{ route('shipping-instructions.create-new-ui') }}" 
+                               class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
+                              Create SI
+                            </a>
+                          @else
+                            <a href="{{ route('booking.show', $booking) }}" 
+                               class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
+                                View
+                            </a>
+                          @endif
                       </td>
                     </tr>
-                    <!-- More plans... -->
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                          Create SI
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                          Create SI
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                          Create SI
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button type="button"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">Update</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button type="button"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">Update</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button type="button"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">Update</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">BC000001</div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>GU Melur | VY0001</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>Singapore → Port
-                            Klang</span>
-                        </div>
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                          <span>ETS : 12-03-2025 | 8:00 AM</span>
-                          <span class="hidden sm:inline">·</span>
-                          <span>ETA : 12-03-2025 | 8:00 AM</span>
-                        </div>
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">SOC</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">GU Melur | VY0001
-                      </td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">Singapore → Port
-                        Klang</td>
-                      <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                        <div class="mt-1 flex flex-col text-gray-500 sm:block ">
-                          <p>ETS : 12-03-2025 | 8:00 AM</p>
-                          <p>ETA : 12-03-2025 | 8:00 AM</p>
-                        </div>
-                      </td>
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                        <div
-                          class="sm:hidden mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                        <div
-                          class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Pending SI</div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button type="button"
-                          class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">Update</button>
-                      </td>
-                    </tr>
+                    @endforeach
                   </tbody>
                 </table>
+
+                <!-- Modal -->
+                <div id="confirm-modal" class="relative z-10 hidden" aria-labelledby="modal-title"
+                    role="dialog" aria-modal="true">
+                    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+
+                    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                        <div
+                            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                            <div
+                                class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+                                <div>
+                                    <div
+                                        class="mx-auto flex size-12 items-center justify-center rounded-full bg-green-100">
+                                        <svg class="size-6 text-green-600" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                            aria-hidden="true" data-slot="icon">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </div>
+                                    <div class="mt-3 text-center sm:mt-5">
+                                        <h3 class="text-base font-semibold text-gray-900"
+                                            id="modal-title">{{ session('success') }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
               </div>
-              <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-                aria-label="Pagination">
+              <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
                 <div class="hidden sm:block">
                   <p class="text-sm text-gray-700">
                     Showing
-                    <span class="font-medium">1</span>
+                    <span class="font-medium">{{ $bookings->firstItem() }}</span>
                     to
-                    <span class="font-medium">10</span>
+                    <span class="font-medium">{{ $bookings->lastItem() }}</span>
                     of
-                    <span class="font-medium">20</span>
+                    <span class="font-medium">{{ $bookings->total() }}</span>
                     results
                   </p>
                 </div>
                 <div class="flex flex-1 justify-between sm:justify-end">
-                  <a href="#"
-                    class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">Previous</a>
-                  <a href="#"
-                    class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0">Next</a>
+                  {{ $bookings->links() }}
                 </div>
               </nav>
 
@@ -527,27 +209,57 @@
 </x-app-layout>
 
 <script>
-  document.getElementById('options-menu-0-button').addEventListener('click', function () {
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownButtons = document.querySelectorAll('[id^="options-menu-"][id$="-button"]');
+    
+    dropdownButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event from bubbling up
     const dropdown = this.nextElementSibling;
     const isHidden = dropdown.classList.contains('hidden');
 
-    // Toggle dropdown
-    dropdown.classList.toggle('hidden');
+            // Close all other dropdowns
+            dropdownButtons.forEach(otherButton => {
+                if (otherButton !== button) {
+                    const otherDropdown = otherButton.nextElementSibling;
+                    otherDropdown.classList.add('hidden');
+                    otherButton.setAttribute('aria-expanded', 'false');
+                }
+            });
 
-    // Update aria-expanded
+            // Toggle current dropdown
+    dropdown.classList.toggle('hidden');
     this.setAttribute('aria-expanded', isHidden);
 
-    // Close dropdown when clicking outside
-    if (!isHidden) return;
-
+            // Handle clicking outside
     const closeDropdown = (e) => {
-      if (!dropdown.contains(e.target) && !this.contains(e.target)) {
+                if (!dropdown.contains(e.target) && !button.contains(e.target)) {
         dropdown.classList.add('hidden');
-        this.setAttribute('aria-expanded', 'false');
+                    button.setAttribute('aria-expanded', 'false');
         document.removeEventListener('click', closeDropdown);
       }
     };
 
+            if (isHidden) {
+                // Add click event listener to document with a slight delay
+                setTimeout(() => {
     document.addEventListener('click', closeDropdown);
+                }, 0);
+            }
+        });
+    });
   });
+
+    // Show modal if success message exists
+    @if(session('success'))
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 3000);
+        });
+    @endif
 </script>

@@ -187,28 +187,31 @@
                     </div>
 
                     <!-- Shipping Instructions -->
-                    @if($booking->shippingInstructions->isNotEmpty())
-                        <div class="bg-gray-50 p-4 rounded-lg space-y-4">
-                            <div class="sm:flex sm:items-center">
-                                <div class="sm:flex-auto">
-                                    <h3 class="text-lg font-medium">Shipping Instructions</h3>
-                                    <p class="text-sm text-red-600">
-                                        <strong></strong>Total Unallocated Cargo:</strong>
-                                        {{ $booking->cargos->whereNull('shipping_instruction_id')->count() }}
-                                    </p>
-                                </div>
-                                <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                                    <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                                        class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                                        </svg>
-                                        Add Shipping Instruction
-                                    </a>
-                                </div>
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <div class="sm:flex sm:items-center">
+                            <div class="sm:flex-auto">
+                                <h3 class="text-lg font-medium">Shipping Instructions</h3>
+                                <p class="text-sm text-red-600">
+                                    <strong>Total Unallocated Containers:</strong>
+                                    {{ $booking->cargos->sum(function($cargo) {
+                                        return $cargo->containers->whereNull('shipping_instruction_id')->count();
+                                    }) }}
+                                </p>
                             </div>
+                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                                <a href="{{ route('shipping-instructions.create', $booking) }}"
+                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                    </svg>
+                                    Add Shipping Instruction
+                                </a>
+                            </div>
+                        </div>
+
+                        @if($booking->shippingInstructions->isEmpty())
                             <div class="rounded-md bg-yellow-50 p-4">
                                 <div class="flex">
                                     <div class="shrink-0">
@@ -227,247 +230,60 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <h3 class="text-lg font-medium mb-4">Shipper Information</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:pb-4">
-                                <div>
-                                    <p class="text-sm text-gray-600">Shipper Name</p>
-                                    <p class="font-medium">{{ $booking->place_of_receipt }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600">Shipper Contact</p>
-                                    <p class="font-medium">{{ $booking->pol }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600">Consignee Name</p>
-                                    <p class="font-medium">{{ $booking->pod }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600">Consignee Contact</p>
-                                    <p class="font-medium">{{ $booking->place_of_delivery }}</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-sm text-gray-600">Notify Party</p>
-                                    <p class="font-medium">{{ $booking->place_of_receipt }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-600">Notify Party Address</p>
-                                    <p class="font-medium">No.50, Jln PJU 7/1, Mutiara Damansara, 47810 Petaling Jaya,
-                                        Selangor</p>
-                                </div>
-                            </div>
-
+                        @else
                             <div class="space-y-4">
                                 @foreach($booking->shippingInstructions as $si)
                                     <div class="border rounded p-4 bg-white">
-                                        <h1 class="text-lg font-medium">MAERSK</h1>
-                                        <div class="mt-4">
-                                            <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                @foreach($booking->cargos->where('shipping_instruction_id', $si->id) as $cargo)
-                                                    <div class="text-sm">
-                                                        <span class="font-medium">{{ $cargo->container_type }}:</span>
-                                                        {{ $cargo->container_count }} units
-                                                        ({{ number_format($cargo->total_weight, 2) }} kg)
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        <div class="text-right mt-4">
-                                            <a onclick="document.getElementById('si-view-modal').classList.remove('hidden')"
-                                                class="text-indigo-600 hover:text-indigo-900">
-                                                View Details
-                                            </a>
-                                            <a href="{{ route('shipping-instructions.bl', $si) }}"
-                                                class="ml-4 text-green-600 hover:text-green-900">
-                                                Generate BL
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="space-y-4">
-                                @foreach($booking->shippingInstructions as $si)
-                                    <div class="border rounded p-4 bg-white">
-                                        <h1 class="text-lg font-medium">MAERSK</h1>
-                                        <div class="mt-4">
-                                            <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                @foreach($booking->cargos->where('shipping_instruction_id', $si->id) as $cargo)
-                                                    <div class="text-sm">
-                                                        <span class="font-medium">{{ $cargo->container_type }}:</span>
-                                                        {{ $cargo->container_count }} units
-                                                        ({{ number_format($cargo->total_weight, 2) }} kg)
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                        <div class="text-right mt-4">
-                                            <a onclick="document.getElementById('si-view-modal').classList.remove('hidden')"
-                                                class="text-indigo-600 hover:text-indigo-900">
-                                                View Details
-                                            </a>
-                                            <a href="{{ route('shipping-instructions.bl', $si) }}"
-                                                class="ml-4 text-green-600 hover:text-green-900">
-                                                Generate BL
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <!-- SI View Modal -->
-                            <div id="si-view-modal" class="hidden relative z-10" aria-labelledby="modal-title" role="dialog"
-                                aria-modal="true">
-                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true">
-                                </div>
-                                <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
-                                    <div
-                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                                        <div
-                                            class="z-50 relative w-full transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl sm:p-6">
+                                        <div class="flex justify-between items-start">
                                             <div>
-                                                <div class="mt-3 sm:mt-5">
-                                                    <div class="mt-4">
-                                                        <div class="px-4 sm:px-6 lg:px-8">
-                                                            <div class="sm:flex sm:items-center">
-                                                                <div class="sm:flex-auto">
-                                                                    <h3 class="text-lg font-semibold text-gray-900"
-                                                                        id="modal-title">
-                                                                        Shipping Instruction Details</h3>
-                                                                </div>
-                                                            </div>
-                                                            <div class="mt-8 flow-root">
-                                                                <div class="max-h-[400px] overflow-y-auto">
-                                                                    <table class="min-w-full divide-y divide-gray-300">
-                                                                        <thead class="sticky top-0 bg-white">
-                                                                            <tr>
-                                                                                <th scope="col"
-                                                                                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                                                    Container Number</th>
-                                                                                <th scope="col"
-                                                                                    class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                                                    Seal Number</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody class="divide-y divide-gray-200">
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td
-                                                                                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                                    00000000001</td>
-                                                                                <td
-                                                                                    class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                                    SKU0050</td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                <h1 class="text-lg font-medium">{{ $si->shipper }}</h1>
+                                                <p class="text-sm text-gray-500">SI #: {{ $si->sub_booking_number ?? 'N/A' }}</p>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                Box Operator: {{ $si->box_operator ?? 'N/A' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                @foreach($si->cargoContainers->groupBy('cargo.container_type') as $type => $containers)
+                                                    <div class="text-sm">
+                                                        <span class="font-medium">{{ $type }}:</span> 
+                                                        {{ $containers->count() }} containers
                                                     </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4 pt-4 border-t">
+                                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <p class="text-gray-500">Consignee</p>
+                                                    <p class="font-medium">{{ $si->consignee }}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-gray-500">Cargo Description</p>
+                                                    <p class="font-medium">{{ $si->cargo_description }}</p>
                                                 </div>
                                             </div>
-                                            <div class="mt-5 sm:mt-6 flex space-x-3">
-                                                <button type="button"
-                                                    onclick="document.getElementById('si-view-modal').classList.add('hidden')"
-                                                    class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                                                    Cancel
-                                                </button>
-                                                <a href="{{ route('shipping-instructions.create-new-ui') }}"
-                                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                                    Edit
-                                                </a>
-                                            </div>
+                                        </div>
+
+                                        <div class="text-right mt-4">
+                                            <a href="{{ route('shipping-instructions.show', $si) }}"
+                                                class="text-indigo-600 hover:text-indigo-900">
+                                                View Details
+                                            </a>
+                                            <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
+                                                class="ml-4 text-green-600 hover:text-green-900">
+                                                Generate BL
+                                            </a>
                                         </div>
                                     </div>
-                                </div>
+                                @endforeach
                             </div>
-
-                        </div>
-                    @endif
+                        @endif
+                    </div>
 
                     <!-- Only viewable by admin -->
                     <!-- Invoice Information -->

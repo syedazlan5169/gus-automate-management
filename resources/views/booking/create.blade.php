@@ -55,7 +55,8 @@
             <main class="flex-1">
                 <div class="overflow-hidden rounded-lg bg-white shadow">
                     <div class="px-4 py-5 sm:p-6">
-                        <form>
+                        <form action="{{ route('booking.store') }}" method="POST">
+                            @csrf
                             <div class="space-y-12">
                                 <!-- Service Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -63,21 +64,23 @@
                                         <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
                                         <div class="mt-6 flex gap-x-6">
                                             <div class="flex items-center gap-x-3">
-                                                <input id="push-everything" name="push-notifications" type="radio"
-                                                    checked
+                                                <input id="soc" name="service" type="radio" value="SOC" checked
                                                     class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="push-everything"
-                                                    class="block text-sm/6 font-medium text-gray-900">Shipped Owned
-                                                    Container (SOC)</label>
+                                                <label for="soc" class="block text-sm/6 font-medium text-gray-900">
+                                                    Shipped Owned Container (SOC)
+                                                </label>
                                             </div>
                                             <div class="flex items-center gap-x-3">
-                                                <input id="push-email" name="push-notifications" type="radio"
+                                                <input id="coc" name="service" type="radio" value="COC"
                                                     class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="push-email"
-                                                    class="block text-sm/6 font-medium text-gray-900">Carrier Owned
-                                                    Container (COC)</label>
+                                                <label for="coc" class="block text-sm/6 font-medium text-gray-900">
+                                                    Carrier Owned Container (COC)
+                                                </label>
                                             </div>
                                         </div>
+                                        @error('service')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
                                     </fieldset>
                                 </div>
 
@@ -481,52 +484,45 @@
 
                                 </div>
 
+                                <!-- Shipping Details -->
+                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Shipping Details</h2>
+                                    
+                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                        <div class="sm:col-span-3">
+                                            <x-input-label for="vessel" value="Vessel Name" />
+                                            <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" />
+                                        </div>
+
+                                        <div class="sm:col-span-3">
+                                            <x-input-label for="voyage" value="Voyage Number" />
+                                            <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full" />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Route Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
                                     <h2 class="text-base/7 font-semibold text-gray-900">Route Information</h2>
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
-                                            <label for="first-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Place of
-                                                Receipt</label>
-                                            <div class="mt-2">
-                                                <input type="text" name="first-name" id="first-name"
-                                                    autocomplete="given-name"
-                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                            </div>
+                                            <x-input-label for="place_of_receipt" value="Place of Receipt" />
+                                            <x-text-input id="place_of_receipt" name="place_of_receipt" type="text" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <label for="last-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Port of Loading
-                                                (POL)</label>
-                                            <div class="mt-2">
-                                                <input type="text" name="last-name" id="last-name"
-                                                    autocomplete="family-name"
-                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                            </div>
+                                            <x-input-label for="pol" value="Port of Loading (POL)" />
+                                            <x-text-input id="pol" name="pol" type="text" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <label for="first-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Place of
-                                                Delivery</label>
-                                            <div class="mt-2">
-                                                <input type="text" name="first-name" id="first-name"
-                                                    autocomplete="given-name"
-                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                            </div>
+                                            <x-input-label for="pod" value="Port of Discharge (POD)" />
+                                            <x-text-input id="pod" name="pod" type="text" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <label for="last-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Port of Discharge
-                                                (POD)</label>
-                                            <div class="mt-2">
-                                                <input type="text" name="last-name" id="last-name"
-                                                    autocomplete="family-name"
-                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                            </div>
+                                            <x-input-label for="place_of_delivery" value="Place of Delivery" />
+                                            <x-text-input id="place_of_delivery" name="place_of_delivery" type="text" class="mt-1 block w-full" />
                                         </div>
                                     </div>
                                 </div>
@@ -536,19 +532,13 @@
                                     <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
-                                            <label for="first-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Estimated Time of
-                                                Sailing (ETS)</label>
-                                            <x-text-input id="ets" name="ets" type="datetime-local"
-                                                class="mt-1 block w-full" />
+                                            <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
+                                            <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <label for="last-name"
-                                                class="block text-sm/6 font-medium text-gray-900">Estimated Time of
-                                                Arrival (ETA)</label>
-                                            <x-text-input id="eta" name="eta" type="datetime-local"
-                                                class="mt-1 block w-full" />
+                                            <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
+                                            <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full" />
                                         </div>
                                     </div>
                                 </div>
@@ -577,12 +567,10 @@
                                                             </th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="divide-y divide-gray-200">
+                                                    <tbody class="divide-y divide-gray-200" id="cargo-tbody">
                                                         <tr>
-                                                            <td
-                                                                class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                <select name="container_type[]"
-                                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                                                                <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                                                                     <option value="">Select container type</option>
                                                                     <option value="20GP">20' General Purpose</option>
                                                                     <option value="40GP">40' General Purpose</option>
@@ -591,88 +579,25 @@
                                                                     <option value="40RF">40' Reefer</option>
                                                                 </select>
                                                             </td>
-                                                            <td
-                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                <x-text-input name="container_count[]" type="number"
-                                                                    min="1" class="" />
+                                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="container_count[]" type="number" min="1" class="block w-full" />
                                                             </td>
-                                                            <td
-                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                <x-text-input name="total_weight[]" type="number"
-                                                                    step="0.01" class="" />
+                                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                <x-text-input name="total_weight[]" type="number" step="0.01" class="block w-full" />
                                                             </td>
-                                                            <td
-                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                                                <button type="button"
-                                                                    class="text-red-600 hover:text-red-900">
+                                                            <td class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                                                                <button type="button" class="text-red-600 hover:text-red-900 delete-row" onclick="deleteRow(this)">
                                                                     <span class="sr-only">Delete</span>
-                                                                    <svg class="size-5" viewBox="0 0 20 20"
-                                                                        fill="currentColor" aria-hidden="true">
-                                                                        <path fill-rule="evenodd"
-                                                                            d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
-                                                                            clip-rule="evenodd" />
+                                                                    <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                                        <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
                                                                     </svg>
                                                                 </button>
                                                             </td>
-                                                            <td
-                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
-                                                                <button type="button"
-                                                                    class="text-gray-400 hover:text-gray-500">
+                                                            <td class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
+                                                                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="addNewRow()">
                                                                     <span class="sr-only">Add</span>
-                                                                    <svg class="size-5" viewBox="0 0 20 20"
-                                                                        fill="currentColor" aria-hidden="true">
-                                                                        <path
-                                                                            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                                                    </svg>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-
-                                                        <tr>
-                                                            <td
-                                                                class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                <select name="container_type[]"
-                                                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                                                    <option value="">Select container type</option>
-                                                                    <option value="20GP">20' General Purpose</option>
-                                                                    <option value="40GP">40' General Purpose</option>
-                                                                    <option value="40HC">40' High Cube</option>
-                                                                    <option value="20RF">20' Reefer</option>
-                                                                    <option value="40RF">40' Reefer</option>
-                                                                </select>
-                                                            </td>
-                                                            <td
-                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                <x-text-input name="container_count[]" type="number"
-                                                                    min="1" class="" />
-                                                            </td>
-                                                            <td
-                                                                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                                <x-text-input name="total_weight[]" type="number"
-                                                                    step="0.01" class="" />
-                                                            </td>
-                                                            <td
-                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                                                <button type="button"
-                                                                    class="text-red-600 hover:text-red-900">
-                                                                    <span class="sr-only">Delete</span>
-                                                                    <svg class="size-5" viewBox="0 0 20 20"
-                                                                        fill="currentColor" aria-hidden="true">
-                                                                        <path fill-rule="evenodd"
-                                                                            d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
-                                                                            clip-rule="evenodd" />
-                                                                    </svg>
-                                                                </button>
-                                                            </td>
-                                                            <td
-                                                                class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
-                                                                <button type="button"
-                                                                    class="text-gray-400 hover:text-gray-500">
-                                                                    <span class="sr-only">Add</span>
-                                                                    <svg class="size-5" viewBox="0 0 20 20"
-                                                                        fill="currentColor" aria-hidden="true">
-                                                                        <path
-                                                                            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                                                    <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                                                                     </svg>
                                                                 </button>
                                                             </td>
@@ -743,9 +668,8 @@
 
                                 <!-- Submit button -->
                                 <div class="mt-6 flex items-center justify-end gap-x-6">
-                                    <button type="button" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
-                                    <button type="button"
-                                        onclick="document.getElementById('confirm-modal').classList.remove('hidden')"
+                                    <button type="button" onclick="window.history.back()" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
+                                    <button type="submit"
                                         class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                         Submit Booking
                                     </button>
@@ -861,3 +785,90 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+function addNewRow() {
+    const tbody = document.getElementById('cargo-tbody');
+    const template = tbody.querySelector('tr').cloneNode(true);
+    
+    // Clear input values
+    template.querySelectorAll('input').forEach(input => {
+        input.value = '';
+        // Update name attributes to ensure they maintain array format
+        const name = input.getAttribute('name');
+        if (name) {
+            const index = tbody.querySelectorAll('tr').length;
+            input.setAttribute('name', name.replace(/\[\d*\]/, `[${index}]`));
+        }
+    });
+    
+    // Update select name attribute
+    const select = template.querySelector('select');
+    if (select) {
+        const index = tbody.querySelectorAll('tr').length;
+        select.value = '';
+        select.setAttribute('name', select.getAttribute('name').replace(/\[\d*\]/, `[${index}]`));
+    }
+    
+    tbody.appendChild(template);
+}
+
+function deleteRow(button) {
+    const tbody = document.getElementById('cargo-tbody');
+    if (tbody.querySelectorAll('tr').length > 1) {
+        button.closest('tr').remove();
+        // Reindex remaining rows
+        tbody.querySelectorAll('tr').forEach((row, index) => {
+            row.querySelectorAll('[name]').forEach(input => {
+                const name = input.getAttribute('name');
+                input.setAttribute('name', name.replace(/\[\d*\]/, `[${index}]`));
+            });
+        });
+    }
+}
+
+// Remove the modal show/hide logic since we're using proper form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validate required fields
+    const required = ['service', 'vessel', 'voyage', 'place_of_receipt', 'pol', 'pod', 'place_of_delivery', 'ets', 'eta'];
+    let isValid = true;
+    
+    required.forEach(field => {
+        const input = this.querySelector(`[name="${field}"]`);
+        if (!input || !input.value) {
+            isValid = false;
+            // Add error styling if needed
+            if (input) {
+                input.classList.add('border-red-500');
+            }
+        }
+    });
+    
+    // Validate cargo table has at least one valid row
+    const cargoRows = document.querySelectorAll('#cargo-tbody tr');
+    let hasValidCargo = false;
+    
+    cargoRows.forEach(row => {
+        const type = row.querySelector('[name^="container_type"]').value;
+        const count = row.querySelector('[name^="container_count"]').value;
+        const weight = row.querySelector('[name^="total_weight"]').value;
+        
+        if (type && count && weight) {
+            hasValidCargo = true;
+        }
+    });
+    
+    if (!hasValidCargo) {
+        isValid = false;
+        // Add error styling to cargo table if needed
+    }
+    
+    if (isValid) {
+        this.submit();
+    } else {
+        alert('Please fill in all required fields');
+    }
+});
+</script>
