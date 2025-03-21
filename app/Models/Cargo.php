@@ -9,17 +9,11 @@ use App\Models\Booking;
 use App\Models\ShippingInstruction;
 use App\Models\CargoContainer;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Cargo extends Model
 {
-    protected $fillable = [
-        'booking_id',
-        'shipping_instruction_id',
-        'container_type',
-        'container_count',
-        'total_weight',
-        'cargo_description'
-    ];
+    protected $guarded = [];
 
     /**
      * Get the booking that owns the cargo
@@ -27,14 +21,6 @@ class Cargo extends Model
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
-    }
-
-    /**
-     * Get the shipping instruction that owns the cargo
-     */
-    public function shippingInstruction(): BelongsTo
-    {
-        return $this->belongsTo(ShippingInstruction::class);
     }
 
     /**
@@ -51,5 +37,11 @@ class Cargo extends Model
     public function allocatedContainers(): HasMany
     {
         return $this->hasMany(CargoContainer::class)->whereNotNull('shipping_instruction_id');
+    }
+
+    public function shippingInstructions(): BelongsToMany
+    {
+        return $this->belongsToMany(ShippingInstruction::class, 'cargo_containers')
+                    ->withPivot(['container_number', 'seal_number']);
     }
 }

@@ -14,37 +14,25 @@ Route::middleware(['auth'])->group(function () {
     // Client middleware Group
     Route::middleware(['verified'])->group(function () {
         Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
-        Route::view('client-portal/booking/create', 'booking.create')->name('booking.create');
-        Route::get('client-portal/booking/index', [BookingController::class, 'clientIndex'])->name('client.bookings.index');
-
-        // Temporary route for testing
-        Route::view('client-portal/booking/create-new-ui', 'booking.create-new-ui')->name('booking.create');
-        Route::view('client-portal/booking/index-new-ui', 'booking.index-new-ui')->name('booking.index-new-ui');
-        Route::view('client-portal/sailing-schedule/create-new-ui', 'sailing-schedule.create-new-ui')->name('sailing-schedule.create-new-ui');
-
+        Route::get('client-portal/bookings', [BookingController::class, 'clientBookingIndex'])->name('client.bookings.index');
+        Route::get('bookings', [BookingController::class, 'adminBookingIndex'])->name('admin.bookings.index');
 
         // Booking routes
+        Route::view('booking/create', 'booking.create')->name('booking.create');
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
         Route::post('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
-        Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
 
+
         // Shipping Instruction routes
-        Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])
-            ->name('shipping-instructions.create');
-        Route::post('bookings/{booking}/shipping-instructions', [ShippingInstructionController::class, 'store'])
-            ->name('shipping-instructions.store');
-        Route::get('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'show'])
-            ->name('shipping-instructions.show');
+        Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])->name('shipping-instructions.create');
+        Route::post('bookings/{booking}/shipping-instructions', [ShippingInstructionController::class, 'store'])->name('shipping-instructions.store');
+        Route::get('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'show'])->name('shipping-instructions.show');
+        Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
         Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])
             ->name('shipping-instructions.update');
-        Route::get('shipping-instructions/{shippingInstruction}/bl', [ShippingInstructionController::class, 'generateBL'])
-            ->name('shipping-instructions.bl');
-
-        // New UI routes
-        Route::view('client-portal/shipping-instructions/create-new-ui', 'shipping-instructions.create-new-ui-si')->name('shipping-instructions.create-new-ui');
 
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
@@ -53,6 +41,15 @@ Route::middleware(['auth'])->group(function () {
         });
 
     });
+
+    Route::post('shipping-instructions/parse-containers', [ShippingInstructionController::class, 'parseContainers'])
+        ->name('shipping-instructions.parse-containers');
+
+    Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])
+        ->name('shipping-instructions.parse-container-list');
+
+    Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])
+        ->name('shipping-instructions.download-template');
 });
 
 require __DIR__ . '/auth.php';

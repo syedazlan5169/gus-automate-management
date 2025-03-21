@@ -38,12 +38,17 @@ return new class extends Migration
         Schema::create('shipping_instructions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+            $table->string('sub_booking_number')->nullable();
+            $table->string('box_operator')->nullable();
             $table->string('shipper');
             $table->string('contact_shipper');
             $table->string('consignee');
             $table->string('contact_consignee');
-            $table->text('customer_instructions')->nullable();
+            $table->string('notify_party');
+            $table->string('notify_party_contact');
+            $table->string('notify_party_address');
             $table->string('cargo_description');
+            $table->string('hs_code');
             $table->timestamps();
         });
 
@@ -51,9 +56,8 @@ return new class extends Migration
         Schema::create('cargos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->constrained();
-            $table->foreignId('shipping_instruction_id')->nullable()->constrained()->onDelete('set null');
             $table->string('container_type');
-            $table->integer('container_count');
+            $table->integer('container_count');    // Total containers allocated for this type
             $table->decimal('total_weight', 10, 2);
             $table->timestamps();
         });
@@ -61,9 +65,9 @@ return new class extends Migration
         Schema::create('cargo_containers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cargo_id')->constrained()->onDelete('cascade');
+            $table->foreignId('shipping_instruction_id')->nullable()->constrained()->onDelete('set null');
             $table->string('container_number')->nullable();
             $table->string('seal_number')->nullable();
-            $table->foreignId('shipping_instruction_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
