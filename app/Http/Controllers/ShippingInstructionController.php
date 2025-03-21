@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use App\Models\Cargo;
 use Illuminate\Support\Facades\DB;
 use App\Models\CargoContainer;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ShippingInstructionController extends Controller
 {
@@ -289,5 +293,111 @@ class ShippingInstructionController extends Controller
             
             return back()->with('error', 'Error deleting shipping instruction. Please try again.');
         }
+    }
+
+    public function parseContainerList(Request $request)
+    {
+        try {
+            // Validate the request
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+                'container_type' => 'required'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            
+            // Load the spreadsheet
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+
+            // Skip header row and process data
+            $containers = [];
+            $rowNumber = 1; // For error reporting
+            
+            foreach (array_slice($rows, 1) as $row) {
+                $rowNumber++;
+                
+                // Validate row has both container number and seal number
+                if (empty($row[0]) || empty($row[1])) {
+                    continue;
+                }
+
+                // Validate container number format (you can adjust this regex as needed)
+                if (!preg_match('/^[A-Z]{4}\d{7}$/', trim($row[0]))) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Invalid container number format at row {$rowNumber}: {$row[0]}"
+                    ], 422);
+                }
+
+                $containers[] = [
+                    'number' => trim($row[0]),
+                    'seal' => trim($row[1])
+                ];
+            }
+
+            if (empty($containers)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid container data found in file'
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File processed successfully',
+                'containers' => $containers
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error parsing container list: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        // Create new Spreadsheet object
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $sheet->setCellValue('A1', 'Container Number');
+        $sheet->setCellValue('B1', 'Seal Number');
+
+        // Add example row
+        $sheet->setCellValue('A2', 'TEMU1234567');
+        $sheet->setCellValue('B2', 'SEAL001');
+
+        // Style the header row
+        $sheet->getStyle('A1:B1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:B1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('E5E7EB');
+
+        // Auto-size columns
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+
+        // Create writer and prepare response
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'container_list_template.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="'. urlencode($filename).'"');
+        $writer->save('php://output');
+        exit;
     }
 }

@@ -44,6 +44,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('shipping-instructions/parse-containers', [ShippingInstructionController::class, 'parseContainers'])
         ->name('shipping-instructions.parse-containers');
+
+    Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])
+        ->name('shipping-instructions.parse-container-list');
+
+    Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])
+        ->name('shipping-instructions.download-template');
 });
 
 require __DIR__ . '/auth.php';

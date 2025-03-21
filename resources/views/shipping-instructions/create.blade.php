@@ -201,25 +201,56 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label for="container_list" class="block text-sm font-medium text-gray-900">
-                            Container List (Format: CONTAINER,SEAL - One per line)
-                        </label>
-                        <textarea id="container_list" name="container_list" rows="4"
-                            class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            placeholder="TEMU0192292,SEAL001"></textarea>
+                    <div class="space-y-4">
+                        <!-- Manual Entry Section -->
+                        <div class="">
+                            <label for="container_list" class="block text-sm font-medium text-gray-900">
+                                Container List (Format: CONTAINER,SEAL - One per line)
+                            </label>
+                            <textarea id="container_list" name="container_list" rows="4"
+                                class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                placeholder="TEMU0192292,SEAL001"></textarea>
+                        </div>
+
+                        <!-- File Upload Section -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-sm font-medium text-gray-700">Or Upload Excel/CSV File</label>
+                                <a href="{{ route('shipping-instructions.download-template') }}" 
+                                   class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                                        <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                                    </svg>
+                                    Download Template
+                                </a>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <input type="file" id="container_file" name="container_file" 
+                                        accept=".xlsx,.xls,.csv"
+                                        class="mt-2 block w-full text-sm text-gray-500
+                                            file:mr-4 file:py-2 file:px-4
+                                            file:rounded-md file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-indigo-50 file:text-indigo-700
+                                            hover:file:bg-indigo-100"/>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Upload Excel/CSV file with container numbers and seal numbers
+                                    </p>
+                                </div>
+                                <div class="flex-none pt-6">
+                                    <button type="button" onclick="addContainers()"
+                                        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                        Add Containers
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <button type="button" onclick="addContainers()"
-                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                            Add Containers
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Container sections will be populated here -->
-                <div id="container-sections" class="mt-4 space-y-4"></div>
+                    <!-- Container sections will be populated here -->
+                    <div id="container-sections" class="mt-4 space-y-4"></div>
               </div>
             </div>
           </div>
@@ -472,19 +503,67 @@ function updateContainerCounts(containerType, change) {
 }
 
 function addContainers() {
-    let textarea = document.getElementById("container_list");
     let containerTypeSelect = document.getElementById("container_type");
     let containerType = containerTypeSelect.value;
-    let containerTypeText = containerTypeSelect.options[containerTypeSelect.selectedIndex].text;
-    let containerSection = document.getElementById("container-sections");
-
+    let fileInput = document.getElementById("container_file");
+    
     if (!containerType) {
         alert("Please select a container type first.");
         return;
     }
 
+    // Check if we have a file to process
+    if (fileInput.files.length > 0) {
+        // Process file upload
+        handleFileUpload(containerType);
+    } else {
+        // Process manual textarea input
+        processTextareaInput(containerType);
+    }
+}
+
+function handleFileUpload(containerType) {
+    const fileInput = document.getElementById("container_file");
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('container_type', containerType);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+    fetch('/shipping-instructions/parse-container-list', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Process the containers directly without using textarea
+            processContainers(containerType, data.containers.map(container => ({
+                container: container.number,
+                seal: container.seal
+            })));
+            
+            // Clear the file input
+            fileInput.value = '';
+        } else {
+            alert(data.message || 'Error parsing file');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error uploading file');
+    });
+}
+
+function processTextareaInput(containerType) {
+    let textarea = document.getElementById("container_list");
     let lines = textarea.value.trim().split("\n");
     let containers = [];
+
+    if (!textarea.value.trim()) {
+        alert("Please enter container details or select a file to upload");
+        return;
+    }
 
     lines.forEach(line => {
         let parts = line.split(",");
@@ -501,6 +580,15 @@ function addContainers() {
         alert("Invalid format! Please enter containers in the format: CONTAINER,SEAL");
         return;
     }
+
+    processContainers(containerType, containers);
+    // Clear textarea after successful processing
+    textarea.value = "";
+}
+
+function processContainers(containerType, containers) {
+    let containerTypeSelect = document.getElementById("container_type");
+    let containerTypeText = containerTypeSelect.options[containerTypeSelect.selectedIndex].text;
 
     // Check available count
     const option = containerTypeSelect.selectedOptions[0];
@@ -566,31 +654,6 @@ function addContainers() {
 
     // Update counts after adding containers
     updateContainerCounts(containerType, containers.length);
-
-    // Clear textarea after processing
-    textarea.value = "";
-}
-
-function removeContainer(button) {
-    const containerItem = button.closest('.flex');
-    if (containerItem) {
-        // Get container type before removing the element
-        const containerType = containerItem.querySelector('input[type="hidden"]').value;
-        
-        containerItem.remove();
-        
-        // Check if the container group is empty
-        const containerSection = document.querySelector(`div[data-container-type="${containerType}"]`);
-        const containerGroup = containerSection.querySelector(`#container-group-${containerType}`);
-        
-        // If no more items, remove the entire container section
-        if (containerGroup && containerGroup.children.length === 0) {
-            containerSection.remove();
-        }
-
-        // Update counts after removing container
-        updateContainerCounts(containerType, -1);
-    }
 }
 
 // Add this helper function for text selection in querySelector
