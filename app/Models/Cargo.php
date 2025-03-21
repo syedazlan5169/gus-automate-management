@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\ShippingInstruction;
 use App\Models\CargoContainer;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Cargo extends Model
 {
@@ -36,5 +37,11 @@ class Cargo extends Model
     public function allocatedContainers(): HasMany
     {
         return $this->hasMany(CargoContainer::class)->whereNotNull('shipping_instruction_id');
+    }
+
+    public function shippingInstructions(): BelongsToMany
+    {
+        return $this->belongsToMany(ShippingInstruction::class, 'cargo_containers')
+                    ->withPivot(['container_number', 'seal_number']);
     }
 }

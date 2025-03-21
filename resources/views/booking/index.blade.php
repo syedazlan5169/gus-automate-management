@@ -46,6 +46,12 @@
       <!-- Booking Heading -->
       <h1 id="create-booking-heading" class="text-3xl font-bold tracking-tight text-gray-900">My Bookings</h1>
     </div>
+
+    <!-- Success Message -->
+    @if (session('success'))
+        <x-alert-success :message="session('success')" />
+    @endif
+
     <div class="flex items-start gap-x-8">
       <main class="flex-1">
         <div class="overflow-hidden rounded-lg bg-white shadow">
@@ -208,58 +214,3 @@
     </div>
 </x-app-layout>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dropdownButtons = document.querySelectorAll('[id^="options-menu-"][id$="-button"]');
-    
-    dropdownButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent event from bubbling up
-    const dropdown = this.nextElementSibling;
-    const isHidden = dropdown.classList.contains('hidden');
-
-            // Close all other dropdowns
-            dropdownButtons.forEach(otherButton => {
-                if (otherButton !== button) {
-                    const otherDropdown = otherButton.nextElementSibling;
-                    otherDropdown.classList.add('hidden');
-                    otherButton.setAttribute('aria-expanded', 'false');
-                }
-            });
-
-            // Toggle current dropdown
-    dropdown.classList.toggle('hidden');
-    this.setAttribute('aria-expanded', isHidden);
-
-            // Handle clicking outside
-    const closeDropdown = (e) => {
-                if (!dropdown.contains(e.target) && !button.contains(e.target)) {
-        dropdown.classList.add('hidden');
-                    button.setAttribute('aria-expanded', 'false');
-        document.removeEventListener('click', closeDropdown);
-      }
-    };
-
-            if (isHidden) {
-                // Add click event listener to document with a slight delay
-                setTimeout(() => {
-    document.addEventListener('click', closeDropdown);
-                }, 0);
-            }
-        });
-    });
-  });
-
-    // Show modal if success message exists
-    @if(session('success'))
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('confirm-modal');
-            modal.classList.remove('hidden');
-            
-            // Auto hide after 3 seconds
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 3000);
-        });
-    @endif
-</script>

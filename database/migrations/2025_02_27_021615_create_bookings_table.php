@@ -44,7 +44,9 @@ return new class extends Migration
             $table->string('contact_shipper');
             $table->string('consignee');
             $table->string('contact_consignee');
-            $table->text('customer_instructions')->nullable();
+            $table->string('notify_party');
+            $table->string('notify_party_contact');
+            $table->string('notify_party_address');
             $table->string('cargo_description');
             $table->string('hs_code');
             $table->timestamps();

@@ -106,10 +106,10 @@ class BookingController extends Controller
             \DB::commit();
 
             if (auth()->user()->role === 'customer') {
-                return redirect()->route('client.bookings.index')
+                return redirect()->route('booking.show', $booking)
                     ->with('success', 'Booking created successfully.');
             } else {
-                return redirect()->route('admin.bookings.index')
+                return redirect()->route('booking.show', $booking)
                     ->with('success', 'Booking created successfully.');
             }
 
@@ -124,7 +124,7 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        $booking->load(['cargos.containers', 'shippingInstructions.cargoContainers']);
+        $booking->load(['cargos.containers', 'shippingInstructions.containers']);
         return view('booking.show', compact('booking'));
     }
 

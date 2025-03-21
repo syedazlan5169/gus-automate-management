@@ -26,19 +26,13 @@ Route::middleware(['auth'])->group(function () {
 
         // Shipping Instruction routes
         Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])->name('shipping-instructions.create');
-        Route::get('bookings/{booking}/shipping-instructions/createold', [ShippingInstructionController::class, 'createold'])->name('shipping-instructions.createold');
-        Route::post('bookings/{booking}/shipping-instructions', [ShippingInstructionController::class, 'store'])
-            ->name('shipping-instructions.store');
-        Route::get('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'show'])
-            ->name('shipping-instructions.show');
+        Route::post('bookings/{booking}/shipping-instructions', [ShippingInstructionController::class, 'store'])->name('shipping-instructions.store');
+        Route::get('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'show'])->name('shipping-instructions.show');
+        Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
         Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])
             ->name('shipping-instructions.update');
-        Route::get('shipping-instructions/{shippingInstruction}/bl', [ShippingInstructionController::class, 'generateBL'])
-            ->name('shipping-instructions.bl');
-
-        // New UI routes
 
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {

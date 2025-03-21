@@ -159,41 +159,67 @@
           <div class="overflow-hidden rounded-lg bg-white shadow">
             <div class="px-4 py-5 sm:p-6">
               <div class="space-y-6">
-                <!-- Container Allocation -->
-                <div class="border-b border-gray-900/10 space-y-6">
-                  <div class="sm:flex sm:items-center">
+            <!-- Container Allocation -->
+            <div class="border-b border-gray-900/10 space-y-6">
+                <div class="sm:flex sm:items-center">
                     <div class="sm:flex-auto">
-                      <h1 class="text-base font-semibold text-gray-900">Containers Allocation</h1>
-                      <div class="mt-2 space-y-1">
-                        @foreach($booking->cargos as $cargo)
-                          @php
-                            $allocatedCount = $cargo->containers->whereNotNull('shipping_instruction_id')->count();
-                            $availableCount = $cargo->container_count - $allocatedCount;
-                          @endphp
-                          <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}">
-                            {{ $cargo->container_type }}: 
-                            <strong>{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
-                          </p>
-                        @endforeach
-                      </div>
+                        <h1 class="text-base font-semibold text-gray-900">Containers Allocation</h1>
+                        <div class="mt-2 space-y-1" id="allocation-info">
+                            @foreach($booking->cargos as $cargo)
+                                @php
+                                    $allocatedCount = $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                    $availableCount = $cargo->container_count - $allocatedCount;
+                                @endphp
+                                <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}" 
+                                   data-container-type="{{ $cargo->id }}" 
+                                   data-total="{{ $cargo->container_count }}">
+                                    {{ $cargo->container_type }}: 
+                                    <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
+                                </p>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                      <button type="button"
-                        onclick="document.getElementById('si-upload-modal').classList.remove('hidden')"
-                        class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                          stroke="currentColor" class="w-4 h-4">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        Upload Details
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Container sections will be populated here -->
-                  <div id="container-sections">
-                  </div>
                 </div>
+
+                <!-- Add Container Form -->
+                <div class="mt-4 space-y-4">
+                    <div class="sm:col-span-2">
+                        <label for="container_type" class="block text-sm font-medium text-gray-900">Container Type</label>
+                        <select id="container_type" name="container_type" required
+                            class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                            <option value="">Select Container Type</option>
+                            @foreach($booking->cargos as $cargo)
+                                @php
+                                    $availableCount = $cargo->container_count - $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                @endphp
+                                @if($availableCount > 0)
+                                    <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
+                                        {{ $cargo->container_type }} ({{ $availableCount }} available)
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="container_list" class="block text-sm font-medium text-gray-900">
+                            Container List (Format: CONTAINER,SEAL - One per line)
+                        </label>
+                        <textarea id="container_list" name="container_list" rows="4"
+                            class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            placeholder="TEMU0192292,SEAL001"></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="button" onclick="addContainers()"
+                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            Add Containers
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container sections will be populated here -->
+                <div id="container-sections" class="mt-4 space-y-4"></div>
               </div>
             </div>
           </div>
@@ -201,6 +227,44 @@
           <div class="overflow-hidden rounded-lg bg-white shadow">
             <div class="px-4 py-5 sm:p-6">
               <div class="space-y-6">
+                <!-- Error Messages Section -->
+                @if ($errors->any())
+                    <div class="rounded-md bg-red-50 p-4 mb-4">
+                        <div class="flex">
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">
+                                    There were {{ $errors->count() }} errors with your submission
+                                </h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <ul role="list" class="list-disc space-y-1 pl-5">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Success Message -->
+                @if (session('success'))
+                    <div class="rounded-md bg-green-50 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="size-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800">
+                                    {{ session('success') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="flex justify-between space-x-4">
                   <div>
                     <button type="button" onclick="window.history.back()"
@@ -220,7 +284,6 @@
           </div>
         </form>
       </main>
-
 
       <aside class="sticky top-8 hidden w-96 shrink-0 xl:block">
         <!-- Right column area -->
@@ -277,9 +340,7 @@
                         <span class="size-2.5 rounded-full bg-indigo-600"></span>
                       </span>
                     </span>
-                    <span class="ml-4 flex min-w-0 flex-col">
-
-                    </span>
+                    <span class="ml-4 flex min-w-0 flex-col"></span>
                   </a>
                 </li>
               </ol>
@@ -289,7 +350,6 @@
       </aside>
     </div>
   </div>
-
 
   <!-- Modal -->
   <div id="si-upload-modal" class="hidden relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -382,102 +442,219 @@
 
 </x-app-layout>
 
-@push('scripts')
 <script>
-document.getElementById('container_type').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const availableCount = selectedOption.dataset.available;
-    const quantityInput = document.getElementById('quantity');
+function updateContainerCounts(containerType, change) {
+    // Update dropdown option
+    const option = document.querySelector(`option[value="${containerType}"]`);
+    if (option) {
+        const available = parseInt(option.dataset.available) - change;
+        option.dataset.available = available;
+        option.textContent = `${option.textContent.split('(')[0].trim()} (${available} available)`;
+        
+        // Remove option if no more containers available
+        if (available <= 0) {
+            option.remove();
+        }
+    }
+
+    // Update allocation info
+    const allocationInfo = document.querySelector(`p[data-container-type="${containerType}"]`);
+    if (allocationInfo) {
+        const strong = allocationInfo.querySelector('strong');
+        const total = allocationInfo.dataset.total;
+        const available = parseInt(strong.dataset.available) - change;
+        strong.dataset.available = available;
+        strong.textContent = `${available} of ${total} available`;
+        
+        // Update color based on availability
+        allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
+    }
+}
+
+function addContainers() {
+    let textarea = document.getElementById("container_list");
+    let containerTypeSelect = document.getElementById("container_type");
+    let containerType = containerTypeSelect.value;
+    let containerTypeText = containerTypeSelect.options[containerTypeSelect.selectedIndex].text;
+    let containerSection = document.getElementById("container-sections");
+
+    if (!containerType) {
+        alert("Please select a container type first.");
+        return;
+    }
+
+    let lines = textarea.value.trim().split("\n");
+    let containers = [];
+
+    lines.forEach(line => {
+        let parts = line.split(",");
+        if (parts.length === 2) {
+            let containerNumber = parts[0].trim();
+            let sealNumber = parts[1].trim();
+            if (containerNumber && sealNumber) {
+                containers.push({ container: containerNumber, seal: sealNumber });
+            }
+        }
+    });
+
+    if (containers.length === 0) {
+        alert("Invalid format! Please enter containers in the format: CONTAINER,SEAL");
+        return;
+    }
+
+    // Check available count
+    const option = containerTypeSelect.selectedOptions[0];
+    const availableCount = parseInt(option.dataset.available);
+    if (containers.length > availableCount) {
+        alert(`Only ${availableCount} containers available for this type`);
+        return;
+    }
+
+    // Check if a section for the selected container type already exists
+    let existingSection = document.querySelector(`div[data-container-type="${containerType}"]`);
+    let containerGroup;
     
-    if (availableCount) {
-        quantityInput.max = availableCount;
-        quantityInput.value = Math.min(quantityInput.value || 1, availableCount);
+    if (!existingSection) {
+        // Create new section
+        existingSection = document.createElement("div");
+        existingSection.setAttribute("data-container-type", containerType);
+        existingSection.classList.add("border", "rounded-md", "mt-4", "bg-white", "shadow");
+        
+        // Create container group div first
+        containerGroup = document.createElement("div");
+        containerGroup.id = `container-group-${containerType}`;
+        containerGroup.classList.add("space-y-3", "max-h-[400px]", "overflow-y-auto");
+        
+        // Set up the section HTML structure
+        existingSection.innerHTML = `
+            <div class="px-4 py-3 border-b">
+                <h3 class="text-base font-semibold text-gray-900">${containerTypeText.split('(')[0].trim()}</h3>
+            </div>
+            <div class="px-4 py-3"></div>
+        `;
+        
+        // Append the container group to the inner div
+        existingSection.querySelector('div:last-child').appendChild(containerGroup);
+        
+        // Add the section to the main container sections area
+        document.getElementById("container-sections").appendChild(existingSection);
+    } else {
+        // Get existing container group
+        containerGroup = existingSection.querySelector(`#container-group-${containerType}`);
+    }
+
+    // Now add the containers
+    containers.forEach((entry, index) => {
+        let div = document.createElement("div");
+        div.classList.add("flex", "items-center", "gap-x-4", "w-full");
+
+        div.innerHTML = `
+            <input type="hidden" name="containers[${containerType}][${index}][container_type]" value="${containerType}">
+            <input type="text" name="containers[${containerType}][${index}][container_number]" value="${entry.container}" 
+                class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
+            <input type="text" name="containers[${containerType}][${index}][seal_number]" value="${entry.seal}" 
+                class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
+            <button type="button" class="text-gray-400 hover:text-red-600" onclick="removeContainer(this)">
+                <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        `;
+
+        containerGroup.appendChild(div);
+    });
+
+    // Update counts after adding containers
+    updateContainerCounts(containerType, containers.length);
+
+    // Clear textarea after processing
+    textarea.value = "";
+}
+
+function removeContainer(button) {
+    const containerItem = button.closest('.flex');
+    if (containerItem) {
+        // Get container type before removing the element
+        const containerType = containerItem.querySelector('input[type="hidden"]').value;
+        
+        containerItem.remove();
+        
+        // Check if the container group is empty
+        const containerSection = document.querySelector(`div[data-container-type="${containerType}"]`);
+        const containerGroup = containerSection.querySelector(`#container-group-${containerType}`);
+        
+        // If no more items, remove the entire container section
+        if (containerGroup && containerGroup.children.length === 0) {
+            containerSection.remove();
+        }
+
+        // Update counts after removing container
+        updateContainerCounts(containerType, -1);
+    }
+}
+
+// Add this helper function for text selection in querySelector
+document.querySelector = ((function(original) {
+    return function(selector) {
+        if (selector.includes(':contains')) {
+            const [tag, text] = selector.split(':contains(');
+            const cleanText = text.slice(0, -1);
+            const elements = document.getElementsByTagName(tag || '*');
+            
+            for (const element of elements) {
+                if (element.textContent.includes(cleanText)) {
+                    return element;
+                }
+            }
+            return null;
+        }
+        return original.apply(this, arguments);
+    };
+})(document.querySelector));
+
+// Add this new function
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Basic validation
+    const requiredFields = [
+        'box_operator',
+        'shipper',
+        'contact_shipper',
+        'consignee',
+        'contact_consignee',
+        'notify_party',
+        'notify_party_contact',
+        'notify_party_address',
+        'cargo_description',
+        'hs_code'
+    ];
+
+    let isValid = true;
+    requiredFields.forEach(field => {
+        const element = document.getElementById(field);
+        if (!element.value.trim()) {
+            isValid = false;
+            element.classList.add('outline-red-500');
+        } else {
+            element.classList.remove('outline-red-500');
+        }
+    });
+
+    // Check if any containers have been added
+    const containerSections = document.getElementById('container-sections');
+    if (!containerSections.children.length) {
+        isValid = false;
+        alert('Please add at least one container');
+        return;
+    }
+
+    if (isValid) {
+        // Submit the form
+        this.submit();
+    } else {
+        alert('Please fill in all required fields');
     }
 });
-
-function closeModal() {
-    document.getElementById('si-upload-modal').classList.add('hidden');
-    document.getElementById('upload-form').reset();
-}
-
-function handleFileUpload() {
-    const form = document.getElementById('upload-form');
-    const formData = new FormData(form);
-
-    // Show loading state if needed
-
-    fetch('{{ route("shipping-instructions.parse-containers") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Add container section to the page
-            addContainerSection(data.containers);
-            closeModal();
-        } else {
-            alert(data.message || 'Error processing file');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error uploading file');
-    });
-}
-
-function addContainerSection(containers) {
-    const containerType = document.getElementById('container_type').options[document.getElementById('container_type').selectedIndex].text;
-    const section = document.createElement('div');
-    section.className = 'mt-4';
-    
-    const html = `
-        <div class="sm:flex sm:items-center mt-4">
-            <div class="sm:flex-auto">
-                <h1 class="text-base font-semibold text-gray-900">${containerType}</h1>
-            </div>
-        </div>
-        <div class="mt-4 overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead>
-                    <tr>
-                        <th class="w-12 px-3 py-3.5">
-                            <input type="checkbox" class="container-type-checkbox" onchange="toggleAllContainers(this)">
-                        </th>
-                        <th class="w-1/2 py-3.5 text-left text-sm font-semibold text-gray-900">Container Number</th>
-                        <th class="w-1/2 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Seal Number</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    ${containers.map(container => `
-                        <tr>
-                            <td class="px-3 py-4">
-                                <input type="checkbox" name="selected_containers[]" value="${container.number}" class="container-checkbox">
-                            </td>
-                            <td class="px-3 py-4">
-                                <input type="text" name="container_numbers[]" value="${container.number}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" readonly>
-                            </td>
-                            <td class="px-3 py-4">
-                                <input type="text" name="seal_numbers[]" value="${container.seal || ''}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    section.innerHTML = html;
-    document.getElementById('container-sections').appendChild(section);
-}
-
-function toggleAllContainers(checkbox) {
-    const section = checkbox.closest('table').querySelector('tbody');
-    const checkboxes = section.querySelectorAll('.container-checkbox');
-    checkboxes.forEach(cb => cb.checked = checkbox.checked);
-}
 </script>
-@endpush
+

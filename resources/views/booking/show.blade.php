@@ -24,60 +24,19 @@
 
                 </div>
             </div>
-            <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                <!-- Alert to upload invoice. Only for admin view. Hide if invoice = True -->
-                <div class="flex">
-                    <div class="shrink-0">
-                        <svg class="size-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                            data-slot="icon">
-                            <path fill-rule="evenodd"
-                                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3 flex-1 md:flex md:justify-between">
-                        <p class="text-sm text-yellow-700">User has submitted their Shipping Instruction. Please upload
-                            the
-                            invoice to proceed.
-                        </p>
-                        <p class="mt-3 text-sm md:ml-6 md:mt-0">
-                            <a href="#" class=" whitespace-nowrap font-medium text-yellow-700 hover:text-yellow-600">
-                                <strong>Upload Invoice</strong>
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            @if (session('instruction'))
+                <x-alert-instruction 
+                    :message="session('instruction')"
+                    :action_url="session('action_url')"
+                    :action_text="session('action_text', 'Take Action')" 
+                />
+            @endif
 
-            <!-- Successfully uploaded -->
-            <div class="rounded-md bg-green-50 p-4">
-                <div class="flex">
-                    <div class="shrink-0">
-                        <svg class="size-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                            data-slot="icon">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-green-800">Successfully uploaded</p>
-                    </div>
-                    <div class="ml-auto pl-3">
-                        <div class="-mx-1.5 -my-1.5">
-                            <button type="button"
-                                class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
-                                <span class="sr-only">Dismiss</span>
-                                <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                                    data-slot="icon">
-                                    <path
-                                        d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Success Message -->
+            @if (session('success'))
+                <x-alert-success :message="session('success')" />
+            @endif
+
             <!-- Booking Details -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 space-y-6">
@@ -193,9 +152,14 @@
                                 <h3 class="text-lg font-medium">Shipping Instructions</h3>
                                 <p class="text-sm text-red-600">
                                     <strong>Total Unallocated Containers:</strong>
-                                    {{ $booking->cargos->sum(function($cargo) {
-                                        return $cargo->containers->whereNull('shipping_instruction_id')->count();
-                                    }) }}
+                                    @php
+                                    $totalUnallocated = $booking->cargos->sum(function($cargo) {
+                                        return $cargo->containers->filter(function($container) {
+                                            return $container->shipping_instruction_id === null;
+                                        })->count();
+                                    });
+                                    @endphp
+                                    {{ $totalUnallocated }}
                                 </p>
                             </div>
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -247,7 +211,7 @@
                                         <div class="mt-4">
                                             <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
                                             <div class="grid grid-cols-2 gap-4">
-                                                @foreach($si->cargoContainers->groupBy('cargo.container_type') as $type => $containers)
+                                                @foreach($si->containers->groupBy('container_type') as $type => $containers)
                                                     <div class="text-sm">
                                                         <span class="font-medium">{{ $type }}:</span> 
                                                         {{ $containers->count() }} containers
@@ -274,10 +238,19 @@
                                                 class="text-indigo-600 hover:text-indigo-900">
                                                 View Details
                                             </a>
-                                            <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
+                                            <a href="#"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Generate BL
                                             </a>
+                                            <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                    class="ml-4 text-red-600 hover:text-red-900"
+                                                    onclick="return confirm('Are you sure you want to delete this shipping instruction?')">
+                                                    Delete
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 @endforeach
@@ -576,7 +549,7 @@
                             <button type="button"
                                 onclick="document.getElementById('bl-confirmation-modal').classList.remove('hidden')"
                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                Generate BL
+                                Proceed 
                             </button>
 
                             <!-- Generate BL Confirmation Modal -->
@@ -619,4 +592,5 @@
             </div>
         </div>
     </div>
+
 </x-app-layout>
