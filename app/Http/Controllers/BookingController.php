@@ -81,7 +81,6 @@ class BookingController extends Controller
                 'place_of_delivery' => $validated['place_of_delivery'],
                 'ets' => $validated['ets'],
                 'eta' => $validated['eta'],
-                'status' => 'New',
                 'user_id' => auth()->id(),
             ]);
 

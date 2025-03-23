@@ -47,8 +47,7 @@
                             <div class="flex items-center gap-3">
                                 <h2 class="text-2xl font-semibold">Booking Details</h2>
                                 <span
-                                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Pending
-                                    SI</span>
+                                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{{ $booking->status }}</span>
                             </div>
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
@@ -151,17 +150,22 @@
                             <div class="sm:flex-auto">
                                 <h3 class="text-lg font-medium">Shipping Instructions</h3>
                                 <p class="text-sm text-red-600">
-                                    <strong>Total Unallocated Containers:</strong>
                                     @php
-                                    $totalUnallocated = $booking->cargos->sum(function($cargo) {
+                                     $totalUnallocated = $booking->cargos->sum(function($cargo) {
                                         return $cargo->containers->filter(function($container) {
-                                            return $container->shipping_instruction_id === null;
+                                            return $container->shipping_instruction_id == null;
                                         })->count();
                                     });
                                     @endphp
-                                    {{ $totalUnallocated }}
+                                    @if($totalUnallocated > 0)
+                                        <strong>Total Unallocated Containers:</strong>
+                                        {{ $totalUnallocated }}
+                                    @else
+                                        <strong>All Containers Allocated</strong>
+                                    @endif
                                 </p>
                             </div>
+                            @if($totalUnallocated > 0)
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -173,6 +177,7 @@
                                     Add Shipping Instruction
                                 </a>
                             </div>
+                            @endif
                         </div>
 
                         @if($booking->shippingInstructions->isEmpty())

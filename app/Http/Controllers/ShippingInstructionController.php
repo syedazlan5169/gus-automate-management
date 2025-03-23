@@ -105,13 +105,25 @@ class ShippingInstructionController extends Controller
 
             // Process containers
             foreach ($validated['containers'] as $cargoId => $containers) {
-                foreach ($containers as $container) {
-                    CargoContainer::create([
-                        'cargo_id' => $cargoId,
-                        'shipping_instruction_id' => $shippingInstruction->id,
-                        'container_number' => $container['container_number'],
-                        'seal_number' => $container['seal_number'],
-                    ]);
+                // Get available empty containers for this cargo
+                $availableContainers = CargoContainer::where('cargo_id', $cargoId)
+                    ->whereNull('shipping_instruction_id')
+                    ->take(count($containers))
+                    ->get();
+
+                foreach ($containers as $index => $container) {
+                    if (isset($availableContainers[$index])) {
+                        // Update existing container
+                        $availableContainers[$index]->update([
+                            'shipping_instruction_id' => $shippingInstruction->id,
+                            'container_number' => $container['container_number'],
+                            'seal_number' => $container['seal_number'],
+                        ]);
+                    } else {
+                        // Log error if we run out of available containers
+                        \Log::error("No available container found for cargo ID: {$cargoId}");
+                        throw new \Exception('Insufficient available containers for the cargo.');
+                    }
                 }
             }
 
