@@ -296,118 +296,84 @@
                             <div class="sm:flex-auto">
                                 <div class="flex items-center gap-3">
                                     <h3 class="text-lg font-medium">Invoice Information</h3>
-                                    <span
-                                        class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Pending</span>
-                                    <span
-                                        class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">Uploaded</span>
+                                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Pending</span>
+                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">Uploaded</span>
                                 </div>
-                            </div>
-                            <!-- This button upload if no invoice. view if invoice is uploaded -->
-                            <!-- Admin only can view the upload button invoice -->
-                            <!-- hide if user session and no invoice uploaded? -->
-                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                                @if(auth()->user()->role == 'customer')
-                                <button type="button"
-                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest' }} ">
-                                    Download Invoice
-                                </button>
-                                @else
-                                <button type="button"
-                                    onclick="document.getElementById('upload-invoice-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest' }} ">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    Upload Invoice
-                                </button>
-                                @endif
                             </div>
                         </div>
 
-                        <!-- Upload Invoice Modal -->
-                        <div id="upload-invoice-modal" class="hidden relative z-10" aria-labelledby="modal-title"
-                            role="dialog" aria-modal="true">
-                            <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true">
-                            </div>
-                            <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
-                                <div
-                                    class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                                    <div
-                                        class="z-50 relative w-full transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl sm:p-6">
-                                        <div>
-                                            <div class="mt-3 sm:mt-5">
-                                                <div class="mt-4">
-                                                    <div class="px-4 sm:px-6 lg:px-8">
-                                                        <div class="sm:flex sm:items-center">
-                                                            <div class="sm:flex-auto">
-                                                                <h3 class="text-lg font-semibold text-gray-900"
-                                                                    id="modal-title">
-                                                                    Upload Invoice</h3>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mt-8 flow-root">
-                                                            <!-- File Upload -->
-                                                            <div>
-                                                                <label
-                                                                    class="block text-sm font-medium text-gray-700">Upload
-                                                                    Booking Invoice</label>
-                                                                <div
-                                                                    class="mt-1 flex items-center justify-center w-full">
-                                                                    <label
-                                                                        class="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-indigo-600">
-                                                                        <svg class="w-8 h-8 text-gray-500" fill="none"
-                                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round"
-                                                                                stroke-linejoin="round" stroke-width="2"
-                                                                                d="M12 4v16m8-8H4" />
-                                                                        </svg>
-                                                                        <span class="mt-2 text-sm text-gray-600">Click
-                                                                            to upload or drag and
-                                                                            drop (.pdf)</span>
-                                                                        <input type="file" class="hidden"
-                                                                            accept=".xlsx,.xls,.csv">
-                                                                    </label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                        <!-- Invoice Actions -->
+                        <div class="mb-6">
+                            @if(auth()->user()->role == 'customer')
+                                <button type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
+                                    Download Invoice
+                                </button>
+                            @else
+                                <div class="flex items-center gap-4">
+                                    <form action="{{ route('invoice.upload', $booking) }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-4">
+                                        @csrf
+                                        <div class="flex-grow max-w-md">
+                                            <div class="flex items-center gap-2">
+                                                <div class="relative flex-grow">
+                                                    <input type="file" 
+                                                        id="invoice_file" 
+                                                        name="invoice_file" 
+                                                        accept=".pdf"
+                                                        class="hidden"
+                                                        onchange="updateFileName(this)">
+                                                    <label for="invoice_file" 
+                                                        class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                        </svg>
+                                                        Select PDF Invoice
+                                                    </label>
+                                                    <span id="file_name" class="ml-2 text-sm text-gray-500"></span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="mt-5 sm:mt-6 flex space-x-3">
-                                            <button type="button"
-                                                onclick="document.getElementById('upload-invoice-modal').classList.add('hidden')"
-                                                class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                                                Cancel
-                                            </button>
-                                            <a href="#"
-                                                class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                                Upload
-                                            </a>
-                                        </div>
-                                    </div>
+                                        <button type="button"
+                                            onclick="extractInvoiceData()"
+                                            class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                            </svg>
+                                            Extract & Upload
+                                        </button>
+                                    </form>
                                 </div>
-                            </div>
+                            @endif
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Invoice Details -->
+                        <div class="grid grid-cols-3 gap-6">
                             <div>
-                                <p class="text-sm text-gray-600">Date of Invoice</p>
-                                <p class="font-medium">23/03/2025</p>
+                                <x-input-label for="invoice_date" :value="__('Date of Invoice')" />
+                                <x-text-input id="invoice_date" class="block mt-1 w-full" type="date" name="invoice_date" :value="$booking->invoice_date" />
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">Invoice Number</p>
-                                <p class="font-medium">INV-001</p>
+                                <x-input-label for="invoice_number" :value="__('Invoice Number')" />
+                                <x-text-input id="invoice_number" class="block mt-1 w-full" type="text" name="invoice_number" :value="$booking->invoice_number" />
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">Invoice Amount</p>
-                                <p class="font-medium">RM 1000</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">Invoice Status</p>
-                                <p class="font-medium">Submitted</p>
+                                <x-input-label for="invoice_amount" :value="__('Invoice Amount')" />
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <span class="text-gray-500 sm:text-sm">RM</span>
+                                    </div>
+                                    <x-text-input 
+                                        id="invoice_amount" 
+                                        class="block w-full pl-12" 
+                                        type="number" 
+                                        step="0.01" 
+                                        name="invoice_amount" 
+                                        :value="$booking->total_amount" 
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -569,6 +535,8 @@
                         </div>
                     </div>
                     @endif
+
+
                     <!-- Action Buttons -->
                     <div class="mt-6 flex justify-between space-x-4">
                         <div>
@@ -609,8 +577,39 @@
                                     @endif
                                 </div>
                             </div>
+                            @elseif($booking->status == 'Pending Invoice')
+                            <div class="relative" x-data="{ showTooltip: false }">
+                                <!-- Button with mouseover tooltip -->
+                                <button type="button"
+                                    @mouseover="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    onclick="document.getElementById('invoice-submission-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        @if($booking->shippingInstructions->isNotEmpty() && $totalUnallocated === 0)
+                                            bg-blue-600 text-white hover:bg-blue-700
+                                        @else
+                                            bg-gray-300 text-gray-500 cursor-not-allowed
+                                        @endif"
+                                    @if($booking->shippingInstructions->isEmpty() || $totalUnallocated > 0) disabled @endif>
+                                    Submit Invoice
+                                </button>
+
+                                <!-- Tooltip -->
+                                <div x-show="showTooltip" 
+                                    x-transition
+                                    class="absolute bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+                                    style="left: 10%; transform: translateX(-50%)">
+                                    @if($booking->shippingInstructions->isEmpty())
+                                        Please add at least one shipping instruction.
+                                    @elseif($totalUnallocated > 0)
+                                        Please allocate all containers to shipping instructions before submitting.
+                                    @else
+                                        Ready to submit shipping instructions.
+                                    @endif
+                                </div>
+                            </div>
                             @endif
-                            <!-- Generate SI Confirmation Modal -->
+                            <!-- SI Confirmation Modal -->
                             <div id="si-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
                                 role="dialog" aria-modal="true">
                                 <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
@@ -641,6 +640,37 @@
                                 </div>
                             </div>
 
+                            <!-- Invoice Confirmation Modal -->
+                            <div id="invoice-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">
+                                                        Confirm Invoice Submission</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before submitting the Invoice. You will not be able to make any changes after submitting.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                                                <button type="button" onclick="window.location.href='{{ route('booking.submit-invoice', $booking) }}'"
+                                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2">Submit Invoice</button>
+                                                <button type="button"
+                                                    onclick="document.getElementById('invoice-submission-modal').classList.add('hidden')"
+                                                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -649,3 +679,81 @@
     </div>
 
 </x-app-layout>
+
+<script>
+function updateFileName(input) {
+    const fileName = input.files[0]?.name || '';
+    document.getElementById('file_name').textContent = fileName;
+}
+
+function extractInvoiceData() {
+    const fileInput = document.getElementById('invoice_file');
+    if (!fileInput.files.length) {
+        alert('Please select a PDF file first');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('invoice_file', fileInput.files[0]);
+    formData.append('_token', '{{ csrf_token() }}');
+
+    // Show loading state
+    const extractButton = event.currentTarget;
+    const originalContent = extractButton.innerHTML;
+    extractButton.innerHTML = `
+        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Processing...
+    `;
+    extractButton.disabled = true;
+
+    // First extract data
+    fetch('{{ route("invoice.extract", $booking) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Populate the form fields with extracted data
+            document.getElementById('invoice_date').value = data.invoice_date || '';
+            document.getElementById('invoice_number').value = data.invoice_number || '';
+            document.getElementById('invoice_amount').value = data.invoice_amount || '';
+            
+            // Then upload the file
+            return uploadInvoice(formData);
+        } else {
+            throw new Error(data.message || 'Failed to extract data from PDF');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'An error occurred while processing the PDF');
+    })
+    .finally(() => {
+        // Restore button state
+        extractButton.innerHTML = originalContent;
+        extractButton.disabled = false;
+    });
+}
+
+function uploadInvoice(formData) {
+    return fetch('{{ route("invoice.upload", $booking) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert('Invoice uploaded successfully!');
+            // Optionally refresh the page or update UI
+            window.location.reload();
+        } else {
+            throw new Error(data.message || 'Failed to upload invoice');
+        }
+    });
+}
+</script>

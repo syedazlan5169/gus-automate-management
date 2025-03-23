@@ -134,6 +134,13 @@ class BookingController extends Controller
         return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
     }
 
+    // Invoice Submission
+    public function submitInvoice(Booking $booking)
+    {
+        $booking->update(['status' => 'Pending Payment']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Invoice submitted successfully.');
+    }
+
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {

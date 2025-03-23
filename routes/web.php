@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ShippingInstructionController;
+use App\Http\Controllers\InvoiceController;
 
 Route::redirect('/', '/login');
 
@@ -23,6 +24,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
         Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
+        Route::get('booking/{booking}/submit-invoice', [BookingController::class, 'submitInvoice'])->name('booking.submit-invoice');
+
+        // Invoice routes
+        Route::post('/booking/{booking}/invoice/upload', [InvoiceController::class, 'upload'])->name('invoice.upload');
+        Route::post('/booking/{booking}/invoice/extract', [InvoiceController::class, 'extract'])->name('invoice.extract');
 
         // Shipping Instruction routes
         Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])->name('shipping-instructions.create');
