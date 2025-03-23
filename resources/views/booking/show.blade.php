@@ -24,12 +24,31 @@
 
                 </div>
             </div>
-            @if (session('instruction'))
+
+            @if ($booking->status == 'Pending SI')
+                @if(auth()->user()->role == 'customer')
                 <x-alert-instruction 
-                    :message="session('instruction')"
-                    :action_url="session('action_url')"
-                    :action_text="session('action_text', 'Take Action')" 
+                    message="Please submit your shipping instructions"
                 />
+                @else
+                <x-alert-instruction 
+                    message="A booking is pending for shipping instructions"
+                />
+                @endif
+            @endif
+
+            @if ($booking->status == 'Pending Invoice')
+                @if(auth()->user()->role == 'customer')
+                <x-alert-instruction 
+                    message="Waiting for Liner to upload the invoice"
+                />
+                @else
+                <x-alert-instruction 
+                    message="Customer has submitted the shipping instructions, please upload the invoice to proceed"
+                    action_url="#"
+                    action_text="Upload Invoice"
+                />
+                @endif
             @endif
 
             <!-- Success Message -->
@@ -243,10 +262,16 @@
                                                 class="text-indigo-600 hover:text-indigo-900">
                                                 View Details
                                             </a>
+                                            @if($booking->status == 'Complete Payment' || $booking->status == 'Shipped' || $booking->status == 'Completed')
                                             <a href="#"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Generate BL
                                             </a>
+                                            <a href="#"
+                                                class="ml-4 text-green-600 hover:text-green-900">
+                                                Generate Manifest
+                                            </a>
+                                            @endif
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -265,6 +290,7 @@
 
                     <!-- Only viewable by admin -->
                     <!-- Invoice Information -->
+                    @if($booking->status == 'Pending Invoice' || $booking->status == 'Pending Payment' || $booking->status == 'Complete Payment' || $booking->status == 'Shipped' || $booking->status == 'Completed')
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -280,9 +306,15 @@
                             <!-- Admin only can view the upload button invoice -->
                             <!-- hide if user session and no invoice uploaded? -->
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                                @if(auth()->user()->role == 'customer')
+                                <button type="button"
+                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest' }} ">
+                                    Download Invoice
+                                </button>
+                                @else
                                 <button type="button"
                                     onclick="document.getElementById('upload-invoice-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest' }} ">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -290,6 +322,7 @@
                                     </svg>
                                     Upload Invoice
                                 </button>
+                                @endif
                             </div>
                         </div>
 
@@ -362,15 +395,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Date of Invoice</p>
-                                <p class="font-medium">{{ $booking->place_of_receipt }}</p>
+                                <p class="font-medium">23/03/2025</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Invoice Number</p>
-                                <p class="font-medium">{{ $booking->pol }}</p>
+                                <p class="font-medium">INV-001</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Invoice Amount</p>
-                                <p class="font-medium">{{ $booking->pod }}</p>
+                                <p class="font-medium">RM 1000</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Invoice Status</p>
@@ -378,11 +411,12 @@
                             </div>
                         </div>
                     </div>
-
+                    @endif
                     <!-- Payment Information -->
                     <!-- This button upload if no invoice. view if invoice is uploaded -->
                     <!-- Admin only can view the upload button invoice -->
                     <!-- hide if user session and no invoice uploaded? -->
+                    @if($booking->status == 'Pending Payment' || $booking->status == 'Complete Payment' || $booking->status == 'Shipped' || $booking->status == 'Completed')
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -534,7 +568,7 @@
                             </div>
                         </div>
                     </div>
-
+                    @endif
                     <!-- Action Buttons -->
                     <div class="mt-6 flex justify-between space-x-4">
                         <div>
@@ -544,21 +578,40 @@
                             </button>
                         </div>
                         <div class="flex space-x-4">
-                            @if(auth()->user()->role !== 'customer')
-                                <a href="{{ route('booking.update', $booking) }}"
-                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                    Edit
-                                </a>
-                            @endif
-                            <!-- greyed out if booking has no SI -->
-                            <button type="button"
-                                onclick="document.getElementById('bl-confirmation-modal').classList.remove('hidden')"
-                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                Proceed 
-                            </button>
+                            @if($booking->status == 'Pending SI')
+                            <div class="relative" x-data="{ showTooltip: false }">
+                                <!-- Button with mouseover tooltip -->
+                                <button type="button"
+                                    @mouseover="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    onclick="document.getElementById('si-submission-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        @if($booking->shippingInstructions->isNotEmpty() && $totalUnallocated === 0)
+                                            bg-blue-600 text-white hover:bg-blue-700
+                                        @else
+                                            bg-gray-300 text-gray-500 cursor-not-allowed
+                                        @endif"
+                                    @if($booking->shippingInstructions->isEmpty() || $totalUnallocated > 0) disabled @endif>
+                                    Submit SI 
+                                </button>
 
-                            <!-- Generate BL Confirmation Modal -->
-                            <div id="bl-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                <!-- Tooltip -->
+                                <div x-show="showTooltip" 
+                                    x-transition
+                                    class="absolute bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+                                    style="left: 10%; transform: translateX(-50%)">
+                                    @if($booking->shippingInstructions->isEmpty())
+                                        Please add at least one shipping instruction.
+                                    @elseif($totalUnallocated > 0)
+                                        Please allocate all containers to shipping instructions before submitting.
+                                    @else
+                                        Ready to submit shipping instructions.
+                                    @endif
+                                </div>
+                            </div>
+                            @endif
+                            <!-- Generate SI Confirmation Modal -->
+                            <div id="si-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
                                 role="dialog" aria-modal="true">
                                 <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
                                 <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -569,21 +622,18 @@
                                             <div>
                                                 <div class="mt-3 text-center sm:mt-5">
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">
-                                                        Confirm BL Generation</h3>
+                                                        Confirm Shipping Instructions Submission</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the
-                                                            documents and information are correct before generating the
-                                                            BL.</p>
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before submitting the Shipping Instructions. You will not be able to make any changes after submitting.</p>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div
                                                 class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                                                <button type="button" onclick="window.location.href='{{ route('booking.submit-si', $booking) }}'"
+                                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2">Submit SI</button>
                                                 <button type="button"
-                                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2">Generate
-                                                    BL</button>
-                                                <button type="button"
-                                                    onclick="document.getElementById('bl-confirmation-modal').classList.add('hidden')"
+                                                    onclick="document.getElementById('si-submission-modal').classList.add('hidden')"
                                                     class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0">Cancel</button>
                                             </div>
                                         </div>

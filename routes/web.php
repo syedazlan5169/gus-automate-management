@@ -22,7 +22,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
         Route::post('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
-
+        Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
 
         // Shipping Instruction routes
         Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])->name('shipping-instructions.create');

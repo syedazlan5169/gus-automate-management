@@ -22,17 +22,13 @@ class BookingController extends Controller
         return view('booking.index', compact('bookings'));
     }
 
-    /**
-     * Show the form for creating a new booking.
-     */
+    // Show the form for creating a new booking.
     public function create()
     {
         return view('bookings.create');
     }
 
-    /**
-     * Store a newly created booking in storage.
-     */
+    // Store a newly created booking in storage.
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -118,26 +114,27 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Display the specified booking.
-     */
+    // Display the specified booking.
     public function show(Booking $booking)
     {
         $booking->load(['cargos.containers', 'shippingInstructions.containers']);
         return view('booking.show', compact('booking'));
     }
 
-    /**
-     * Show the form for editing the specified booking.
-     */
+    // Show the form for editing the specified booking.
     public function edit(Booking $booking)
     {
         return view('booking.edit', compact('booking'));
     }
 
-    /**
-     * Update the specified booking in storage.
-     */
+    // Shipping Instructions Submission
+    public function submitSI(Booking $booking)
+    {
+        $booking->update(['status' => 'Pending Invoice']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
+    }
+
+    // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {
         $validated = $request->validate([
@@ -162,9 +159,7 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Remove the specified booking from storage.
-     */
+    // Remove the specified booking from storage.
     public function destroy(Booking $booking)
     {
         if (!in_array($booking->status, ['New', 'Cancelled'])) {

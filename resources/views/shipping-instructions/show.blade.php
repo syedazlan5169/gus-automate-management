@@ -192,7 +192,10 @@
                             <div class="mt-2 space-y-1" id="allocation-info">
                                 @foreach($shippingInstruction->booking->cargos as $cargo)
                                     @php
-                                        $allocatedCount = $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                        // Count all containers that have been allocated to ANY shipping instruction
+                                        $allocatedCount = $cargo->containers()
+                                            ->whereNotNull('shipping_instruction_id')
+                                            ->count();
                                         $availableCount = $cargo->container_count - $allocatedCount;
                                     @endphp
                                     <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}" 
@@ -210,12 +213,15 @@
                     <div class="mt-4 space-y-4">
                         <div class="sm:col-span-2">
                             <label for="container_type" class="block text-sm font-medium text-gray-900">Container Type</label>
-                            <select id="container_type" name="container_type" required
+                            <select id="container_type" name="container_type"
                                 class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                 <option value="">Select Container Type</option>
                                 @foreach($shippingInstruction->booking->cargos as $cargo)
                                     @php
-                                        $availableCount = $cargo->container_count - $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                      $allocatedCount = $cargo->containers()
+                                            ->whereNotNull('shipping_instruction_id')
+                                            ->count();
+                                      $availableCount = $cargo->container_count - $allocatedCount;
                                     @endphp
                                     @if($availableCount > 0)
                                         <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
@@ -226,48 +232,88 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label for="container_list" class="block text-sm font-medium text-gray-900">
-                                Container List (Format: CONTAINER,SEAL - One per line)
-                            </label>
-                            <textarea id="container_list" name="container_list" rows="4"
-                                class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                placeholder="TEMU0192292,SEAL001"></textarea>
-                        </div>
+                        <div class="space-y-4">
+                            <!-- Manual Entry Section -->
+                            <div>
+                                <label for="container_list" class="block text-sm font-medium text-gray-900">
+                                    Container List (Format: CONTAINER,SEAL - One per line)
+                                </label>
+                                <textarea id="container_list" name="container_list" rows="4"
+                                    class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    placeholder="TEMU0192292,SEAL001"></textarea>
+                            </div>
 
-                        <div class="flex justify-end">
-                            <button type="button" onclick="addContainers()"
-                                class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                Add Containers
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Existing Containers Display -->
-                    <div id="container-sections" class="mt-4 space-y-4">
-                        @foreach($shippingInstruction->containers->groupBy('cargo.container_type') as $type => $containers)
-                        <div class="border rounded-md p-4" data-container-type="{{ $containers->first()->cargo_id }}">
-                            <h3 class="font-medium mb-3">{{ $type }}</h3>
-                            <div id="container-group-{{ $containers->first()->cargo_id }}" class="space-y-3">
-                                @foreach($containers as $container)
-                                <div class="flex items-center gap-x-4 w-full">
-                                    <input type="hidden" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][container_type]" value="{{ $container->cargo_id }}">
-                                    <input type="text" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][container_number]" 
-                                        value="{{ $container->container_number }}" 
-                                        class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
-                                    <input type="text" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][seal_number]" 
-                                        value="{{ $container->seal_number }}" 
-                                        class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
-                                    <button type="button" class="text-gray-400 hover:text-red-600" onclick="removeContainer(this)">
-                                        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                            <!-- File Upload Section -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-sm font-medium text-gray-700">Or Upload Excel/CSV File</label>
+                                    <a href="{{ route('shipping-instructions.download-template') }}" 
+                                       class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                                            <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
                                         </svg>
-                                    </button>
+                                        Download Template
+                                    </a>
                                 </div>
-                                @endforeach
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-1">
+                                        <input type="file" id="container_file" name="container_file" 
+                                            accept=".xlsx,.xls,.csv"
+                                            class="mt-2 block w-full text-sm text-gray-500
+                                                file:mr-4 file:py-2 file:px-4
+                                                file:rounded-md file:border-0
+                                                file:text-sm file:font-semibold
+                                                file:bg-indigo-50 file:text-indigo-700
+                                                hover:file:bg-indigo-100"/>
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            Upload Excel/CSV file with container numbers and seal numbers
+                                        </p>
+                                    </div>
+                                    <div class="flex-none pt-6">
+                                        <button type="button" onclick="addContainers()"
+                                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                            Add Containers
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        @endforeach
+                        <!-- Existing Containers Display -->
+                        <div id="container-sections" class="mt-4 space-y-4">
+                            @foreach($shippingInstruction->containers->groupBy('cargo.container_type') as $type => $containers)
+                            <div class="border rounded-md p-4" data-container-type="{{ $containers->first()->cargo_id }}">
+                                <div class="px-4 py-3 border-b">
+                                    <h3 class="text-base font-semibold text-gray-900">
+                                        {{ $type }}
+                                        <span class="ml-2 text-sm font-normal text-gray-600" id="count-{{ $containers->first()->cargo_id }}">
+                                            Total: {{ $containers->count() }}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div class="px-4 py-3">
+                                    <div id="container-group-{{ $containers->first()->cargo_id }}" class="space-y-3">
+                                        @foreach($containers as $container)
+                                        <div class="flex items-center gap-x-4 w-full">
+                                            <input type="hidden" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][container_type]" value="{{ $container->cargo_id }}">
+                                            <input type="text" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][container_number]" 
+                                                value="{{ $container->container_number }}" 
+                                                class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
+                                            <input type="text" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][seal_number]" 
+                                                value="{{ $container->seal_number }}" 
+                                                class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
+                                            <button type="button" class="text-gray-400 hover:text-red-600" onclick="removeContainer(this)">
+                                                <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
