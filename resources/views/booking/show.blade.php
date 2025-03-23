@@ -723,7 +723,7 @@ function extractInvoiceData() {
             document.getElementById('invoice_amount').value = data.invoice_amount || '';
             
             // Then upload the file
-            return uploadInvoice(formData);
+            //return uploadInvoice(formData);
         } else {
             throw new Error(data.message || 'Failed to extract data from PDF');
         }
@@ -739,21 +739,21 @@ function extractInvoiceData() {
     });
 }
 
-function uploadInvoice(formData) {
-    return fetch('{{ route("invoice.upload", $booking) }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success message
-            alert('Invoice uploaded successfully!');
-            // Optionally refresh the page or update UI
-            window.location.reload();
-        } else {
-            throw new Error(data.message || 'Failed to upload invoice');
-        }
-    });
-}
+//function uploadInvoice(formData) {
+//    return fetch('{{ route("invoice.upload", $booking) }}', {
+//        method: 'POST',
+//        body: formData
+//    })
+//    .then(response => response.json())
+//    .then(data => {
+//        if (data.success) {
+//            // Show success message
+//            alert('Invoice uploaded successfully!');
+//            // Optionally refresh the page or update UI
+//            window.location.reload();
+//        } else {
+//            throw new Error(data.message || 'Failed to upload invoice');
+//        }
+//    });
+//}
 </script>
