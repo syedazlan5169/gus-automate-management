@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
@@ -77,6 +78,29 @@ class InvoiceController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function download(Booking $booking)
+    {
+        // Check if booking has an invoice
+        if (!$booking->invoice || !$booking->invoice->invoice_file) {
+            abort(404, 'Invoice not found');
+        }
+
+        // Use 'public' disk explicitly
+        $filePath = $booking->invoice->invoice_file;
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            abort(404, 'Invoice file not found');
+        }
+
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+
+        return Storage::disk('public')->download(
+            $filePath,
+            'Invoice-' . $booking->booking_number . '.pdf',
+            ['Content-Type' => $mimeType]
+        );
     }
 
 

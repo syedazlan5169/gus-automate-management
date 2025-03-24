@@ -119,7 +119,11 @@ class BookingController extends Controller
     // Display the specified booking.
     public function show(Booking $booking)
     {
-        $booking->load(['cargos.containers', 'shippingInstructions.containers']);
+        $booking->load([
+            'cargos.containers', 
+            'shippingInstructions.containers', 
+            'invoice.payment'
+        ]);
         return view('booking.show', compact('booking'));
     }
 

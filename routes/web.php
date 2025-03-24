@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ShippingInstructionController;
 use App\Http\Controllers\InvoiceController;
-
+use App\Http\Controllers\PaymentController;
 Route::redirect('/', '/login');
 
 // Auth middleware Group
@@ -29,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
         // Invoice routes
         Route::post('/booking/{booking}/invoice/upload', [InvoiceController::class, 'upload'])->name('invoice.upload');
         Route::post('/booking/{booking}/invoice/extract', [InvoiceController::class, 'extract'])->name('invoice.extract');
+        Route::get('/booking/{booking}/invoice/download', [InvoiceController::class, 'download'])->name('invoice.download');
+
+        // Payment routes
+        Route::post('/booking/{booking}/payment/submit', [PaymentController::class, 'submit'])->name('payment.submit');
+        Route::get('/invoice/{invoice}/payment/download', [PaymentController::class, 'download'])->name('payment.download');
 
         // Shipping Instruction routes
         Route::get('bookings/{booking}/shipping-instructions/create', [ShippingInstructionController::class, 'create'])->name('shipping-instructions.create');
