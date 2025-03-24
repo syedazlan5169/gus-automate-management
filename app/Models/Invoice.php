@@ -12,8 +12,15 @@ class Invoice extends Model
         'booking_id',
         'invoice_number',
         'invoice_date',
-        'total_amount',
+        'invoice_amount',
+        'payment_terms',
         'status',
+        'invoice_file',
+    ];
+
+    protected $casts = [
+        'invoice_date' => 'date',
+        'invoice_amount' => 'decimal:2',
     ];
 
     public function booking()
