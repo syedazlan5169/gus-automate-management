@@ -77,8 +77,8 @@ new class extends Component {
                                         </x-responsive-nav-link>
                                     </li>
                                     <li>
-                                        <x-responsive-nav-link :href="route('admin.bookings.index')"
-                                            :active="request()->routeIs('admin.bookings.index')" wire:navigate>
+                                        <x-responsive-nav-link :href="route('bookings.index')"
+                                            :active="request()->routeIs('bookings.index')" wire:navigate>
                                             <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
                                                 fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                 aria-hidden="true" data-slot="icon">
@@ -114,10 +114,10 @@ new class extends Component {
     <!-- Static sidebar for desktop -->
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-72 lg:flex-col">
         <!-- Sidebar component, swap this element with another sidebar if you like -->
-        <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+        <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
             <div class="flex h-16 shrink-0 items-center">
-                <a href="{{ route('client.dashboard') }}" wire:navigate>
-                    <x-application-logo class="block h-14 w-auto fill-current text-gray-800" />
+                <a href="{{ route('admin.dashboard') }}" wire:navigate>
+                    <x-application-logo class="block h-14 w-auto p-2 fill-current text-gray-800" />
                 </a>
             </div>
             <nav class="flex flex-1 flex-col">
@@ -150,18 +150,53 @@ new class extends Component {
                                 </x-nav-link>
                             </li>
                             <li>
-                                <x-nav-link :href="route('admin.bookings.index')"
-                                    :active="request()->routeIs('admin.bookings.index')" wire:navigate>
-                                    <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
-                                        data-slot="icon">
+                                <x-nav-link :href="route('bookings.index')"
+                                    :active="request()->routeIs('bookings.index')" wire:navigate>
+                                    <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                        aria-hidden="true" data-slot="icon">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                     </svg>
                                     {{ __('Bookings') }}
                                 </x-nav-link>
                             </li>
-
+                            <li>
+                                <x-nav-link href="#"
+                                    :active="request()->routeIs('')" wire:navigate>
+                                    <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                        data-slot="icon">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    </svg>
+                                    {{ __('Schedules') }}
+                                </x-nav-link>
+                            </li> 
+                            <li>
+                                <x-nav-link href="#"
+                                    :active="request()->routeIs('')" wire:navigate>
+                                    <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                        data-slot="icon">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                                    </svg>
+                                    {{ __('Vessels') }}
+                                </x-nav-link>
+                            </li>
+                            <li>
+                                <x-nav-link href="#"
+                                    :active="request()->routeIs('')" wire:navigate>
+                                    <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                        data-slot="icon">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                    </svg>
+                                    {{ __('Users') }}
+                                </x-nav-link>
+                            </li>
                         </ul>
                     </li>
                     <li class="mt-auto">

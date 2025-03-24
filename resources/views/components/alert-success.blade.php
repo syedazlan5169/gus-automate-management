@@ -1,6 +1,6 @@
 @props(['message'])
 
-<div class="rounded-md bg-green-50 p-4 mb-4">
+<div class="alert-success rounded-md bg-green-50 p-4 mb-4">
     <div class="flex">
         <div class="shrink-0">
             <svg class="size-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
@@ -16,7 +16,7 @@
         <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
                 <button type="button"
-                    onclick="this.closest('.rounded-md').remove()"
+                    onclick="this.closest('.alert-success').remove()"
                     class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50">
                     <span class="sr-only">Dismiss</span>
                     <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"

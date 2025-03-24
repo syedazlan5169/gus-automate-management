@@ -142,17 +142,10 @@
                           </div>
                       </td>
                       <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          @if($booking->status === 'Pending SI')
-                            <a href="{{ route('shipping-instructions.create-new-ui') }}" 
-                               class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                              Create SI
-                            </a>
-                          @else
                             <a href="{{ route('booking.show', $booking) }}" 
                                class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
                                 View
                             </a>
-                          @endif
                       </td>
                     </tr>
                     @endforeach

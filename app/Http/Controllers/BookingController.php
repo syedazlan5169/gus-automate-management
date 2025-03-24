@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Invoice;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -10,29 +12,34 @@ class BookingController extends Controller
     /**
      * Display a listing of the bookings.
      */
-    public function adminBookingIndex()
+    public function index()
     {
-        $bookings = Booking::paginate(10);
-        return view('booking.index', compact('bookings'));
+        if (auth()->user()->role === 'customer')
+        {
+            $bookings = Booking::where('user_id', auth()->id())->paginate(10);
+            return view('booking.index', compact('bookings'));
+        }
+        else
+        {
+            $bookings = Booking::paginate(10);
+            return view('booking.index', compact('bookings'));
+        }
     }
 
-    public function clientBookingIndex()
-    {
-        $bookings = Booking::where('user_id', auth()->id())->paginate(10);
-        return view('booking.index', compact('bookings'));
-    }
-
-    /**
-     * Show the form for creating a new booking.
-     */
+    // Show the form for creating a new booking.
     public function create()
     {
         return view('bookings.create');
     }
 
-    /**
-     * Store a newly created booking in storage.
-     */
+    // Show Edit page for a booking
+    public function edit(Booking $booking)
+    {
+        $booking->load('cargos');
+        return view('booking.edit', compact('booking'));
+    }
+
+    // Store a newly created booking in storage.
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -81,7 +88,6 @@ class BookingController extends Controller
                 'place_of_delivery' => $validated['place_of_delivery'],
                 'ets' => $validated['ets'],
                 'eta' => $validated['eta'],
-                'status' => 'New',
                 'user_id' => auth()->id(),
             ]);
 
@@ -119,26 +125,113 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Display the specified booking.
-     */
+    // Display the specified booking.
     public function show(Booking $booking)
     {
-        $booking->load(['cargos.containers', 'shippingInstructions.containers']);
+        $booking->load([
+            'cargos.containers', 
+            'shippingInstructions.containers', 
+            'invoice.payment'
+        ]);
         return view('booking.show', compact('booking'));
     }
 
-    /**
-     * Show the form for editing the specified booking.
-     */
-    public function edit(Booking $booking)
+    // Shipping Instructions Submission
+    public function submitSI(Booking $booking)
     {
-        return view('booking.edit', compact('booking'));
+        $booking->update(['status' => 'Pending Invoice']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
     }
 
-    /**
-     * Update the specified booking in storage.
-     */
+    // Invoice Submission
+    public function submitInvoice(Request $request, Booking $booking)
+    {
+        try {
+            $validated = $request->validate([
+                'invoice_file' => 'required|file|mimes:pdf',
+                'invoice_date' => 'required|date',
+                'invoice_number' => 'required|string',
+                'invoice_amount' => 'required|numeric',
+                'payment_terms' => 'required|string|in:cash,credit',
+            ]);
+
+            \DB::beginTransaction();
+
+            $invoice = $request->file('invoice_file');
+            
+            // Generate filename using booking number and timestamp
+            $fileName = $booking->booking_number . '_' . date('Ymd_His') . '_invoice.' . $invoice->getClientOriginalExtension();
+            $invoicePath = $invoice->storeAs('invoices', $fileName, 'public');
+
+            // Log before creating invoice
+            \Log::info('Attempting to create invoice', [
+                'booking_id' => $booking->id,
+                'invoice_path' => $invoicePath,
+                'file_name' => $fileName,
+                'invoice_data' => $validated
+            ]);
+
+            $invoice = Invoice::create([
+                'booking_id' => $booking->id,
+                'invoice_file' => $invoicePath,
+                'invoice_date' => $validated['invoice_date'],
+                'invoice_number' => $validated['invoice_number'],
+                'invoice_amount' => $validated['invoice_amount'],
+                'payment_terms' => $validated['payment_terms'],
+            ]);
+
+            // Log after invoice creation
+            \Log::info('Invoice created successfully', [
+                'invoice_id' => $invoice->id,
+                'booking_id' => $booking->id
+            ]);
+            
+            $booking->update(['status' => 'Pending Payment']);
+
+            \DB::commit();
+
+            return redirect()->route('booking.show', $booking)
+                ->with('success', 'Invoice submitted successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Invoice validation failed', [
+                'booking_id' => $booking->id,
+                'errors' => $e->errors()
+            ]);
+            return back()->withErrors($e->errors())
+                        ->withInput();
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            
+            // Log the detailed error
+            \Log::error('Failed to submit invoice', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            // If file was uploaded, attempt to remove it
+            if (isset($invoicePath) && \Storage::disk('public')->exists($invoicePath)) {
+                try {
+                    \Storage::disk('public')->delete($invoicePath);
+                    \Log::info('Cleaned up uploaded file', ['path' => $invoicePath]);
+                } catch (\Exception $deleteError) {
+                    \Log::error('Failed to delete uploaded file', [
+                        'path' => $invoicePath,
+                        'error' => $deleteError->getMessage()
+                    ]);
+                }
+            }
+
+            return back()->with('error', 'Error submitting invoice: ' . $e->getMessage())
+                        ->withInput();
+        }
+    }
+
+    // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {
         $validated = $request->validate([
@@ -163,9 +256,7 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Remove the specified booking from storage.
-     */
+    // Remove the specified booking from storage.
     public function destroy(Booking $booking)
     {
         if (!in_array($booking->status, ['New', 'Cancelled'])) {
@@ -199,5 +290,20 @@ class BookingController extends Controller
             });
 
         return response()->json($availableContainers);
+    }
+
+    public function confirmPayment(Booking $booking)
+    {
+        $booking->update(['status' => 'Payment Confirmed']);
+        $booking->invoice->update(['status' => 'Paid']);
+        $booking->invoice->payment->update(['status' => 'Confirmed']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Payment confirmed successfully.');
+    }
+
+    public function rejectPayment(Booking $booking)
+    {
+        $booking->update(['status' => 'Pending Payment']);
+        $booking->invoice->payment->delete();
+        return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
     }
 }

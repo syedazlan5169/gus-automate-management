@@ -1,20 +1,52 @@
-@props(['message', 'action_url' => null, 'action_text' => 'Take Action'])
+@props(['message', 'action_url' => null, 'action_text' => 'Take Action', 'color' => 'yellow'])
 
-<div class="border-l-4 border-yellow-400 bg-yellow-50 p-4">
+@php
+$colorClasses = [
+    'yellow' => [
+        'border' => 'border-yellow-400',
+        'bg' => 'bg-yellow-50',
+        'text' => 'text-yellow-700',
+        'icon' => 'text-yellow-400',
+        'hover' => 'hover:text-yellow-600'
+    ],
+    'red' => [
+        'border' => 'border-red-400',
+        'bg' => 'bg-red-50',
+        'text' => 'text-red-700',
+        'icon' => 'text-red-400',
+        'hover' => 'hover:text-red-600'
+    ],
+    'green' => [
+        'border' => 'border-green-400',
+        'bg' => 'bg-green-50',
+        'text' => 'text-green-700',
+        'icon' => 'text-green-400',
+        'hover' => 'hover:text-green-600'
+    ],
+    'blue' => [
+        'border' => 'border-blue-400',
+        'bg' => 'bg-blue-50',
+        'text' => 'text-blue-700',
+        'icon' => 'text-blue-400',
+        'hover' => 'hover:text-blue-600'
+    ],
+];
+
+$currentColor = $colorClasses[$color] ?? $colorClasses['yellow'];
+@endphp
+
+<div class="border-l-4 {{ $currentColor['border'] }} {{ $currentColor['bg'] }} p-4">
     <div class="flex">
         <div class="shrink-0">
-            <svg class="size-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
-                data-slot="icon">
-                <path fill-rule="evenodd"
-                    d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                    clip-rule="evenodd" />
+            <svg class="size-5 {{ $currentColor['icon'] }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
             </svg>
         </div>
         <div class="ml-3 flex-1 md:flex md:justify-between">
-            <p class="text-sm text-yellow-700">{{ $message }}</p>
+            <p class="text-sm {{ $currentColor['text'] }}">{{ $message }}</p>
             @if ($action_url)
             <p class="mt-3 text-sm md:ml-6 md:mt-0">
-                <a href="{{ $action_url }}" class="whitespace-nowrap font-medium text-yellow-700 hover:text-yellow-600">
+                <a href="{{ $action_url }}" class="whitespace-nowrap font-medium {{ $currentColor['text'] }} {{ $currentColor['hover'] }}">
                     <strong>{{ $action_text }}</strong>
                 </a>
             </p>

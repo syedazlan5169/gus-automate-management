@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('place_of_delivery')->nullable();
             $table->datetime('ets')->nullable(); // Estimated Time of Sailing
             $table->datetime('eta')->nullable(); // Estimated Time of Arrival
-            $table->enum('status', ['New', 'Pending', 'Confirmed', 'Shipped', 'Completed', 'Cancelled'])->default('New');
+            $table->enum('status', ['Pending SI', 'Pending Invoice', 'Pending Payment','Payment Verification','Payment Confirmed', 'Payment Rejected', 'Shipped', 'Completed', 'Cancelled'])->default('Pending SI');
             $table->text('remarks')->nullable();
             $table->text('internal_instructions')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
@@ -77,9 +77,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bookings');
-        Schema::dropIfExists('shipping_instructions');
-        Schema::dropIfExists('cargos');
         Schema::dropIfExists('cargo_containers');
+        Schema::dropIfExists('cargos');
+        Schema::dropIfExists('shipping_instructions');
+        Schema::dropIfExists('bookings');
     }
 };

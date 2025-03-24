@@ -167,7 +167,10 @@
                         <div class="mt-2 space-y-1" id="allocation-info">
                             @foreach($booking->cargos as $cargo)
                                 @php
-                                    $allocatedCount = $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                    // Count all containers that have been allocated to ANY shipping instruction
+                                    $allocatedCount = $cargo->containers()
+                                        ->whereNotNull('shipping_instruction_id')
+                                        ->count();
                                     $availableCount = $cargo->container_count - $allocatedCount;
                                 @endphp
                                 <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}" 
@@ -185,12 +188,15 @@
                 <div class="mt-4 space-y-4">
                     <div class="sm:col-span-2">
                         <label for="container_type" class="block text-sm font-medium text-gray-900">Container Type</label>
-                        <select id="container_type" name="container_type" required
+                        <select id="container_type" name="container_type"
                             class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                             <option value="">Select Container Type</option>
                             @foreach($booking->cargos as $cargo)
                                 @php
-                                    $availableCount = $cargo->container_count - $cargo->containers->whereNotNull('shipping_instruction_id')->count();
+                                  $allocatedCount = $cargo->containers()
+                                          ->whereNotNull('shipping_instruction_id')
+                                          ->count();
+                                  $availableCount = $cargo->container_count - $allocatedCount;
                                 @endphp
                                 @if($availableCount > 0)
                                     <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
@@ -216,7 +222,7 @@
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <label class="block text-sm font-medium text-gray-700">Or Upload Excel/CSV File</label>
-                                <a href="{{ route('shipping-instructions.download-template') }}" 
+                                <a href="/storage/template/container_list_template.xlsx" download 
                                    class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center">
                                     <svg class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
@@ -382,98 +388,29 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="si-upload-modal" class="hidden relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true">
-    </div>
-    <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div
-          class="z-50 relative w-full transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl sm:p-6">
-          <div>
-            <div class="mt-3 sm:mt-5">
-              <h3 class="text-lg font-semibold text-gray-900" id="modal-title">Upload Container
-                Details</h3>
-              <div class="mt-4">
-                <form class="space-y-4" id="upload-form" enctype="multipart/form-data">
-                  @csrf
-                  <div class="space-y-4">
-                    <!-- Container Type Selection -->
-                    <div class="sm:col-span-2">
-                      <label for="container_type" class="block text-sm/6 font-medium text-gray-900">Container
-                        Type</label>
-                      <div class="mt-2">
-                        <select id="container_type" name="container_type" required
-                          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                          <option value="">Select Container Type</option>
-                          @foreach($booking->cargos as $cargo)
-                            @php
-                              $availableCount = $cargo->container_count - $cargo->containers->whereNotNull('shipping_instruction_id')->count();
-                            @endphp
-                            @if($availableCount > 0)
-                              <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
-                                {{ $cargo->container_type }} ({{ $availableCount }} available)
-                              </option>
-                            @endif
-                          @endforeach
-                        </select>
-                      </div>
-                    </div>
-
-                    <!-- Quantity -->
-                    <div class="sm:col-span-2">
-                      <label for="quantity" class="block text-sm/6 font-medium text-gray-900">Quantity</label>
-                      <div class="mt-2">
-                        <input type="number" id="quantity" name="quantity" min="1" required
-                          class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                      </div>
-                    </div>
-
-                    <!-- File Upload -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700">Upload Container List</label>
-                      <div class="mt-1 flex items-center justify-center w-full">
-                        <label class="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-indigo-600">
-                          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                          </svg>
-                          <span class="mt-2 text-sm text-gray-600">Click to upload or drag and drop</span>
-                          <span class="mt-1 text-xs text-gray-500">Excel or CSV file</span>
-                          <input type="file" class="hidden" id="container_file" name="container_file" accept=".xlsx,.xls,.csv" required>
-                        </label>
-                      </div>
-                    </div>
-
-                    <!-- Template Download -->
-                    <div class="flex justify-center">
-                      <a href="#" class="text-sm text-indigo-600 hover:text-indigo-500">
-                        Download template file
-                      </a>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-          <div class="mt-5 sm:mt-6 flex space-x-3">
-            <button type="button" 
-                onclick="document.getElementById('si-upload-modal').classList.add('hidden')"
-                class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                Cancel
-            </button>
-            <button type="button" onclick="handleFileUpload()"
-                class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                Upload
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </x-app-layout>
 
 <script>
+function removeContainer(button) {
+    const containerItem = button.closest('.flex');
+    if (containerItem) {
+        const containerType = containerItem.querySelector('input[type="hidden"]').value;
+        containerItem.remove();
+        
+        // Update counts
+        updateContainerCounts(containerType, -1);
+        updateContainerCount(containerType);
+        
+        // Check if the container group is empty
+        const containerSection = document.querySelector(`div[data-container-type="${containerType}"]`);
+        const containerGroup = containerSection.querySelector(`#container-group-${containerType}`);
+        
+        if (containerGroup && containerGroup.children.length === 0) {
+            containerSection.remove();
+        }
+    }
+}
+
 function updateContainerCounts(containerType, change) {
     // Update dropdown option
     const option = document.querySelector(`option[value="${containerType}"]`);
@@ -482,9 +419,21 @@ function updateContainerCounts(containerType, change) {
         option.dataset.available = available;
         option.textContent = `${option.textContent.split('(')[0].trim()} (${available} available)`;
         
-        // Remove option if no more containers available
-        if (available <= 0) {
-            option.remove();
+        // If containers become available again, make sure the option is in the dropdown
+        if (available > 0 && !option.parentElement) {
+            const containerTypeSelect = document.getElementById('container_type');
+            let added = false;
+            // Add option in the correct position (maintain alphabetical order)
+            for (let i = 0; i < containerTypeSelect.options.length; i++) {
+                if (containerTypeSelect.options[i].text > option.text) {
+                    containerTypeSelect.add(option, i);
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) {
+                containerTypeSelect.add(option);
+            }
         }
     }
 
@@ -507,10 +456,13 @@ function addContainers() {
     let containerType = containerTypeSelect.value;
     let fileInput = document.getElementById("container_file");
     
+    // Validate container type selection
     if (!containerType) {
         alert("Please select a container type first.");
+        containerTypeSelect.classList.add('outline-red-500');
         return;
     }
+    containerTypeSelect.classList.remove('outline-red-500');
 
     // Check if we have a file to process
     if (fileInput.files.length > 0) {
@@ -616,7 +568,10 @@ function processContainers(containerType, containers) {
         // Set up the section HTML structure
         existingSection.innerHTML = `
             <div class="px-4 py-3 border-b">
-                <h3 class="text-base font-semibold text-gray-900">${containerTypeText.split('(')[0].trim()}</h3>
+                <h3 class="text-base font-semibold text-gray-900">
+                    ${containerTypeText.split('(')[0].trim()}
+                    <span class="ml-2 text-sm font-normal text-gray-600" id="count-${containerType}">Total: 0</span>
+                </h3>
             </div>
             <div class="px-4 py-3"></div>
         `;
@@ -652,8 +607,18 @@ function processContainers(containerType, containers) {
         containerGroup.appendChild(div);
     });
 
-    // Update counts after adding containers
+    // Update counts
     updateContainerCounts(containerType, containers.length);
+    updateContainerCount(containerType);
+}
+
+function updateContainerCount(containerType) {
+    const containerGroup = document.getElementById(`container-group-${containerType}`);
+    const countElement = document.getElementById(`count-${containerType}`);
+    if (containerGroup && countElement) {
+        const count = containerGroup.children.length;
+        countElement.textContent = `Total: ${count}`;
+    }
 }
 
 // Add this helper function for text selection in querySelector
@@ -675,11 +640,11 @@ document.querySelector = ((function(original) {
     };
 })(document.querySelector));
 
-// Add this new function
+// Modify the form submission validation
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Basic validation
+    // Basic validation - removed container_type from required fields
     const requiredFields = [
         'box_operator',
         'shipper',

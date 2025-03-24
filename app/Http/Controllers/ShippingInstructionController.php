@@ -39,29 +39,13 @@ class ShippingInstructionController extends Controller
             return $cargo['available_count'] > 0;
         });
 
-        // Generate sub booking number
-        $siCount = $booking->shippingInstructions()->count() + 1;
-        $subBookingNumber = $booking->booking_number . '-SI' . str_pad($siCount, 3, '0', STR_PAD_LEFT);
-
         return view('shipping-instructions.create', compact(
             'booking',
             'availableContainers',
-            'subBookingNumber'
         ));
     }
-    public function createold(Booking $booking)
-    {
-        // Get available (unallocated) cargos for this booking
-        $availableCargos = $booking->cargos()
-            ->whereNull('shipping_instruction_id')
-            ->get()
-            ->groupBy('container_type');
-
-        return view('shipping-instructions.createold', compact('booking', 'availableCargos'));
-    }
-    /**
-     * Store a newly created shipping instruction in storage.
-     */
+    
+    // Store a newly created shipping instruction in storage.
     public function store(Request $request, Booking $booking)
     {
         try {
@@ -105,13 +89,25 @@ class ShippingInstructionController extends Controller
 
             // Process containers
             foreach ($validated['containers'] as $cargoId => $containers) {
-                foreach ($containers as $container) {
-                    CargoContainer::create([
-                        'cargo_id' => $cargoId,
-                        'shipping_instruction_id' => $shippingInstruction->id,
-                        'container_number' => $container['container_number'],
-                        'seal_number' => $container['seal_number'],
-                    ]);
+                // Get available empty containers for this cargo
+                $availableContainers = CargoContainer::where('cargo_id', $cargoId)
+                    ->whereNull('shipping_instruction_id')
+                    ->take(count($containers))
+                    ->get();
+
+                foreach ($containers as $index => $container) {
+                    if (isset($availableContainers[$index])) {
+                        // Update existing container
+                        $availableContainers[$index]->update([
+                            'shipping_instruction_id' => $shippingInstruction->id,
+                            'container_number' => $container['container_number'],
+                            'seal_number' => $container['seal_number'],
+                        ]);
+                    } else {
+                        // Log error if we run out of available containers
+                        \Log::error("No available container found for cargo ID: {$cargoId}");
+                        throw new \Exception('Insufficient available containers for the cargo.');
+                    }
                 }
             }
 
@@ -134,9 +130,7 @@ class ShippingInstructionController extends Controller
         }
     }
 
-    /**
-     * Generate Bill of Lading for a shipping instruction
-     */
+    // Generate Bill of Lading for a shipping instruction
     public function generateBL(ShippingInstruction $shippingInstruction)
     {
         // Load necessary relationships
@@ -167,69 +161,66 @@ class ShippingInstructionController extends Controller
         ));
     }
 
-    /**
-     * Display the specified shipping instruction.
-     */
+    // Display the specified shipping instruction.
     public function show(ShippingInstruction $shippingInstruction)
     {
         $shippingInstruction->load(['booking', 'cargos.containers']);
         return view('shipping-instructions.show', compact('shippingInstruction'));
     }
 
-    /**
-     * Show the form for editing the specified shipping instruction.
-     */
+    // Show the form for editing the specified shipping instruction.
     public function edit(ShippingInstruction $shippingInstruction)
     {
         return view('shipping-instructions.edit', compact('shippingInstruction'));
     }
 
-    /**
-     * Update the specified shipping instruction in storage.
-     */
+    // Update the specified shipping instruction in storage.
     public function update(Request $request, ShippingInstruction $shippingInstruction)
     {
-        \Log::info('Update request received', ['data' => $request->all()]);
-
-        $validated = $request->validate([
-            'box_operator' => 'required|string|max:255',
-            'shipper' => 'required|string|max:255',
-            'contact_shipper' => 'required|string|max:255',
-            'consignee' => 'required|string|max:255',
-            'contact_consignee' => 'required|string|max:255',
-            'notify_party' => 'required|string|max:255',
-            'notify_party_contact' => 'required|string|max:255',
-            'notify_party_address' => 'required|string',
-            'cargo_description' => 'required|string|max:255',
-            'hs_code' => 'required|string|max:255',
-        ]);
-
         try {
+            $validated = $request->validate([
+                'box_operator' => 'required|string|max:255',
+                'shipper' => 'required|string|max:255',
+                'contact_shipper' => 'required|string|max:255',
+                'consignee' => 'required|string|max:255',
+                'contact_consignee' => 'required|string|max:255',
+                'notify_party' => 'required|string|max:255',
+                'notify_party_contact' => 'required|string|max:255',
+                'notify_party_address' => 'required|string',
+                'cargo_description' => 'required|string|max:255',
+                'hs_code' => 'required|string|max:255',
+                'containers' => 'required|array',
+            ]);
+
             DB::beginTransaction();
-            
-            \Log::info('Updating SI', ['validated' => $validated]);
-            
-            // Update shipping instruction details
-            $shippingInstruction->update($validated);
+
+            // Update shipping instruction basic details
+            $shippingInstruction->update([
+                'box_operator' => $validated['box_operator'],
+                'shipper' => $validated['shipper'],
+                'contact_shipper' => $validated['contact_shipper'],
+                'consignee' => $validated['consignee'],
+                'contact_consignee' => $validated['contact_consignee'],
+                'notify_party' => $validated['notify_party'],
+                'notify_party_contact' => $validated['notify_party_contact'],
+                'notify_party_address' => $validated['notify_party_address'],
+                'cargo_description' => $validated['cargo_description'],
+                'hs_code' => $validated['hs_code'],
+            ]);
 
             // Handle containers
             if ($request->has('containers')) {
-                \Log::info('Processing containers', ['containers' => $request->containers]);
-
                 // Get all container numbers from the request
-                $requestContainers = [];
-                foreach ($request->containers as $cargoId => $containerGroup) {
-                    foreach ($containerGroup as $container) {
-                        if (isset($container['container_number'])) {
-                            $requestContainers[] = $container['container_number'];
-                        }
-                    }
-                }
+                $requestContainers = collect($request->containers)
+                    ->flatMap(function ($containerGroup) {
+                        return collect($containerGroup)->pluck('container_number');
+                    })
+                    ->filter();
 
-                // Delete containers that are no longer in the request
+                // Release containers that are no longer in the request
                 $shippingInstruction->containers()
                     ->whereNotIn('container_number', $requestContainers)
-                    ->delete();
+                    ->update(['shipping_instruction_id' => null]);
 
                 // Update or create containers
                 foreach ($request->containers as $cargoId => $containerGroup) {
@@ -238,26 +229,40 @@ class ShippingInstructionController extends Controller
                             continue;
                         }
 
-                        \Log::info('Processing container', ['container' => $container]);
+                        // Try to find existing container first
+                        $existingContainer = CargoContainer::where('container_number', $container['container_number'])
+                            ->where(function ($query) use ($shippingInstruction) {
+                                $query->whereNull('shipping_instruction_id')
+                                    ->orWhere('shipping_instruction_id', $shippingInstruction->id);
+                            })
+                            ->first();
 
-                        CargoContainer::updateOrCreate(
-                            [
+                        if ($existingContainer) {
+                            // Update existing container
+                            $existingContainer->update([
+                                'cargo_id' => $cargoId,
+                                'shipping_instruction_id' => $shippingInstruction->id,
+                                'seal_number' => $container['seal_number'],
+                            ]);
+                        } else {
+                            // Create new container
+                            CargoContainer::create([
+                                'cargo_id' => $cargoId,
                                 'shipping_instruction_id' => $shippingInstruction->id,
                                 'container_number' => $container['container_number'],
-                            ],
-                            [
-                                'cargo_id' => $cargoId,
                                 'seal_number' => $container['seal_number'],
-                            ]
-                        );
+                            ]);
+                        }
                     }
                 }
             }
-            
+
             DB::commit();
 
-            return redirect()->route('shipping-instructions.show', $shippingInstruction)
+            return redirect()
+                ->route('shipping-instructions.show', $shippingInstruction)
                 ->with('success', 'Shipping instruction updated successfully.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Shipping Instruction update failed: ' . $e->getMessage(), [
@@ -265,6 +270,7 @@ class ShippingInstructionController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'request' => $request->all()
             ]);
+            
             return back()
                 ->with('error', 'Error updating shipping instruction: ' . $e->getMessage())
                 ->withInput();
@@ -369,35 +375,6 @@ class ShippingInstructionController extends Controller
 
     public function downloadTemplate()
     {
-        // Create new Spreadsheet object
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set headers
-        $sheet->setCellValue('A1', 'Container Number');
-        $sheet->setCellValue('B1', 'Seal Number');
-
-        // Add example row
-        $sheet->setCellValue('A2', 'TEMU1234567');
-        $sheet->setCellValue('B2', 'SEAL001');
-
-        // Style the header row
-        $sheet->getStyle('A1:B1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:B1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setRGB('E5E7EB');
-
-        // Auto-size columns
-        $sheet->getColumnDimension('A')->setAutoSize(true);
-        $sheet->getColumnDimension('B')->setAutoSize(true);
-
-        // Create writer and prepare response
-        $writer = new Xlsx($spreadsheet);
-        $filename = 'container_list_template.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="'. urlencode($filename).'"');
-        $writer->save('php://output');
-        exit;
+        return response()->download(public_path('template/container_list_template.xlsx'));
     }
 }
