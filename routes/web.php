@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
         Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
         Route::post('booking/{booking}/submit-invoice', [BookingController::class, 'submitInvoice'])->name('booking.submit-invoice');
+        Route::get('/booking/{booking}/payment/confirm', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
+        Route::get('/booking/{booking}/payment/reject', [BookingController::class, 'rejectPayment'])->name('booking.reject-payment');
 
         // Invoice routes
         Route::post('/booking/{booking}/invoice/upload', [InvoiceController::class, 'upload'])->name('invoice.upload');

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('invoice_date');
             $table->decimal('invoice_amount', 10, 2);
             $table->string('payment_terms');
-            $table->string('status')->default('Unpaid');
+            $table->enum('status', ['Unpaid', 'Paid'])->default('Unpaid');
             $table->string('invoice_file');
             $table->timestamps();
         });
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->decimal('payment_amount', 10, 2);
             $table->date('payment_date');
             $table->string('payment_method');
-            $table->string('status')->default('Pending Confirmation');
+            $table->enum('status', ['Pending Verification', 'Confirmed', 'Rejected'])->default('Pending Verification');
             $table->string('payment_file');
             $table->timestamps();
         });

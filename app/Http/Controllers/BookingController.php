@@ -288,4 +288,19 @@ class BookingController extends Controller
 
         return response()->json($availableContainers);
     }
+
+    public function confirmPayment(Booking $booking)
+    {
+        $booking->update(['status' => 'Payment Confirmed']);
+        $booking->invoice->update(['status' => 'Paid']);
+        $booking->invoice->payment->update(['status' => 'Confirmed']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Payment confirmed successfully.');
+    }
+
+    public function rejectPayment(Booking $booking)
+    {
+        $booking->update(['status' => 'Pending Payment']);
+        $booking->invoice->payment->update(['status' => 'Rejected']);
+        return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
+    }
 }

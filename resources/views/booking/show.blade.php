@@ -66,6 +66,12 @@
                     message="Payment has been made, verify the remmittence advice and confirm the payment"
                 />
                 @endif
+            @elseif ($booking->status == 'Payment Confirmed')
+                @if(auth()->user()->role == 'customer')
+                <x-alert-instruction 
+                    message="Payment has been confirmed, you can now download the BL and Manifest"
+                />
+                @endif
             @endif
 
             <!-- Success Message -->
@@ -654,9 +660,51 @@
                                     Submit Payment
                                 </button>
                             </div>
+                            @elseif($booking->status == 'Payment Verification' && auth()->user()->role != 'customer')
+                            <!-- Confirm Payment Button -->
+                            <div class="relative">
+                                <button type="button"
+                                    onclick="document.getElementById('payment-confirmation-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        bg-blue-600 text-white hover:bg-blue-700">
+                                    Verify Payment
+                                </button>
+                            </div>
                             @endif
 
                             <!-- Payment Confirmation Modal -->
+                            <div id="payment-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Payment Verification</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before verifying the payment. Confirming the payment will allow the customer to download BL and Manifest.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('payment-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.reject-payment', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Reject</button>
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.confirm-payment', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Submission Modal -->
                             <div id="payment-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
                                 role="dialog" aria-modal="true">
                                 <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
