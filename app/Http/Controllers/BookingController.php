@@ -300,7 +300,7 @@ class BookingController extends Controller
     public function rejectPayment(Booking $booking)
     {
         $booking->update(['status' => 'Pending Payment']);
-        $booking->invoice->payment->update(['status' => 'Rejected']);
+        $booking->invoice->payment->delete();
         return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
     }
 }
