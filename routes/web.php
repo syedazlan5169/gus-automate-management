@@ -15,14 +15,14 @@ Route::middleware(['auth'])->group(function () {
     // Client middleware Group
     Route::middleware(['verified'])->group(function () {
         Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
-        Route::get('client-portal/bookings', [BookingController::class, 'clientBookingIndex'])->name('client.bookings.index');
-        Route::get('bookings', [BookingController::class, 'adminBookingIndex'])->name('admin.bookings.index');
 
         // Booking routes
+        Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::view('booking/create', 'booking.create')->name('booking.create');
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
         Route::post('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
+        Route::get('booking/{booking}/edit', [BookingController::class, 'edit'])->name('booking.edit');
         Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
         Route::post('booking/{booking}/submit-invoice', [BookingController::class, 'submitInvoice'])->name('booking.submit-invoice');
         Route::get('/booking/{booking}/payment/confirm', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');

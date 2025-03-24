@@ -88,13 +88,14 @@
                         <div class="sm:flex-auto">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-2xl font-semibold">Booking Details</h2>
-                                <span
-                                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{{ $booking->status }}</span>
+                                <x-status-badge text="{{ $booking->status }}" color="green"/>
                             </div>
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
+                        @if($booking->status == 'Pending SI')
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                             <button type="button"
+                                onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
                                 <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
                                     data-slot="icon">
@@ -116,6 +117,7 @@
                                 Cancel
                             </button>
                         </div>
+                        @endif
                     </div>
 
                     <!-- Service Information -->
@@ -421,9 +423,9 @@
                             <div class="flex items-center gap-3 mb-4">
                                 <h3 class="text-lg font-medium">Invoice Details</h3>
                                 @if($booking->invoice->status === 'Unpaid')
-                                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{{ $booking->invoice->status }}</span>
+                                    <x-status-badge text="{{ $booking->invoice->status }}" color="red"/>
                                 @else
-                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10">{{ $booking->invoice->status }}</span>
+                                    <x-status-badge text="{{ $booking->invoice->status }}" color="green"/>
                                 @endif
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

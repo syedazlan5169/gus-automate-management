@@ -12,22 +12,31 @@ class BookingController extends Controller
     /**
      * Display a listing of the bookings.
      */
-    public function adminBookingIndex()
+    public function index()
     {
-        $bookings = Booking::paginate(10);
-        return view('booking.index', compact('bookings'));
-    }
-
-    public function clientBookingIndex()
-    {
-        $bookings = Booking::where('user_id', auth()->id())->paginate(10);
-        return view('booking.index', compact('bookings'));
+        if (auth()->user()->role === 'customer')
+        {
+            $bookings = Booking::where('user_id', auth()->id())->paginate(10);
+            return view('booking.index', compact('bookings'));
+        }
+        else
+        {
+            $bookings = Booking::paginate(10);
+            return view('booking.index', compact('bookings'));
+        }
     }
 
     // Show the form for creating a new booking.
     public function create()
     {
         return view('bookings.create');
+    }
+
+    // Show Edit page for a booking
+    public function edit(Booking $booking)
+    {
+        $booking->load('cargos');
+        return view('booking.edit', compact('booking'));
     }
 
     // Store a newly created booking in storage.
@@ -125,12 +134,6 @@ class BookingController extends Controller
             'invoice.payment'
         ]);
         return view('booking.show', compact('booking'));
-    }
-
-    // Show the form for editing the specified booking.
-    public function edit(Booking $booking)
-    {
-        return view('booking.edit', compact('booking'));
     }
 
     // Shipping Instructions Submission
