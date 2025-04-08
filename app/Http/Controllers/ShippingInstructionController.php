@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ShippingInstructionController extends Controller
 {
@@ -133,32 +134,84 @@ class ShippingInstructionController extends Controller
     // Generate Bill of Lading for a shipping instruction
     public function generateBL(ShippingInstruction $shippingInstruction)
     {
-        // Load necessary relationships
-        $shippingInstruction->load([
-            'booking',
-            'cargos.containers',
-        ]);
+        try {
+            // Load necessary relationships
+            $shippingInstruction->load([
+                'booking',
+                'containers', // Load containers
+                'cargos' // Load cargos to get container types
+            ]);
 
-        // Group containers by type for the BL
-        $containersByType = $shippingInstruction->cargos
-            ->groupBy('container_type')
-            ->map(function ($cargos) {
-                return [
-                    'count' => $cargos->sum('container_count'),
-                    'total_weight' => $cargos->sum('total_weight'),
-                    'containers' => $cargos->flatMap->containers
-                        ->pluck('container_number')
-                        ->filter()
-                        ->values()
-                ];
-            });
+            // Group containers by type for the BL
+            $containersByType = $shippingInstruction->containers
+                ->groupBy('cargo.container_type') // Group by the cargo's container type
+                ->map(function ($containers) use ($shippingInstruction) {
+                    return [
+                        'count' => $containers->count(),
+                        'total_weight' => $shippingInstruction->cargos->first()->total_weight,
+                        'containers' => $containers
+                            ->pluck('container_number')
+                            ->values()
+                    ];
+                });
 
-        // You might want to use a PDF generation library here
-        // For example: barryvdh/laravel-dompdf
-        return view('shipping-instructions.bill-of-lading', compact(
-            'shippingInstruction',
-            'containersByType'
-        ));
+            // Generate PDF
+            $pdf = PDF::loadView('shipping-instructions.bill-of-lading', compact(
+                'shippingInstruction',
+                'containersByType'
+            ));
+
+            // Generate filename using booking number and SI number
+            $filename = "BL_{$shippingInstruction->sub_booking_number}.pdf";
+
+            // Return the PDF for download
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            \Log::error('BL Generation failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate Bill of Lading. Please try again.');
+        }
+    }
+
+    // Generate Manifest for a shipping instruction
+    public function generateManifest(ShippingInstruction $shippingInstruction)
+    {
+        try {
+            // Load necessary relationships
+            $shippingInstruction->load([
+                'booking',
+                'containers', // Load containers
+                'cargos' // Load cargos to get container types
+            ]);
+
+            // Group containers by type for the manifest
+            $containersByType = $shippingInstruction->containers
+                ->groupBy('cargo.container_type') // Group by the cargo's container type
+                ->map(function ($containers) use ($shippingInstruction) {
+                    return [
+                        'count' => $containers->count(),
+                        'total_weight' => $shippingInstruction->cargos->first()->total_weight,
+                        'containers' => $containers
+                            ->pluck('container_number')
+                            ->values()
+                    ];
+                });
+
+            // Generate PDF
+            $pdf = PDF::loadView('shipping-instructions.manifest', compact(
+                'shippingInstruction',
+                'containersByType'
+            ));
+
+            // Generate filename using booking number and SI number
+            $filename = "Manifest_{$shippingInstruction->sub_booking_number}.pdf";
+
+            // Return the PDF for download
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            \Log::error('Manifest generation failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate Manifest. Please try again.');
+        }
     }
 
     // Display the specified shipping instruction.
