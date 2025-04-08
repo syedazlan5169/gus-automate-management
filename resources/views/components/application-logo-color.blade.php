@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo-header.webp') }}" alt="Application Logo" {{ $attributes->merge(['class' => 'mt-6']) }}>
+<img src="{{ public_path('images/logo-header.webp') }}" alt="Application Logo" {{ $attributes->merge(['class' => 'mt-6']) }}>

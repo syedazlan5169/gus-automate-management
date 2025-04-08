@@ -288,11 +288,11 @@
                                                 View Details
                                             </a>
                                             @if($booking->status == 'Payment Confirmed' || $booking->status == 'Shipped' || $booking->status == 'Completed')
-                                            <a href="#"
+                                            <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download BL
                                             </a>
-                                            <a href="#"
+                                            <a href="{{ route('shipping-instructions.generate-manifest', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download Manifest
                                             </a>

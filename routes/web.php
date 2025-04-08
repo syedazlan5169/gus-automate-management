@@ -42,10 +42,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('bookings/{booking}/shipping-instructions', [ShippingInstructionController::class, 'store'])->name('shipping-instructions.store');
         Route::get('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'show'])->name('shipping-instructions.show');
         Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
+        Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])->name('shipping-instructions.update');
+        Route::get('shipping-instructions/{shippingInstruction}/generate-bl', [ShippingInstructionController::class, 'generateBL'])->name('shipping-instructions.generate-bl');
+        Route::get('shipping-instructions/{shippingInstruction}/generate-manifest', [ShippingInstructionController::class, 'generateManifest'])->name('shipping-instructions.generate-manifest');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
-        Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])
-            ->name('shipping-instructions.update');
 
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
@@ -61,8 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])
         ->name('shipping-instructions.parse-container-list');
 
-    Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])
-        ->name('shipping-instructions.download-template');
+    Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])->name('shipping-instructions.download-template');
 });
 
 require __DIR__ . '/auth.php';
