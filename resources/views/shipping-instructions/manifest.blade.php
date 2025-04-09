@@ -77,7 +77,7 @@
 </head>
 <body>
     <div class="header">
-        <x-application-logo-color class="logo" />
+        <x-application-logo-pdf class="logo" />
         <div class="title">MANIFEST</div>
         <div class="subtitle">{{ $shippingInstruction->sub_booking_number }}</div>
     </div>

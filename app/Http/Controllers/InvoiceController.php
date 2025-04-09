@@ -116,43 +116,35 @@ class InvoiceController extends Controller
             'invoice_amount' => null,
         ];
 
-        if (preg_match('/Invoice number[:\s.]*(\d+)/i', $normalized, $m)) {
+        // Extract invoice number - new format "INVyyyy-mm-xxxx"
+        if (preg_match('/INVOICE NO\.?\s*(INV\d{4}-\d{2}-\d{4})/i', $normalized, $m)) {
             $data['invoice_number'] = trim($m[1]);
         }
 
-        $datePatterns = [
-            '/(\w+\s+\d{1,2},\s*\d{4})Invoice date/i',
-            '/Invoice date[:\s.]*([A-Za-z]+\s+\d{1,2},\s*\d{4})/i',
-            '/([A-Za-z]+\s+\d{1,2},\s*\d{4})\s*-\s*[A-Za-z]+\s+\d{1,2},\s*\d{4}/',
-        ];
-
-        foreach ($datePatterns as $pattern) {
-            if (preg_match($pattern, $normalized, $m)) {
-                $data['invoice_date'] = $this->formatDate($m[1]);
-                if ($data['invoice_date']) {
-                    break;
-                }
-            }
+        // Extract date - new format "DD.MM.YYYY"
+        if (preg_match('/DATE\s*(\d{2}\.\d{2}\.\d{4})/i', $normalized, $m)) {
+            $date = str_replace('.', '-', $m[1]); // Convert to YYYY-MM-DD format
+            $data['invoice_date'] = date('Y-m-d', strtotime($date));
         }
 
-        $amountPatterns = [
-            // 1) Grab MYRxxx.xx that is directly followed by “Total in MYR”
-            '/MYR([\d,]+\.\d{2})(?=\s*Total in MYR)/i',
-
-            // 2) Or “Total in MYR MYRxxx.xx”
-            '/Total in MYR\s*MYR([\d,]+\.\d{2})/i',
-
-            // 3) Fallback — last resort only if context fails
-            '/MYR([\d,]+\.\d{2})(?=\s|$)/i',
-        ];
-
-        foreach ($amountPatterns as $pattern) {
-            if (preg_match($pattern, $normalized, $m)) {
-                $amount = (float) str_replace(',', '', $m[1]);
-                if ($amount > 0) {
-                    $data['invoice_amount'] = $amount;
-                    break;
-                }
+        // Extract amount - looking for both USD and MYR amounts
+        // First try to get MYR amount as it's the final converted amount
+        if (preg_match('/MYR\s*([\d,]+\.\d{2})\s*(?:TAX SUMMARY|$)/i', $normalized, $m)) {
+            $amount = (float) str_replace(',', '', $m[1]);
+            if ($amount > 0) {
+                $data['invoice_amount'] = $amount;
+            }
+        } 
+        // If MYR not found, try USD amount
+        elseif (preg_match('/BALANCE DUE\s*USD\s*([\d,]+\.\d{2})/i', $normalized, $m)) {
+            // If we find exchange rate, convert to MYR
+            if (preg_match('/EXCHANGE RATE\s*:\s*([\d.]+)/i', $normalized, $rate)) {
+                $usdAmount = (float) str_replace(',', '', $m[1]);
+                $exchangeRate = (float) $rate[1];
+                $data['invoice_amount'] = round($usdAmount * $exchangeRate, 2);
+            } else {
+                // If no exchange rate found, just use USD amount
+                $data['invoice_amount'] = (float) str_replace(',', '', $m[1]);
             }
         }
 
