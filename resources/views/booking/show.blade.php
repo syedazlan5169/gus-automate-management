@@ -121,7 +121,7 @@
                     </div>
 
                     <!-- Service Information -->
-                    <div class="bg-gray-50 p-4 rounded-lg">
+                    <!--<div class="bg-gray-50 p-4 rounded-lg">
                         <h3 class="text-lg font-medium mb-4">Service Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -133,7 +133,7 @@
                                 <p class="font-medium">{{ $booking->liner_address }}</p>
                             </div>
                         </div>
-                    </div>
+                    </div>-->
 
                     <!-- Vessel Information -->
                     <div class="bg-gray-50 p-4 rounded-lg">
@@ -179,11 +179,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Estimated Time of Sailing</p>
-                                <p class="font-medium">{{ $booking->ets->format('Y-m-d H:i') }}</p>
+                                <p class="font-medium">{{ $booking->ets ? $booking->ets->format('Y-m-d H:i') : 'Not set' }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Estimated Time of Arrival</p>
-                                <p class="font-medium">{{ $booking->eta->format('Y-m-d H:i') }}</p>
+                                <p class="font-medium">{{ $booking->eta ? $booking->eta->format('Y-m-d H:i') : 'Not set' }}</p>
                             </div>
                         </div>
                     </div>

@@ -119,9 +119,9 @@
                             <span>{{ $booking->pol }} → {{ $booking->pod }}</span>
                         </div>
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                            <span>ETS : {{ $booking->ets->format('d-m-Y | g:i A') }}</span>
+                            <span>ETS : {{ $booking->ets ? $booking->ets->format('d-m-Y | g:i A') : 'Not set' }}</span>
                           <span class="hidden sm:inline">·</span>
-                            <span>ETA : {{ $booking->eta->format('d-m-Y | g:i A') }}</span>
+                            <span>ETA : {{ $booking->eta ? $booking->eta->format('d-m-Y | g:i A') : 'Not set' }}</span>
                         </div>
                       </td>
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->service }}</td>
@@ -129,8 +129,8 @@
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->pol }} → {{ $booking->pod }}</td>
                       <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
                           <div class="mt-1 flex flex-col text-gray-500 sm:block">
-                            <p>ETS : {{ $booking->ets->format('d-m-Y | g:i A') }}</p>
-                            <p>ETA : {{ $booking->eta->format('d-m-Y | g:i A') }}</p>
+                            <p>ETS : {{ $booking->ets ? $booking->ets->format('d-m-Y | g:i A') : 'Not set' }}</p>
+                            <p>ETA : {{ $booking->eta ? $booking->eta->format('d-m-Y | g:i A') : 'Not set' }}</p>
                         </div>
                       </td>
                       <td class="text-center px-3 py-3.5 text-sm text-gray-500">

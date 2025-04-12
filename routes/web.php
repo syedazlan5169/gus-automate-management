@@ -5,6 +5,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ShippingInstructionController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ShippingRouteController;
+
 Route::redirect('/', '/login');
 
 // Auth middleware Group
@@ -51,7 +53,14 @@ Route::middleware(['auth'])->group(function () {
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
             Route::view('dashboard', 'admin.dashboard')->name('admin.dashboard');
-            // Add more admin routes here that need the same middleware
+
+            // Shipping Routes
+            Route::get('shipping-routes/create', [ShippingRouteController::class, 'create'])->name('shipping-routes.create');
+            Route::post('shipping-routes', [ShippingRouteController::class, 'store'])->name('shipping-routes.store');
+            Route::get('shipping-routes', [ShippingRouteController::class, 'index'])->name('shipping-routes.index');
+            Route::get('shipping-routes/{shippingRoute}/edit', [ShippingRouteController::class, 'edit'])->name('shipping-routes.edit');
+            Route::put('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'update'])->name('shipping-routes.update');
+            Route::delete('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'destroy'])->name('shipping-routes.destroy');
         });
 
     });

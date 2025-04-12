@@ -6,7 +6,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-
+use App\Models\ShippingRoute;
 class BookingController extends Controller
 {
     /**
@@ -29,14 +29,16 @@ class BookingController extends Controller
     // Show the form for creating a new booking.
     public function create()
     {
-        return view('bookings.create');
+        $shippingRoutes = ShippingRoute::all();
+        return view('bookings.create', compact('shippingRoutes'));
     }
 
     // Show Edit page for a booking
     public function edit(Booking $booking)
     {
         $booking->load('cargos');
-        return view('booking.edit', compact('booking'));
+        $shippingRoutes = ShippingRoute::all();
+        return view('booking.edit', compact('booking', 'shippingRoutes'));
     }
 
     // Store a newly created booking in storage.
@@ -44,11 +46,11 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             // Service Information
-            'service' => 'required|string|in:SOC,COC',
+            //'service' => 'required|string|in:SOC,COC',
             
             // Shipping Details
-            'vessel' => 'required|string|max:255',
-            'voyage' => 'required|string|max:255',
+            //'vessel' => 'required|string|max:255',
+            //'voyage' => 'required|string|max:255',
             
             // Route Information
             'place_of_receipt' => 'required|string|max:255',
@@ -58,7 +60,7 @@ class BookingController extends Controller
             
             // Schedule
             'ets' => 'required|date',
-            'eta' => 'required|date',
+            //'eta' => 'required|date',
             
             // Cargo Details
             'container_type' => 'required|array',
@@ -79,15 +81,11 @@ class BookingController extends Controller
             $booking = Booking::create([
                 'booking_number' => $bookingNumber,
                 'booking_date' => now(),
-                'service' => $validated['service'],
-                'vessel' => $validated['vessel'],
-                'voyage' => $validated['voyage'],
                 'place_of_receipt' => $validated['place_of_receipt'],
                 'pol' => $validated['pol'],
                 'pod' => $validated['pod'],
                 'place_of_delivery' => $validated['place_of_delivery'],
                 'ets' => $validated['ets'],
-                'eta' => $validated['eta'],
                 'user_id' => auth()->id(),
             ]);
 

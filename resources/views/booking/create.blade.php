@@ -59,7 +59,7 @@
                             @csrf
                             <div class="space-y-12">
                                 <!-- Service Information -->
-                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                <!--<div class="border-b border-gray-900/10 pb-12 space-y-6">
                                     <fieldset>
                                         <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
                                         <div class="mt-6 flex gap-x-6">
@@ -82,7 +82,7 @@
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </fieldset>
-                                </div>
+                                </div> -->
 
                                 <!-- Shipping Schedule -->
                                 <div class="hidden border-b border-gray-900/10 pb-12 space-y-6">
@@ -481,22 +481,20 @@
                                             </ul>
                                         </section>
                                     </div>
-
                                 </div>
 
-                                <!-- Shipping Details -->
+                                <!-- Schedule Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <h2 class="text-base/7 font-semibold text-gray-900">Shipping Details</h2>
-                                    
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
-                                            <x-input-label for="vessel" value="Vessel Name" />
-                                            <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" />
+                                            <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
+                                            <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <x-input-label for="voyage" value="Voyage Number" />
-                                            <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full" />
+                                            <x-input-label for="route" value="Route" />
+                                            <livewire:shipping-route-dropdown />
                                         </div>
                                     </div>
                                 </div>
@@ -527,21 +525,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Schedule Information -->
-                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
-                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                                        <div class="sm:col-span-3">
-                                            <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
-                                            <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
-                                        </div>
-
-                                        <div class="sm:col-span-3">
-                                            <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
-                                            <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full" />
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <!-- Cargo Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -770,12 +753,46 @@ function deleteRow(button) {
     }
 }
 
+// Listen for route selection event
+document.addEventListener('livewire:initialized', function () {
+    console.log('Livewire initialized, setting up routeSelected listener');
+    
+    // Function to populate form fields
+    function populateFormFields(data) {
+        console.log('Populating form fields with data:', data);
+        
+        const placeOfReceipt = document.getElementById('place_of_receipt');
+        const pol = document.getElementById('pol');
+        const pod = document.getElementById('pod');
+        const placeOfDelivery = document.getElementById('place_of_delivery');
+        
+        if (placeOfReceipt) placeOfReceipt.value = data.place_of_receipt;
+        if (pol) pol.value = data.pol;
+        if (pod) pod.value = data.pod;
+        if (placeOfDelivery) placeOfDelivery.value = data.place_of_delivery;
+        
+        console.log('Form fields populated');
+    }
+    
+    // Listen for Livewire 3 events
+    Livewire.on('routeSelected', function (data) {
+        console.log('Livewire 3 routeSelected event received:', data);
+        populateFormFields(data);
+    });
+    
+    // Listen for Livewire 2 events
+    window.addEventListener('routeSelected', function (event) {
+        console.log('Livewire 2 routeSelected event received:', event.detail);
+        populateFormFields(event.detail);
+    });
+});
+
 // Remove the modal show/hide logic since we're using proper form submission
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Validate required fields
-    const required = ['service', 'vessel', 'voyage', 'place_of_receipt', 'pol', 'pod', 'place_of_delivery', 'ets', 'eta'];
+    // Validate required fields - updated to match actual form fields
+    const required = ['place_of_receipt', 'pol', 'pod', 'place_of_delivery', 'ets'];
     let isValid = true;
     
     required.forEach(field => {
