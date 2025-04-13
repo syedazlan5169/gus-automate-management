@@ -28,4 +28,15 @@
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-success');
+            alerts.forEach(function(alert) {
+                alert.remove();
+            });
+        }, 3000);
+    });
+</script> 

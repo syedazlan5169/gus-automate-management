@@ -49,7 +49,7 @@
                             @method('PUT')
                             <div class="space-y-12">
                                 <!-- Service Information -->
-                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
+                                <!--<div class="border-b border-gray-900/10 pb-12 space-y-6">
                                     <fieldset>
                                         <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
                                         <div class="mt-6 flex gap-x-6">
@@ -72,7 +72,7 @@
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </fieldset>
-                                </div>
+                                </div>-->
 
                                 <!-- Shipping Details -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -82,13 +82,13 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="vessel" value="Vessel Name" />
                                             <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" 
-                                                value="{{ old('vessel', $booking->vessel) }}" />
+                                                value="{{ old('vessel', $booking->vessel) }}" required />
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="voyage" value="Voyage Number" />
                                             <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full"
-                                                value="{{ old('voyage', $booking->voyage) }}" />
+                                                value="{{ old('voyage', $booking->voyage) }}" required />
                                         </div>
                                     </div>
                                 </div>
@@ -242,6 +242,10 @@
 
                                 <!-- Submit button -->
                                 <div class="mt-6 flex items-center justify-end gap-x-6">
+                                    <button onclick="window.history.back()"
+                                        class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                                        Back
+                                    </button>
                                     <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                         Update Booking
                                     </button>

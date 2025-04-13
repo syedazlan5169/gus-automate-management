@@ -6,7 +6,58 @@
                     <div>
                         <h4 class="sr-only">Status</h4>
                         <!-- This should be the current status of the booking -->
-                        <p class="text-sm font-medium text-gray-900">Generating Bill of Lading ...</p>
+                        @if ($booking->status == $status::NEW)
+                            @if(auth()->user()->role == 'customer')
+                            <x-alert-instruction 
+                                message="A booking has been created, please wait for the Liner to confirm the booking"
+                                color="green"
+                            />
+                            @else
+                            <x-alert-instruction 
+                                message="A new booking has been created, please update the booking details and confirm the booking"
+                                action_url="{{ route('booking.edit', $booking) }}"
+                                action_text="Update Booking"
+                            />
+                            @endif
+
+                        @elseif ($booking->status == $status::BOOKING_CONFIRMED)
+                            @if(auth()->user()->role == 'customer')
+                            <x-alert-instruction 
+                                message="Booking has been confirmed, please add the Shipping Instructions to allow the system to generate the Bill of Lading"
+                            />
+                            @else
+                            <x-alert-instruction 
+                                message="Booking has been confirmed, waiting for customer to update the Shipping Instructions"
+                                color="green"
+                            />
+                            @endif
+                        @elseif ($booking->status == 'Pending Payment')
+                            @if(auth()->user()->role == 'customer')
+                            <x-alert-instruction 
+                                message="Invoice has been issued, please make the payment and upload the remmittence advice to proceed"
+                            />
+                            @else
+                            <x-alert-instruction 
+                                message="Invoice has been issued, waiting for customer to make payment and upload the remmittence advice"
+                            />
+                            @endif
+                        @elseif ($booking->status == 'Payment Verification')
+                            @if(auth()->user()->role == 'customer')
+                            <x-alert-instruction 
+                                message="Payment has been made, waiting for Liner to verify the payment"
+                            />
+                            @else
+                            <x-alert-instruction 
+                                message="Payment has been made, verify the remmittence advice and confirm the payment"
+                            />
+                            @endif
+                        @elseif ($booking->status == 'Payment Confirmed')
+                            @if(auth()->user()->role == 'customer')
+                            <x-alert-instruction 
+                                message="Payment has been confirmed, you can now download the BL and Manifest"
+                            />
+                            @endif
+                        @endif
                         <div class="mt-6" aria-hidden="true">
                             <div class="overflow-hidden rounded-full bg-gray-200">
                                 <div class="h-2 rounded-full bg-indigo-600" style="width: 50%"></div>
@@ -25,54 +76,7 @@
                 </div>
             </div>
 
-            @if ($booking->status == 'Pending SI')
-                @if(auth()->user()->role == 'customer')
-                <x-alert-instruction 
-                    message="Please submit your shipping instructions"
-                />
-                @else
-                <x-alert-instruction 
-                    message="A booking is pending for shipping instructions"
-                />
-                @endif
 
-            @elseif ($booking->status == 'Pending Invoice')
-                @if(auth()->user()->role == 'customer')
-                <x-alert-instruction 
-                    message="Waiting for Liner to upload the invoice"
-                />
-                @else
-                <x-alert-instruction 
-                    message="Customer has submitted the shipping instructions, please upload the invoice to proceed"
-                />
-                @endif
-            @elseif ($booking->status == 'Pending Payment')
-                @if(auth()->user()->role == 'customer')
-                <x-alert-instruction 
-                    message="Invoice has been issued, please make the payment and upload the remmittence advice to proceed"
-                />
-                @else
-                <x-alert-instruction 
-                    message="Invoice has been issued, waiting for customer to make payment and upload the remmittence advice"
-                />
-                @endif
-            @elseif ($booking->status == 'Payment Verification')
-                @if(auth()->user()->role == 'customer')
-                <x-alert-instruction 
-                    message="Payment has been made, waiting for Liner to verify the payment"
-                />
-                @else
-                <x-alert-instruction 
-                    message="Payment has been made, verify the remmittence advice and confirm the payment"
-                />
-                @endif
-            @elseif ($booking->status == 'Payment Confirmed')
-                @if(auth()->user()->role == 'customer')
-                <x-alert-instruction 
-                    message="Payment has been confirmed, you can now download the BL and Manifest"
-                />
-                @endif
-            @endif
 
             <!-- Success Message -->
             @if (session('success'))
@@ -88,11 +92,11 @@
                         <div class="sm:flex-auto">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-2xl font-semibold">Booking Details</h2>
-                                <x-status-badge text="{{ $booking->status }}" color="green"/>
+                                <x-status-badge text="{{ $statusLabel }}" color="green"/>
                             </div>
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
-                        @if($booking->status == 'Pending SI')
+                        @if($booking->status == $status::NEW && auth()->user()->role != 'customer')
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
@@ -106,6 +110,7 @@
                                 </svg>
                                 Edit
                             </button>
+                            @endif
                             <button type="button"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 uppercase tracking-widest">
                                 <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
@@ -114,10 +119,21 @@
                                         d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
                                         clip-rule="evenodd" />
                                 </svg>
-                                Cancel
+                                Cancel Booking
                             </button>
+                            @if($booking->status == $status::CANCELLED)
+                            <button type="button"
+                                class="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 uppercase tracking-widest">
+                                <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                                    data-slot="icon">
+                                    <path fill-rule="evenodd"
+                                        d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Delete Booking
+                            </button>
+                            @endif
                         </div>
-                        @endif
                     </div>
 
                     <!-- Service Information -->
@@ -602,15 +618,44 @@
 
 
                     <!-- Action Buttons -->
-                    <div class="mt-6 flex justify-between space-x-4">
-                        <div>
+                    <div class="m-6 flex justify-end space-x-4">
+                        <div class="flex space-x-4">
                             <button onclick="window.history.back()"
                                 class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                                 Back
                             </button>
-                        </div>
-                        <div class="flex space-x-4">
-                            @if($booking->status == 'Pending SI' && auth()->user()->role == 'customer')
+
+                            @if($booking->status == $status::NEW && auth()->user()->role != 'customer')
+                            <!-- Confirm Booking Button -->
+                            <div class="relative" x-data="{ showTooltip: false }">
+                                <button type="button"
+                                    @mouseover="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    onclick="document.getElementById('booking-confirmation-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        @if(!empty($booking->vessel) && !empty($booking->voyage))
+                                            bg-blue-600 text-white hover:bg-blue-700
+                                        @else
+                                            bg-gray-300 text-gray-500 cursor-not-allowed
+                                        @endif"
+                                    @if(empty($booking->vessel) || empty($booking->voyage)) disabled @endif>
+                                    Confirm Booking
+                                </button>
+                                <!-- Tooltip -->
+                                @if(empty($booking->vessel) || empty($booking->voyage))
+                                    <div x-show="showTooltip" 
+                                        x-transition
+                                        class="absolute bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+                                        style="left: 10%; transform: translateX(-50%)">
+                                        @if(empty($booking->vessel))
+                                            Please add vessel before confirming the booking.
+                                        @elseif(empty($booking->voyage))
+                                            Please add voyage before confirming the booking.
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                            @elseif($booking->status == $status::BOOKING_CONFIRMED && auth()->user()->role == 'customer')
                             <!-- Submit SI Button -->
                             <div class="relative" x-data="{ showTooltip: false }">
                                 <!-- Button with mouseover tooltip -->
@@ -642,6 +687,7 @@
                                     @endif
                                 </div>
                             </div>
+
                             @elseif($booking->status == 'Pending Invoice' && auth()->user()->role != 'customer')
                             <!-- Submit Invoice Button -->
                             <div class="relative">
@@ -673,6 +719,36 @@
                                 </button>
                             </div>
                             @endif
+
+                            <!-- Booking Confirmation Modal -->
+                            <div id="booking-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Booking Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking. Confirming the booking will allow the customer to download BL and Manifest.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('booking-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.confirm', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Payment Confirmation Modal -->
                             <div id="payment-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"

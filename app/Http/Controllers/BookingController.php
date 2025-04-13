@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Models\ShippingRoute;
+use App\Models\BookingStatus;
 class BookingController extends Controller
 {
     /**
@@ -131,7 +132,10 @@ class BookingController extends Controller
             'shippingInstructions.containers', 
             'invoice.payment'
         ]);
-        return view('booking.show', compact('booking'));
+        $statusLabel = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+        $status = new BookingStatus();
+
+        return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
     // Shipping Instructions Submission
@@ -233,7 +237,6 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $validated = $request->validate([
-            'service' => 'sometimes|required|string|in:SOC,COC',
             'vessel' => 'sometimes|required|string|max:255',
             'voyage' => 'sometimes|required|string|max:255',
             'place_of_receipt' => 'sometimes|required|string|max:255',
@@ -242,12 +245,11 @@ class BookingController extends Controller
             'place_of_delivery' => 'sometimes|required|string|max:255',
             'ets' => 'sometimes|required|date',
             'eta' => 'sometimes|required|date',
-            'status' => 'sometimes|required|string|in:New,Pending,Confirmed,Shipped,Completed,Cancelled',
         ]);
 
         try {
             $booking->update($validated);
-            return redirect()->route('bookings.index')
+            return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error updating booking: ' . $e->getMessage());
@@ -288,6 +290,12 @@ class BookingController extends Controller
             });
 
         return response()->json($availableContainers);
+    }
+
+    public function confirmBooking(Booking $booking)
+    {
+        $booking->update(['status' => 2]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking confirmed successfully.');
     }
 
     public function confirmPayment(Booking $booking)
