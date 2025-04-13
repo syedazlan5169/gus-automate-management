@@ -17,13 +17,27 @@ class BookingController extends Controller
     {
         if (auth()->user()->role === 'customer')
         {
-            $bookings = Booking::where('user_id', auth()->id())->paginate(10);
-            return view('booking.index', compact('bookings'));
+            $bookings = Booking::where('user_id', auth()->id())->get();
+            
+            // Get status labels for each booking
+            $statusLabels = [];
+            foreach ($bookings as $booking) {
+                $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+            }
+            
+            return view('booking.index', compact('bookings', 'statusLabels'));
         }
         else
         {
-            $bookings = Booking::paginate(10);
-            return view('booking.index', compact('bookings'));
+            $bookings = Booking::all();
+            
+            // Get status labels for each booking
+            $statusLabels = [];
+            foreach ($bookings as $booking) {
+                $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+            }
+            
+            return view('booking.index', compact('bookings', 'statusLabels'));
         }
     }
 

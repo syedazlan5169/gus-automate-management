@@ -22,6 +22,19 @@ class Booking extends Model
         'eta' => 'datetime',
     ];
 
+    public function scopeSearch($query, $term)
+    {
+        if($term)
+        {
+            $query->where('booking_number', 'like', '%'.$term.'%')
+                ->orWhere('vessel', 'like', '%'.$term.'%')
+                ->orWhere('voyage', 'like', '%'.$term.'%')
+                ->orWhere('pol', 'like', '%'.$term.'%')
+                ->orWhere('pod', 'like', '%'.$term.'%');
+        }
+        return $query;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
