@@ -354,6 +354,110 @@ class ShippingInstructionController extends Controller
         }
     }
 
+    public function parseShippingInstruction(Request $request)
+    {
+        try {
+            // Validate the request
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                \Log::error('Shipping instruction file validation failed', [
+                    'errors' => $validator->errors()->toArray()
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            \Log::info('Processing shipping instruction file', [
+                'filename' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime_type' => $file->getMimeType()
+            ]);
+            
+            // Load the spreadsheet
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            \Log::info('Excel file loaded', [
+                'total_rows' => count($rows),
+                'first_few_rows' => array_slice($rows, 0, 15)
+            ]);
+
+            // Extract shipping instruction data based on the template structure
+            $shippingData = [
+                'box_operator' => trim($rows[0][1] ?? ''),
+                'shipper' => trim($rows[1][1] ?? ''),
+                'contact_shipper' => trim($rows[2][1] ?? ''),
+                'consignee' => trim($rows[3][1] ?? ''),
+                'contact_consignee' => trim($rows[4][1] ?? ''),
+                'notify_party' => trim($rows[5][1] ?? ''),
+                'notify_party_contact' => trim($rows[6][1] ?? ''),
+                'notify_party_address' => trim($rows[7][1] ?? ''),
+                'cargo_description' => trim($rows[8][1] ?? ''),
+                'hs_code' => trim($rows[9][1] ?? ''),
+            ];
+
+            \Log::info('Extracted shipping data', $shippingData);
+
+            // Extract container data starting from row 12
+            $containers = [];
+            for ($i = 12; $i < count($rows); $i++) {
+                $containerNumber = trim($rows[$i][0] ?? '');
+                $sealNumber = trim($rows[$i][1] ?? '');
+                $containerType = trim($rows[$i][2] ?? '20GP'); // Get container type from column 3
+                
+                // Skip empty rows
+                if (empty($containerNumber) || empty($sealNumber)) {
+                    continue;
+                }
+
+                // Validate container number format (you can adjust this regex as needed)
+                if (!preg_match('/^[A-Z]{4}\d{7}$/', $containerNumber)) {
+                    \Log::warning('Invalid container number format', [
+                        'row' => $i + 1,
+                        'container_number' => $containerNumber
+                    ]);
+                    continue;
+                }
+
+                $containers[] = [
+                    'number' => $containerNumber,
+                    'seal' => $sealNumber,
+                    'type' => $containerType
+                ];
+            }
+
+            \Log::info('Extracted containers', [
+                'count' => count($containers),
+                'containers' => $containers
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File processed successfully',
+                'shippingData' => $shippingData,
+                'containers' => $containers
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error parsing shipping instruction: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function parseContainerList(Request $request)
     {
         try {

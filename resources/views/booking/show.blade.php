@@ -5,6 +5,24 @@
                 <div class="p-6 text-gray-900">
                     <div>
                         <h4 class="sr-only">Status</h4>
+
+                        <div class="mt-6" aria-hidden="true">
+                            <div class="overflow-hidden rounded-full bg-gray-200">
+                                <div class="h-2 rounded-full bg-indigo-600" style="width: 50%"></div>
+                            </div>
+                            <div class="mt-6 hidden grid-cols-6 text-sm font-medium text-gray-600 sm:grid">
+                                <div class="text-indigo-600">Booking<br>Created</div>
+                                <div class="text-center text-indigo-600">Update<br>SI</div>
+                                <div class="text-center text-indigo-600">Upload<br>Invoice</div>
+                                <div class="text-center text-indigo-600">Complete<br>Payment</div>
+                                <div class="text-center text-indigo-600">Generate<br>BL</div>
+                                <div class="text-right text-indigo-600">Sailing</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
                         <!-- This should be the current status of the booking -->
                         @if ($booking->status == $status::NEW)
                             @if(auth()->user()->role == 'customer')
@@ -58,24 +76,6 @@
                             />
                             @endif
                         @endif
-                        <div class="mt-6" aria-hidden="true">
-                            <div class="overflow-hidden rounded-full bg-gray-200">
-                                <div class="h-2 rounded-full bg-indigo-600" style="width: 50%"></div>
-                            </div>
-                            <div class="mt-6 hidden grid-cols-6 text-sm font-medium text-gray-600 sm:grid">
-                                <div class="text-indigo-600">Booking<br>Created</div>
-                                <div class="text-center text-indigo-600">Update<br>SI</div>
-                                <div class="text-center text-indigo-600">Upload<br>Invoice</div>
-                                <div class="text-center text-indigo-600">Complete<br>Payment</div>
-                                <div class="text-center text-indigo-600">Generate<br>BL</div>
-                                <div class="text-right text-indigo-600">Sailing</div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
 
 
             <!-- Success Message -->
@@ -157,11 +157,23 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Vessel Name</p>
-                                <p class="font-medium">{{ $booking->vessel }}</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->vessel))
+                                        {{ $booking->vessel }}
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Voyage Number</p>
-                                <p class="font-medium">{{ $booking->voyage }}</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->voyage))
+                                        {{ $booking->voyage }}
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -195,11 +207,23 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Estimated Time of Sailing</p>
-                                <p class="font-medium">{{ $booking->ets ? $booking->ets->format('Y-m-d H:i') : 'Not set' }}</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->ets))
+                                        {{ $booking->ets->format('Y-m-d H:i') }}
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Estimated Time of Arrival</p>
-                                <p class="font-medium">{{ $booking->eta ? $booking->eta->format('Y-m-d H:i') : 'Not set' }}</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->eta))
+                                        {{ $booking->eta->format('Y-m-d H:i') }}
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -225,7 +249,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($totalUnallocated > 0)
+                            @if($totalUnallocated > 0 && $booking->status == $status::BOOKING_CONFIRMED)
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">

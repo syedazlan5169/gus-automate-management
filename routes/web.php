@@ -66,11 +66,9 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
-    Route::post('shipping-instructions/parse-containers', [ShippingInstructionController::class, 'parseContainers'])
-        ->name('shipping-instructions.parse-containers');
 
-    Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])
-        ->name('shipping-instructions.parse-container-list');
+    //Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])->name('shipping-instructions.parse-container-list');
+    Route::post('shipping-instructions/parse-shipping-instruction', [ShippingInstructionController::class, 'parseShippingInstruction'])->name('shipping-instructions.parse-shipping-instruction');
 
     Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])->name('shipping-instructions.download-template');
 });
