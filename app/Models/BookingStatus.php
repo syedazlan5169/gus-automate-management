@@ -9,21 +9,19 @@ class BookingStatus extends Model
 {
     const NEW = 1;
     const BOOKING_CONFIRMED = 2;
-    const PENDING_SI = 3;
-    const BL_GENERATED = 4;
-    const BL_CONFIRMED = 5;
-    const SAILING = 6;
-    const ARRIVED = 7;
-    const COMPLETED = 8;
-    const CANCELLED = 9;
+    const BL_VERIFICATION = 3;
+    const BL_CONFIRMED = 4;
+    const SAILING = 5;
+    const ARRIVED = 6;
+    const COMPLETED = 7;
+    const CANCELLED = 8;
    
     public static function labels($status)
     {
         return [
             self::NEW => 'New',
             self::BOOKING_CONFIRMED => 'Booking Confirmed',
-            self::PENDING_SI => 'Pending SI',
-            self::BL_GENERATED => 'BL Generated',
+            self::BL_VERIFICATION => 'BL Verification',
             self::BL_CONFIRMED => 'BL Confirmed',
             self::SAILING => 'Sailing',
             self::ARRIVED => 'Arrived',
@@ -37,8 +35,7 @@ class BookingStatus extends Model
         return [
             self::NEW,
             self::BOOKING_CONFIRMED,
-            self::PENDING_SI,
-            self::BL_GENERATED,
+            self::BL_VERIFICATION,
             self::BL_CONFIRMED,
             self::SAILING,
             self::ARRIVED,

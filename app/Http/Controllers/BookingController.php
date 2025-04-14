@@ -155,7 +155,7 @@ class BookingController extends Controller
     // Shipping Instructions Submission
     public function submitSI(Booking $booking)
     {
-        $booking->update(['status' => 'Pending Invoice']);
+        $booking->update(['status' => BookingStatus::BL_VERIFICATION]);
         return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
     }
 

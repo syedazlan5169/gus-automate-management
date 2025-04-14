@@ -49,27 +49,27 @@
                                 color="green"
                             />
                             @endif
-                        @elseif ($booking->status == 'Pending Payment')
+                        @elseif ($booking->status == $status::BL_VERIFICATION)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
-                                message="Invoice has been issued, please make the payment and upload the remmittence advice to proceed"
+                                message="BL has been generated, please verify and confirm the BL"
                             />
                             @else
                             <x-alert-instruction 
-                                message="Invoice has been issued, waiting for customer to make payment and upload the remmittence advice"
+                                message="BL has been generated, waiting for customer to verify and confirm the BL"
                             />
                             @endif
-                        @elseif ($booking->status == 'Payment Verification')
+                        @elseif ($booking->status == $status::BL_CONFIRMED)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
-                                message="Payment has been made, waiting for Liner to verify the payment"
+                                message="BL has been confirmed, waiting for Liner to sail"
                             />
                             @else
                             <x-alert-instruction 
-                                message="Payment has been made, verify the remmittence advice and confirm the payment"
+                                message="BL has been confirmed, waiting for Liner to sail"
                             />
                             @endif
-                        @elseif ($booking->status == 'Payment Confirmed')
+                        @elseif ($booking->status == $status::SAILING)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
                                 message="Payment has been confirmed, you can now download the BL and Manifest"
@@ -325,9 +325,15 @@
                                         <div class="text-right mt-4">
                                             <a href="{{ route('shipping-instructions.show', $si) }}"
                                                 class="text-indigo-600 hover:text-indigo-900">
-                                                View Details
+                                                Edit 
                                             </a>
-                                            @if($booking->status == 'Payment Confirmed' || $booking->status == 'Shipped' || $booking->status == 'Completed')
+                                            @if($booking->status == 3)
+                                            <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
+                                                class="ml-4 text-green-600 hover:text-green-900">
+                                                View BL
+                                            </a>
+                                            @endif
+                                            @if($booking->status == 4 || $booking->status == 5)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download BL
