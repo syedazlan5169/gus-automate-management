@@ -52,21 +52,23 @@
                         @elseif ($booking->status == $status::BL_VERIFICATION)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
-                                message="BL has been generated, please verify and confirm the BL"
+                                message="BL has been generated, please verify and confirm the BL to allow the system to generate the Manifest"
                             />
                             @else
                             <x-alert-instruction 
                                 message="BL has been generated, waiting for customer to verify and confirm the BL"
+                                color="green"
                             />
                             @endif
                         @elseif ($booking->status == $status::BL_CONFIRMED)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
-                                message="BL has been confirmed, waiting for Liner to sail"
+                                message="BL has been confirmed, waiting for Liner to prepare all the documents"
+                                color="green"
                             />
                             @else
                             <x-alert-instruction 
-                                message="BL has been confirmed, waiting for Liner to sail"
+                                message="BL has been confirmed, please prepare all the documents required for the shipment"
                             />
                             @endif
                         @elseif ($booking->status == $status::SAILING)
@@ -718,14 +720,14 @@
                                 </div>
                             </div>
 
-                            @elseif($booking->status == 'Pending Invoice' && auth()->user()->role != 'customer')
-                            <!-- Submit Invoice Button -->
+                            @elseif($booking->status == $status::BL_VERIFICATION && auth()->user()->role == 'customer')
+                            <!-- Confirm BL Button -->
                             <div class="relative">
                                 <button type="button"
-                                    onclick="document.getElementById('invoice-submission-modal').classList.remove('hidden')"
+                                    onclick="document.getElementById('bl-confirmation-modal').classList.remove('hidden')"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                         bg-blue-600 text-white hover:bg-blue-700">
-                                    Submit Invoice
+                                    Confirm BL
                                 </button>
                             </div>
                             @elseif($booking->status == 'Pending Payment' && auth()->user()->role == 'customer')
@@ -780,6 +782,36 @@
                                 </div>
                             </div>
 
+                            <!-- BL Confirmation Modal -->
+                            <div id="bl-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">BL Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the BL. You are allowed to make changes to the BL 3 times after the first confirmation. Extra charges will be applied for each extra change after the 3rd change.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('bl-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.confirm-bl', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Payment Confirmation Modal -->
                             <div id="payment-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
                                 role="dialog" aria-modal="true">
@@ -811,6 +843,8 @@
                                     </div>
                                 </div>
                             </div>
+
+                           
 
                             <!-- Payment Submission Modal -->
                             <div id="payment-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
@@ -857,7 +891,7 @@
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">
                                                         Confirm Shipping Instructions Submission</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before submitting the Shipping Instructions. You will not be able to make any changes after submitting.</p>
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before submitting the Shipping Instructions.</p>
                                                     </div>
                                                 </div>
                                             </div>

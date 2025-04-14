@@ -152,12 +152,6 @@ class BookingController extends Controller
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
-    // Shipping Instructions Submission
-    public function submitSI(Booking $booking)
-    {
-        $booking->update(['status' => BookingStatus::BL_VERIFICATION]);
-        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
-    }
 
     // Invoice Submission
     public function submitInvoice(Request $request, Booking $booking)
@@ -310,6 +304,18 @@ class BookingController extends Controller
     {
         $booking->update(['status' => 2]);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking confirmed successfully.');
+    }
+
+    public function submitSI(Booking $booking)
+    {
+        $booking->update(['status' => 3]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
+    }
+
+    public function confirmBL(Booking $booking)
+    {
+        $booking->update(['status' => 4]);
+        return redirect()->route('booking.show', $booking)->with('success', 'BL confirmed successfully.');
     }
 
     public function confirmPayment(Booking $booking)
