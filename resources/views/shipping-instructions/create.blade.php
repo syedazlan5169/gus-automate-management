@@ -335,6 +335,18 @@ function updateContainerCounts(containerType, change) {
         
         // Update color based on availability
         allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
+    } else {
+        // If the allocation info doesn't exist for this container type, we need to create it
+        // This happens when we're adding a container type that wasn't in the original booking
+        const allocationInfoContainer = document.getElementById('allocation-info');
+        if (allocationInfoContainer) {
+            const newAllocationInfo = document.createElement('p');
+            newAllocationInfo.setAttribute('data-container-type', containerType);
+            newAllocationInfo.setAttribute('data-total', '0'); // We don't know the total for this type
+            newAllocationInfo.className = 'text-sm text-blue-700';
+            newAllocationInfo.innerHTML = `${containerType}: <strong data-available="0">0 of 0 available</strong>`;
+            allocationInfoContainer.appendChild(newAllocationInfo);
+        }
     }
 }
 
@@ -411,12 +423,34 @@ function handleFileUpload() {
             if (data.containers && data.containers.length > 0) {
                 console.log("Processing containers:", data.containers);
                 
+                // Create a mapping of container type codes to cargo IDs
+                const containerTypeToCargoId = {};
+                document.querySelectorAll('#allocation-info p').forEach(p => {
+                    const containerType = p.textContent.split(':')[0].trim();
+                    const cargoId = p.getAttribute('data-container-type');
+                    containerTypeToCargoId[containerType] = cargoId;
+                });
+                
+                console.log("Container type to cargo ID mapping:", containerTypeToCargoId);
+                
                 // Map the container data to the format expected by processContainers
-                const formattedContainers = data.containers.map(container => ({
-                    container: container.number,
-                    seal: container.seal,
-                    type: container.type || '20GP' // Use the type from the Excel or default to 20GP
-                }));
+                const formattedContainers = data.containers.map(container => {
+                    // Get the container type from the Excel file
+                    const containerType = container.type || '20GP';
+                    
+                    // Find the corresponding cargo ID
+                    const cargoId = containerTypeToCargoId[containerType];
+                    
+                    if (!cargoId) {
+                        console.warn(`No matching cargo ID found for container type: ${containerType}`);
+                    }
+                    
+                    return {
+                        container: container.number,
+                        seal: container.seal,
+                        type: cargoId || containerType // Use the cargo ID if found, otherwise use the container type
+                    };
+                });
                 
                 processContainers(formattedContainers);
             } else {
