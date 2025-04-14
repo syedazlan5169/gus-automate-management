@@ -763,7 +763,7 @@
                                                 <div class="mt-3 text-center sm:mt-5">
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">Booking Confirmation</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking. Confirming the booking will allow the customer to download BL and Manifest.</p>
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking.</p>
                                                     </div>
                                                 </div>
                                             </div>

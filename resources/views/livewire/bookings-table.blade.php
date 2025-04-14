@@ -69,7 +69,7 @@
                                   $statusClass = 'bg-red-50 text-red-700 ring-red-600/20';
                               } elseif ($booking->status == \App\Models\BookingStatus::NEW) {
                                   $statusClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
-                              } elseif ($booking->status == \App\Models\BookingStatus::PENDING_SI) {
+                              } elseif ($booking->status == \App\Models\BookingStatus::BOOKING_CONFIRMED) {
                                   $statusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
                               }
                           @endphp

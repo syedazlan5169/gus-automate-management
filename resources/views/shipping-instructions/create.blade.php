@@ -61,7 +61,7 @@
               <div class="space-y-4 mb-12 border-b border-gray-200 pb-8">
                 <div class="flex items-center justify-between">
                     <label class="block text-sm font-medium text-gray-700">Upload Shipping Instruction</label>
-                    <a href="{{ asset('storage/template/shipping_instruction_template.xlsx') }}" download 
+                    <a href="{{ asset('template/shipping_instruction_template.xlsx') }}" download 
                         class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center">
                         <svg class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
