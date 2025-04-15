@@ -13,7 +13,7 @@ class BookingsTable extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $sortBy = 'booking_number';
+    public $sortBy = 'booking_date';
     public $sortDir = 'DESC';
 
     public function mount()

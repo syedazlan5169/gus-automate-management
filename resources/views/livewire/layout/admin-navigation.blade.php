@@ -185,8 +185,8 @@ new class extends Component {
                                 </x-nav-link>
                             </li>
                             <li>
-                                <x-nav-link href="#"
-                                    :active="request()->routeIs('')" wire:navigate>
+                                <x-nav-link href="{{ route('users.index') }}"
+                                    :active="request()->routeIs('users.index')" wire:navigate>
                                     <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
                                         data-slot="icon">

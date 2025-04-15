@@ -6,6 +6,7 @@ use App\Http\Controllers\ShippingInstructionController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ShippingRouteController;
+use App\Http\Controllers\UserController;
 
 Route::redirect('/', '/login');
 
@@ -68,6 +69,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('shipping-routes/{shippingRoute}/edit', [ShippingRouteController::class, 'edit'])->name('shipping-routes.edit');
             Route::put('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'update'])->name('shipping-routes.update');
             Route::delete('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'destroy'])->name('shipping-routes.destroy');
+
+            // User routes
+            Route::get('users', [UserController::class, 'index'])->name('users.index');
+            Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+            Route::post('users', [UserController::class, 'store'])->name('users.store');
+            Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+            Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+            Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         });
 
     });

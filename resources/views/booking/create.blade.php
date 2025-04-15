@@ -58,31 +58,6 @@
                         <form action="{{ route('booking.store') }}" method="POST">
                             @csrf
                             <div class="space-y-12">
-                                <!-- Service Information -->
-                                <!--<div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <fieldset>
-                                        <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
-                                        <div class="mt-6 flex gap-x-6">
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="soc" name="service" type="radio" value="SOC" checked
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="soc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Shipped Owned Container (SOC)
-                                                </label>
-                                            </div>
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="coc" name="service" type="radio" value="COC"
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="coc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Carrier Owned Container (COC)
-                                                </label>
-                                            </div>
-                                        </div>
-                                        @error('service')
-                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
-                                    </fieldset>
-                                </div> -->
 
                                 <!-- Shipping Schedule -->
                                 <div class="hidden border-b border-gray-900/10 pb-12 space-y-6">
