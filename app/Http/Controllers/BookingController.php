@@ -162,7 +162,6 @@ class BookingController extends Controller
                 'invoice_date' => 'required|date',
                 'invoice_number' => 'required|string',
                 'invoice_amount' => 'required|numeric',
-                'payment_terms' => 'required|string|in:cash,credit',
             ]);
 
             \DB::beginTransaction();
@@ -178,7 +177,6 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
                 'invoice_path' => $invoicePath,
                 'file_name' => $fileName,
-                'invoice_data' => $validated
             ]);
 
             $invoice = Invoice::create([
@@ -187,7 +185,7 @@ class BookingController extends Controller
                 'invoice_date' => $validated['invoice_date'],
                 'invoice_number' => $validated['invoice_number'],
                 'invoice_amount' => $validated['invoice_amount'],
-                'payment_terms' => $validated['payment_terms'],
+                'payment_terms' => $request->input('payment_terms'),
             ]);
 
             // Log after invoice creation
@@ -196,8 +194,6 @@ class BookingController extends Controller
                 'booking_id' => $booking->id
             ]);
             
-            $booking->update(['status' => 'Pending Payment']);
-
             \DB::commit();
 
             return redirect()->route('booking.show', $booking)
@@ -320,7 +316,6 @@ class BookingController extends Controller
 
     public function confirmPayment(Booking $booking)
     {
-        $booking->update(['status' => 'Payment Confirmed']);
         $booking->invoice->update(['status' => 'Paid']);
         $booking->invoice->payment->update(['status' => 'Confirmed']);
         return redirect()->route('booking.show', $booking)->with('success', 'Payment confirmed successfully.');
@@ -328,7 +323,6 @@ class BookingController extends Controller
 
     public function rejectPayment(Booking $booking)
     {
-        $booking->update(['status' => 'Pending Payment']);
         $booking->invoice->payment->delete();
         return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
     }

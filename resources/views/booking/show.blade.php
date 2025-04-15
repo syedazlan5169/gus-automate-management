@@ -364,7 +364,7 @@
                     </div>
 
                     <!-- Invoice Information -->
-                    @if($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
+                    @if($booking->status >= 4 && is_null($booking->invoice) && auth()->user()->role != 'customer')
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -375,7 +375,7 @@
                         </div>
 
                         <!-- Invoice Form -->
-                        <form action="{{ route('booking.submit-invoice', $booking) }}" method="POST" enctype="multipart/form-data" id="invoice-form">
+                        <form action="{{ route('booking.submit-invoice', $booking) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <!-- Invoice Actions -->
                             <div class="mb-6">
@@ -449,7 +449,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 pt-6">
-                                    <button type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                         </svg>
@@ -473,7 +473,7 @@
                         </form>
                     </div>
                     <!-- Invoice Details after submission -->
-                    @elseif($booking->status == 'Pending Payment' || $booking->status == 'Payment Verification' || $booking->status == 'Payment Confirmed' || $booking->status == 'Payment Rejected ' || $booking->status == 'Shipped' || $booking->status == 'Completed')
+                    @else
                         @if($booking->invoice)
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="flex items-center gap-3 mb-4">
@@ -497,10 +497,10 @@
                                     <p class="text-sm text-gray-600">Invoice Amount</p>
                                     <p class="font-medium">RM {{ number_format($booking->invoice->invoice_amount, 2) }}</p>
                                 </div>
-                                <div>
+                                <!--<div>
                                     <p class="text-sm text-gray-600">Payment Terms</p>
                                     <p class="font-medium">{{ ucfirst($booking->invoice->payment_terms) }}</p>
-                                </div>
+                                </div>-->
                             </div>
                             <div class="text-right mt-4">
                                 <a href="{{ route('invoice.download', $booking) }}"
@@ -530,7 +530,7 @@
 
 
                     <!-- Payment Information -->
-                    @if($booking->status == 'Pending Payment' && auth()->user()->role == 'customer')
+                    @if(is_null($booking->invoice->payment) && auth()->user()->role == 'customer')
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -540,7 +540,7 @@
                             </div>
                         </div>
                         <!-- Payment Form -->
-                        <form action="{{ route('payment.submit', $booking) }}" method="POST" enctype="multipart/form-data" id="payment-form">
+                        <form action="{{ route('payment.submit', $booking) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <!-- Payment Actions -->
                             <div class="mb-6">
@@ -570,7 +570,7 @@
                             </div>
 
                             <!-- Payment Details -->
-                            <div class="grid grid-cols-3 gap-6">
+                            <div class="grid grid-cols-4 gap-6">
                                 <div>
                                     <x-input-label for="payment_date" :value="__('Payment Date')" />
                                     <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date" :value="old('payment_date')" />
@@ -580,7 +580,7 @@
                                 </div>
                                 <div>
                                     <x-input-label for="payment_amount" :value="__('Payment Amount')" />
-                                    <x-text-input id="payment_amount" class="block mt-1 w-full" type="number" name="payment_amount" :value="old('payment_amount')" />
+                                    <x-text-input id="payment_amount" class="block mt-1 w-full" type="number" step="0.01" name="payment_amount" :value="old('payment_amount')" />
                                     @error('payment_amount')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -600,12 +600,20 @@
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+                                <div class="flex items-center gap-2 pt-6">
+                                    <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Submit Receipt
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
 
                     <!-- Payment Details after submission -->
-                    @elseif($booking->status == 'Payment Verification' || $booking->status == 'Payment Confirmed' || $booking->status == 'Payment Rejected ' || $booking->status == 'Shipped' || $booking->status == 'Completed')
+                    @else
                         @if($booking->invoice && $booking->invoice->payment)
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="flex items-center gap-3 mb-4">
@@ -628,6 +636,19 @@
                                 <div>
                                     <p class="text-sm text-gray-600">Payment Method</p>
                                     <p class="font-medium">{{ ucfirst($booking->invoice->payment->payment_method) }}</p>
+                                </div>
+                                <div>
+                                    @if($booking->invoice->payment->status === 'Pending Verification' && auth()->user()->role != 'customer')
+                                        <!-- Confirm Payment Button -->
+                                        <div class="relative">
+                                            <button type="button"
+                                                onclick="document.getElementById('payment-confirmation-modal').classList.remove('hidden')"
+                                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                    bg-blue-600 text-white hover:bg-blue-700">
+                                                Verify Payment
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="text-right mt-4">
@@ -748,16 +769,7 @@
                                     Submit Payment
                                 </button>
                             </div>
-                            @elseif($booking->status == 'Payment Verification' && auth()->user()->role != 'customer')
-                            <!-- Confirm Payment Button -->
-                            <div class="relative">
-                                <button type="button"
-                                    onclick="document.getElementById('payment-confirmation-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        bg-blue-600 text-white hover:bg-blue-700">
-                                    Verify Payment
-                                </button>
-                            </div>
+                            
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
                             <div class="relative">
@@ -776,6 +788,16 @@
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                         bg-blue-600 text-white hover:bg-blue-700">
                                     Arrived
+                                </button>
+                            </div>
+                            @elseif($booking->status == $status::ARRIVED && $booking->invoice->status == 'Paid' && auth()->user()->role != 'customer')
+                            <!-- Completed Button -->
+                            <div class="relative">
+                                <button type="button"
+                                    onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        bg-blue-600 text-white hover:bg-blue-700">
+                                    Completed
                                 </button>
                             </div>
                             @endif
