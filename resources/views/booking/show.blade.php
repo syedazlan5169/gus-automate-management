@@ -141,18 +141,19 @@
                     @endif
                 @endif
 
-
-                <!-- Success Message -->
-                @if (session('success'))
-                    <x-alert-success :message="session('success')" />
-                @endif
+                <div class="mt-4">
+                    <!-- Success Message -->
+                    @if (session('success'))
+                        <x-alert-success :message="session('success')" />
+                    @endif
+                </div>
             </div>
 
             <!-- Booking Details -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 space-y-6">
-                    <!-- Header with Booking Number and Status -->
 
+                    <!-- Header with Booking Number and Status -->
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
                             <div class="flex items-center gap-3">
@@ -161,8 +162,8 @@
                             </div>
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
-                        @if($booking->status == $status::NEW && auth()->user()->role != 'customer')
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                            @if($booking->status != $status::COMPLETED)
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -202,21 +203,6 @@
                             @endif
                         </div>
                     </div>
-
-                    <!-- Service Information -->
-                    <!--<div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-lg font-medium mb-4">Service Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm text-gray-600">Service Type</p>
-                                <p class="font-medium">{{ $booking->service }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">Liner</p>
-                                <p class="font-medium">{{ $booking->liner_address }}</p>
-                            </div>
-                        </div>
-                    </div>-->
 
                     <!-- Vessel Information -->
                     <div class="bg-gray-50 p-4 rounded-lg">
@@ -432,116 +418,103 @@
 
                     <!-- Invoice Information -->
                     @if($booking->status >= 4 && is_null($booking->invoice) && auth()->user()->role != 'customer')
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="sm:flex sm:items-center mb-4">
-                            <div class="sm:flex-auto">
-                                <div class="flex items-center gap-3">
-                                    <h3 class="text-lg font-medium">Invoice Information</h3>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Invoice Form -->
-                        <form action="{{ route('booking.submit-invoice', $booking) }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <!-- Invoice Actions -->
-                            <div class="mb-6">
-                                <div class="flex items-center gap-1">
-                                    <div class="flex items-center gap-2">
-                                        <div class="relative">
-                                            <input type="file" 
-                                                id="invoice_file" 
-                                                name="invoice_file" 
-                                                accept=".pdf"
-                                                class="hidden"
-                                                onchange="updateFileName(this)">
-                                            <label for="invoice_file" 
-                                                class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                Select PDF Invoice
-                                            </label>
-                                            <span id="file_name" class="ml-2 text-sm text-gray-500"></span>
-                                            @error('invoice_file')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-                                        <button type="button"
-                                            onclick="extractInvoiceData()"
-                                            class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                            </svg>
-                                            Extract
-                                        </button>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="sm:flex sm:items-center mb-4">
+                                <div class="sm:flex-auto">
+                                    <div class="flex items-center gap-3">
+                                        <h3 class="text-lg font-medium">Invoice Information</h3>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Invoice Details -->
-                            <div class="grid grid-cols-4 gap-6">
-                                <div>
-                                    <x-input-label for="invoice_date" :value="__('Date of Invoice')" />
-                                    <x-text-input id="invoice_date" class="block mt-1 w-full" type="date" name="invoice_date" :value="old('invoice_date')" />
-                                    @error('invoice_date')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <x-input-label for="invoice_number" :value="__('Invoice Number')" />
-                                    <x-text-input id="invoice_number" class="block mt-1 w-full" type="text" name="invoice_number" :value="old('invoice_number')" />
-                                    @error('invoice_number')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <x-input-label for="invoice_amount" :value="__('Invoice Amount')" />
-                                    <div class="relative mt-1">
-                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                            <span class="text-gray-500 sm:text-sm">RM</span>
+                            <!-- Invoice Form -->
+                            <form action="{{ route('booking.submit-invoice', $booking) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <!-- Invoice Actions -->
+                                <div class="mb-6">
+                                    <div class="flex items-center gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative">
+                                                <input type="file" 
+                                                    id="invoice_file" 
+                                                    name="invoice_file" 
+                                                    accept=".pdf"
+                                                    class="hidden"
+                                                    onchange="updateFileName(this)">
+                                                <label for="invoice_file" 
+                                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    Select PDF Invoice
+                                                </label>
+                                                <span id="file_name" class="ml-2 text-sm text-gray-500"></span>
+                                                @error('invoice_file')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <button type="button"
+                                                onclick="extractInvoiceData()"
+                                                class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                </svg>
+                                                Extract
+                                            </button>
                                         </div>
-                                        <x-text-input 
-                                            id="invoice_amount" 
-                                            class="block w-full pl-12" 
-                                            type="number" 
-                                            step="0.01" 
-                                            name="invoice_amount" 
-                                            :value="old('invoice_amount')" 
-                                            placeholder="0.00"
-                                        />
-                                        @error('invoice_amount')
+                                    </div>
+                                </div>
+
+                                <!-- Invoice Details -->
+                                <div class="grid grid-cols-4 gap-6">
+                                    <div>
+                                        <x-input-label for="invoice_date" :value="__('Date of Invoice')" />
+                                        <x-text-input id="invoice_date" class="block mt-1 w-full" type="date" name="invoice_date" :value="old('invoice_date')" />
+                                        @error('invoice_date')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
+                                    <div>
+                                        <x-input-label for="invoice_number" :value="__('Invoice Number')" />
+                                        <x-text-input id="invoice_number" class="block mt-1 w-full" type="text" name="invoice_number" :value="old('invoice_number')" />
+                                        @error('invoice_number')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <x-input-label for="invoice_amount" :value="__('Invoice Amount')" />
+                                        <div class="relative mt-1">
+                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span class="text-gray-500 sm:text-sm">RM</span>
+                                            </div>
+                                            <x-text-input 
+                                                id="invoice_amount" 
+                                                class="block w-full pl-12" 
+                                                type="number" 
+                                                step="0.01" 
+                                                name="invoice_amount" 
+                                                :value="old('invoice_amount')" 
+                                                placeholder="0.00"
+                                            />
+                                            @error('invoice_amount')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 pt-6">
+                                        <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Upload Invoice
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2 pt-6">
-                                    <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                        </svg>
-                                        Upload Invoice
-                                    </button>
-                                </div>
-                                <!--<div>
-                                    <x-input-label for="payment_terms" :value="__('Payment Terms')" />
-                                    <select id="payment_terms" 
-                                        name="payment_terms" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="">Select Payment Terms</option>
-                                        <option value="cash" {{ old('payment_terms') == 'cash' ? 'selected' : '' }}>Cash Terms</option>
-                                        <option value="credit" {{ old('payment_terms') == 'credit' ? 'selected' : '' }}>Credit Terms</option>
-                                    </select>
-                                    @error('payment_terms')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>-->
-                            </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>
+
                     <!-- Invoice Details after submission -->
-                    @else
-                        @if($booking->invoice)
+                    @elseif($booking->invoice && $booking->status >= 4)
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="flex items-center gap-3 mb-4">
                                 <h3 class="text-lg font-medium">Invoice Details</h3>
@@ -564,10 +537,6 @@
                                     <p class="text-sm text-gray-600">Invoice Amount</p>
                                     <p class="font-medium">RM {{ number_format($booking->invoice->invoice_amount, 2) }}</p>
                                 </div>
-                                <!--<div>
-                                    <p class="text-sm text-gray-600">Payment Terms</p>
-                                    <p class="font-medium">{{ ucfirst($booking->invoice->payment_terms) }}</p>
-                                </div>-->
                             </div>
                             <div class="text-right mt-4">
                                 <a href="{{ route('invoice.download', $booking) }}"
@@ -576,7 +545,7 @@
                                 </a>
                             </div>
                         </div>
-                        @else
+                    @elseif($booking->status >= 4)
                         <div class="rounded-md bg-yellow-50 p-4">
                             <div class="flex">
                                 <div class="shrink-0">
@@ -592,96 +561,93 @@
                                 </div>
                             </div>
                         </div>
-                        @endif
                     @endif
 
-
                     <!-- Payment Information -->
-                    @if(is_null($booking->invoice->payment) && auth()->user()->role == 'customer')
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="sm:flex sm:items-center mb-4">
-                            <div class="sm:flex-auto">
-                                <div class="flex items-center gap-3">
-                                    <h3 class="text-lg font-medium">Payment Information</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Payment Form -->
-                        <form action="{{ route('payment.submit', $booking) }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <!-- Payment Actions -->
-                            <div class="mb-6">
-                                <div class="flex items-center gap-1">
-                                    <div class="flex items-center gap-2">
-                                        <div class="relative">
-                                            <input type="file" 
-                                                id="payment_file" 
-                                                name="payment_file" 
-                                                accept=".jpeg,.png,.jpg,.pdf,.heic,.heif"
-                                                class="hidden"
-                                                onchange="updatePaymentFileName(this)">
-                                            <label for="payment_file" 
-                                                class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                Upload Payment Slip
-                                            </label>
-                                            <span id="payment_file_name" class="ml-2 text-sm text-gray-500"></span>
-                                            @error('payment_file')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
-                                        </div>
+                    @if($booking->status >= 4 && $booking->invoice && is_null($booking->invoice->payment) && auth()->user()->role == 'customer')
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="sm:flex sm:items-center mb-4">
+                                <div class="sm:flex-auto">
+                                    <div class="flex items-center gap-3">
+                                        <h3 class="text-lg font-medium">Payment Information</h3>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Payment Form -->
+                            <form action="{{ route('payment.submit', $booking) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <!-- Payment Actions -->
+                                <div class="mb-6">
+                                    <div class="flex items-center gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative">
+                                                <input type="file" 
+                                                    id="payment_file" 
+                                                    name="payment_file" 
+                                                    accept=".jpeg,.png,.jpg,.pdf,.heic,.heif"
+                                                    class="hidden"
+                                                    onchange="updatePaymentFileName(this)">
+                                                <label for="payment_file" 
+                                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    Upload Payment Slip
+                                                </label>
+                                                <span id="payment_file_name" class="ml-2 text-sm text-gray-500"></span>
+                                                @error('payment_file')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <!-- Payment Details -->
-                            <div class="grid grid-cols-4 gap-6">
-                                <div>
-                                    <x-input-label for="payment_date" :value="__('Payment Date')" />
-                                    <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date" :value="old('payment_date')" />
-                                    @error('payment_date')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
+                                <!-- Payment Details -->
+                                <div class="grid grid-cols-4 gap-6">
+                                    <div>
+                                        <x-input-label for="payment_date" :value="__('Payment Date')" />
+                                        <x-text-input id="payment_date" class="block mt-1 w-full" type="date" name="payment_date" :value="old('payment_date')" />
+                                        @error('payment_date')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <x-input-label for="payment_amount" :value="__('Payment Amount')" />
+                                        <x-text-input id="payment_amount" class="block mt-1 w-full" type="number" step="0.01" name="payment_amount" :value="old('payment_amount')" />
+                                        @error('payment_amount')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <x-input-label for="payment_method" :value="__('Payment Method')" />
+                                        <select id="payment_method" 
+                                            name="payment_method" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                            <option value="">Select Payment Method</option>
+                                            <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                                            <option value="Credit Card" {{ old('payment_method') == 'Credit Card' ? 'selected' : '' }}>Credit Card</option>
+                                            <option value="Debit Card" {{ old('payment_method') == 'Debit Card' ? 'selected' : '' }}>Debit Card</option>
+                                            <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Cash</option>
+                                        </select>
+                                        @error('payment_method')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="flex items-center gap-2 pt-6">
+                                        <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Submit Receipt
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <x-input-label for="payment_amount" :value="__('Payment Amount')" />
-                                    <x-text-input id="payment_amount" class="block mt-1 w-full" type="number" step="0.01" name="payment_amount" :value="old('payment_amount')" />
-                                    @error('payment_amount')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <x-input-label for="payment_method" :value="__('Payment Method')" />
-                                    <select id="payment_method" 
-                                        name="payment_method" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="">Select Payment Method</option>
-                                        <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                                        <option value="Credit Card" {{ old('payment_method') == 'Credit Card' ? 'selected' : '' }}>Credit Card</option>
-                                        <option value="Debit Card" {{ old('payment_method') == 'Debit Card' ? 'selected' : '' }}>Debit Card</option>
-                                        <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                                    </select>
-                                    @error('payment_method')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="flex items-center gap-2 pt-6">
-                                    <button type="submit" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                        </svg>
-                                        Submit Receipt
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>
 
                     <!-- Payment Details after submission -->
-                    @else
-                        @if($booking->invoice && $booking->invoice->payment)
+                    @elseif($booking->status >= 4 && $booking->invoice && $booking->invoice->payment)
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="flex items-center gap-3 mb-4">
                                 <h3 class="text-lg font-medium">Payment Details</h3>
@@ -725,7 +691,7 @@
                                 </a>
                             </div>
                         </div>
-                        @else
+                    @elseif($booking->status >= 4 && $booking->invoice)
                         <div class="rounded-md bg-yellow-50 p-4">
                             <div class="flex">
                                 <div class="shrink-0">
@@ -741,7 +707,6 @@
                                 </div>
                             </div>
                         </div>
-                        @endif
                     @endif
 
 
