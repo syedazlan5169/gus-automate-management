@@ -332,4 +332,16 @@ class BookingController extends Controller
         $booking->invoice->payment->delete();
         return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
     }
+
+    public function sailing(Booking $booking)
+    {
+        $booking->update(['status' => 5]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Sailing confirmed successfully.');
+    }
+
+    public function arrived(Booking $booking)
+    {
+        $booking->update(['status' => 6]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Arrival confirmed successfully.');
+    }
 }

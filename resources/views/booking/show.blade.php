@@ -52,7 +52,7 @@
                         @elseif ($booking->status == $status::BL_VERIFICATION)
                             @if(auth()->user()->role == 'customer')
                             <x-alert-instruction 
-                                message="BL has been generated, please verify and confirm the BL to allow the system to generate the Manifest"
+                                message="Please view the Bill of Lading and confirm the BL if everything is correct."
                             />
                             @else
                             <x-alert-instruction 
@@ -364,7 +364,7 @@
                     </div>
 
                     <!-- Invoice Information -->
-                    @if($booking->status == 'Pending Invoice' && auth()->user()->role != 'customer')
+                    @if($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -448,7 +448,15 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div>
+                                <div class="flex items-center gap-2 pt-6">
+                                    <button type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Upload Invoice
+                                    </button>
+                                </div>
+                                <!--<div>
                                     <x-input-label for="payment_terms" :value="__('Payment Terms')" />
                                     <select id="payment_terms" 
                                         name="payment_terms" 
@@ -460,7 +468,7 @@
                                     @error('payment_terms')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
-                                </div>
+                                </div>-->
                             </div>
                         </form>
                     </div>
@@ -750,7 +758,87 @@
                                     Verify Payment
                                 </button>
                             </div>
+                            @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
+                            <!-- Sail Away Button -->
+                            <div class="relative">
+                                <button type="button"
+                                    onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        bg-blue-600 text-white hover:bg-blue-700">
+                                    Sailing
+                                </button>
+                            </div>
+                            @elseif($booking->status == $status::SAILING && auth()->user()->role != 'customer')
+                            <!-- Arrival Button -->
+                            <div class="relative">
+                                <button type="button"
+                                    onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                        bg-blue-600 text-white hover:bg-blue-700">
+                                    Arrived
+                                </button>
+                            </div>
                             @endif
+
+                            <!-- Arrival Confirmation Modal -->
+                            <div id="arrival-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Arrival Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before sailing.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('arrival-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.arrived', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sailing Confirmation Modal -->
+                            <div id="sailing-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Sailing Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before sailing.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('sailing-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.sailing', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Booking Confirmation Modal -->
                             <div id="booking-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
