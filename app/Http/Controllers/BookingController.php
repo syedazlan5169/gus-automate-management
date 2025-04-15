@@ -263,15 +263,41 @@ class BookingController extends Controller
     // Remove the specified booking from storage.
     public function destroy(Booking $booking)
     {
-        if (!in_array($booking->status, ['New', 'Cancelled'])) {
+        if ($booking->status != 0) {
             return back()->with('error', 'Only new or cancelled bookings can be deleted.');
         }
-
+        
         try {
+            \DB::beginTransaction();
+            
+            // Delete related invoice and payment if they exist
+            if ($booking->invoice) {
+                if ($booking->invoice->payment) {
+                    $booking->invoice->payment->delete();
+                }
+                $booking->invoice->delete();
+            }
+            
+            // Delete related shipping instructions
+            foreach ($booking->shippingInstructions as $shippingInstruction) {
+                $shippingInstruction->delete();
+            }
+            
+            // Delete related cargos and their containers
+            foreach ($booking->cargos as $cargo) {
+                // Delete containers related to this cargo
+                $cargo->containers()->delete();
+                $cargo->delete();
+            }
+            
+            // Finally delete the booking
             $booking->delete();
+            
+            \DB::commit();
             return redirect()->route('bookings.index')
                 ->with('success', 'Booking deleted successfully.');
         } catch (\Exception $e) {
+            \DB::rollBack();
             return back()->with('error', 'Error deleting booking: ' . $e->getMessage());
         }
     }
@@ -343,5 +369,11 @@ class BookingController extends Controller
     {
         $booking->update(['status' => 7]);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking completed successfully.');
+    }
+
+    public function cancel(Booking $booking)
+    {
+        $booking->update(['status' => 0]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking cancelled successfully.');
     }
 }
