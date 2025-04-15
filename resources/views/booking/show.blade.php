@@ -163,7 +163,7 @@
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            @if($booking->status != $status::COMPLETED)
+                            @if($booking->status < 5 && $booking->status > 0)
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -882,7 +882,7 @@
                                                 <div class="mt-3 text-center sm:mt-5">
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">Arrival Confirmation</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before sailing.</p>
+                                                        <p class="text-sm text-gray-500">Please upload the Notice of Arrival before confirming the arrival.</p>
                                                     </div>
                                                 </div>
                                             </div>
