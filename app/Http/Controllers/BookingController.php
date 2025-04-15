@@ -338,4 +338,10 @@ class BookingController extends Controller
         $booking->update(['status' => 6]);
         return redirect()->route('booking.show', $booking)->with('success', 'Arrival confirmed successfully.');
     }
+
+    public function completed(Booking $booking)
+    {
+        $booking->update(['status' => 7]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking completed successfully.');
+    }
 }

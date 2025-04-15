@@ -1,89 +1,152 @@
 <x-app-layout>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+            <!-- Status Progress Bar -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div>
                         <h4 class="sr-only">Status</h4>
-
                         <div class="mt-6" aria-hidden="true">
                             <div class="overflow-hidden rounded-full bg-gray-200">
-                                <div class="h-2 rounded-full bg-indigo-600" style="width: 50%"></div>
+                                @php
+                                    // Calculate progress percentage based on status
+                                    $totalSteps = 7; // Total number of steps (excluding CANCELLED)
+                                    $currentStep = 0;
+                                    
+                                    // Map status to step number
+                                    switch($booking->status) {
+                                        case $status::NEW:
+                                            $currentStep = 1;
+                                            break;
+                                        case $status::BOOKING_CONFIRMED:
+                                            $currentStep = 2;
+                                            break;
+                                        case $status::BL_VERIFICATION:
+                                            $currentStep = 3;
+                                            break;
+                                        case $status::BL_CONFIRMED:
+                                            $currentStep = 4;
+                                            break;
+                                        case $status::SAILING:
+                                            $currentStep = 5;
+                                            break;
+                                        case $status::ARRIVED:
+                                            $currentStep = 6;
+                                            break;
+                                        case $status::COMPLETED:
+                                            $currentStep = 7;
+                                            break;
+                                        case $status::CANCELLED:
+                                            $currentStep = 0; // Cancelled is not part of the progress
+                                            break;
+                                        default:
+                                            $currentStep = 0;
+                                    }
+                                    
+                                    // Calculate percentage (0% for cancelled, 100% for completed)
+                                    $progressPercentage = $booking->status == $status::CANCELLED ? 0 : ($currentStep / $totalSteps) * 100;
+                                    
+                                    // Determine color based on status
+                                    $progressColor = $booking->status == $status::CANCELLED ? 'bg-red-600' : 'bg-indigo-600';
+                                @endphp
+                                <div class="h-2 rounded-full {{ $progressColor }}" style="width: {{ $progressPercentage }}%"></div>
                             </div>
-                            <div class="mt-6 hidden grid-cols-6 text-sm font-medium text-gray-600 sm:grid">
-                                <div class="text-indigo-600">Booking<br>Created</div>
-                                <div class="text-center text-indigo-600">Update<br>SI</div>
-                                <div class="text-center text-indigo-600">Upload<br>Invoice</div>
-                                <div class="text-center text-indigo-600">Complete<br>Payment</div>
-                                <div class="text-center text-indigo-600">Generate<br>BL</div>
-                                <div class="text-right text-indigo-600">Sailing</div>
+                            <div class="mt-6 hidden grid-cols-7 gap-4 text-sm font-medium text-gray-600 sm:grid">
+                                <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
+                                <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
+                                <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
+                                <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
+                                <div class="text-center {{ $booking->status >= $status::SAILING ? 'text-indigo-600' : 'text-gray-400' }}">Sailing</div>
+                                <div class="text-center {{ $booking->status >= $status::ARRIVED ? 'text-indigo-600' : 'text-gray-400' }}">Arrived</div>
+                                <div class="text-center {{ $booking->status >= $status::COMPLETED ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
-                        <!-- This should be the current status of the booking -->
-                        @if ($booking->status == $status::NEW)
-                            @if(auth()->user()->role == 'customer')
-                            <x-alert-instruction 
-                                message="A booking has been created, please wait for the Liner to confirm the booking"
-                                color="green"
-                            />
-                            @else
-                            <x-alert-instruction 
-                                message="A new booking has been created, please update the booking details and confirm the booking"
-                                action_url="{{ route('booking.edit', $booking) }}"
-                                action_text="Update Booking"
-                            />
-                            @endif
 
-                        @elseif ($booking->status == $status::BOOKING_CONFIRMED)
-                            @if(auth()->user()->role == 'customer')
-                            <x-alert-instruction 
-                                message="Booking has been confirmed, please add the Shipping Instructions to allow the system to generate the Bill of Lading"
-                            />
-                            @else
-                            <x-alert-instruction 
-                                message="Booking has been confirmed, waiting for customer to update the Shipping Instructions"
-                                color="green"
-                            />
-                            @endif
-                        @elseif ($booking->status == $status::BL_VERIFICATION)
-                            @if(auth()->user()->role == 'customer')
-                            <x-alert-instruction 
-                                message="Please view the Bill of Lading and confirm the BL if everything is correct."
-                            />
-                            @else
-                            <x-alert-instruction 
-                                message="BL has been generated, waiting for customer to verify and confirm the BL"
-                                color="green"
-                            />
-                            @endif
-                        @elseif ($booking->status == $status::BL_CONFIRMED)
-                            @if(auth()->user()->role == 'customer')
-                            <x-alert-instruction 
-                                message="BL has been confirmed, waiting for Liner to prepare all the documents"
-                                color="green"
-                            />
-                            @else
-                            <x-alert-instruction 
-                                message="BL has been confirmed, please prepare all the documents required for the shipment"
-                            />
-                            @endif
-                        @elseif ($booking->status == $status::SAILING)
-                            @if(auth()->user()->role == 'customer')
-                            <x-alert-instruction 
-                                message="Payment has been confirmed, you can now download the BL and Manifest"
-                            />
-                            @endif
-                        @endif
+            <div>
+                <!-- This should be the current status of the booking -->
+                @if ($booking->status == $status::NEW)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="A booking has been created, please wait for the Liner to confirm the booking"
+                        color="green"
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="A new booking has been created, please update the booking details and confirm the booking"
+                        action_url="{{ route('booking.edit', $booking) }}"
+                        action_text="Update Booking"
+                    />
+                    @endif
+
+                @elseif ($booking->status == $status::BOOKING_CONFIRMED)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="Booking has been confirmed, please add the Shipping Instructions to allow the system to generate the Bill of Lading"
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="Booking has been confirmed, waiting for customer to update the Shipping Instructions"
+                        color="green"
+                    />
+                    @endif
+                @elseif ($booking->status == $status::BL_VERIFICATION)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="Please view the Bill of Lading and confirm the BL if everything is correct."
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="BL has been generated, waiting for customer to verify and confirm the BL"
+                        color="green"
+                    />
+                    @endif
+                @elseif ($booking->status == $status::BL_CONFIRMED)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="BL has been confirmed, waiting for Liner to prepare all the documents"
+                        color="green"
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="BL has been confirmed, please prepare all the documents required for the shipment"
+                    />
+                    @endif
+                @elseif ($booking->status == $status::SAILING)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="Your shipment has sailed, please check the arrival date and time"
+                        color="green"
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="This shipment has sailed, please check the arrival date and time and upload the notice of arrival once it arrived."
+                        color="green"
+                    />
+                    @endif
+                @elseif ($booking->status == $status::ARRIVED)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="Your shipment has arrived at the destination port"
+                        color="green"
+                    />
+                    @else
+                    <x-alert-instruction 
+                        message="This shipment has arrived at the destination port. The complete button will be enabled once the invoice is paid."
+                        color="green"
+                    />
+                    @endif
+                @endif
 
 
-            <!-- Success Message -->
-            @if (session('success'))
-                <x-alert-success :message="session('success')" />
-            @endif
+                <!-- Success Message -->
+                @if (session('success'))
+                    <x-alert-success :message="session('success')" />
+                @endif
+            </div>
 
             <!-- Booking Details -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -113,6 +176,7 @@
                                 Edit
                             </button>
                             @endif
+                            @if($booking->status < 5 && $booking->status > 0)
                             <button type="button"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 uppercase tracking-widest">
                                 <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
@@ -123,6 +187,7 @@
                                 </svg>
                                 Cancel Booking
                             </button>
+                            @endif
                             @if($booking->status == $status::CANCELLED)
                             <button type="button"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 uppercase tracking-widest">
@@ -325,10 +390,12 @@
                                         </div>
 
                                         <div class="text-right mt-4">
+                                            @if($booking->status < 5)
                                             <a href="{{ route('shipping-instructions.show', $si) }}"
                                                 class="text-indigo-600 hover:text-indigo-900">
                                                 Edit 
                                             </a>
+                                            @endif
                                             @if($booking->status == 3)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
@@ -345,7 +412,7 @@
                                                 Download Manifest
                                             </a>
                                             @endif
-                                            @if($booking->status == 'Pending SI')
+                                            @if($booking->status < 4)
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -794,13 +861,43 @@
                             <!-- Completed Button -->
                             <div class="relative">
                                 <button type="button"
-                                    onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
+                                    onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                         bg-blue-600 text-white hover:bg-blue-700">
                                     Completed
                                 </button>
                             </div>
                             @endif
+
+                            <!-- Completed Confirmation Modal -->
+                            <div id="completed-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Completed Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Once the booking is completed, you will not be able to make any changes to the booking.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('completed-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.completed', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Arrival Confirmation Modal -->
                             <div id="arrival-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"

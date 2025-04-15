@@ -7,6 +7,7 @@ use App\Models\Booking;
 
 class BookingStatus extends Model
 {
+    const CANCELLED = 0;
     const NEW = 1;
     const BOOKING_CONFIRMED = 2;
     const BL_VERIFICATION = 3;
@@ -14,7 +15,6 @@ class BookingStatus extends Model
     const SAILING = 5;
     const ARRIVED = 6;
     const COMPLETED = 7;
-    const CANCELLED = 8;
    
     public static function labels($status)
     {
