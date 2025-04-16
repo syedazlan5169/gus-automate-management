@@ -13,6 +13,7 @@ class BookingsTable extends Component
 
     public $search = '';
     public $perPage = 10;
+    public $status = '';
     public $sortBy = 'booking_date';
     public $sortDir = 'DESC';
 
@@ -33,14 +34,31 @@ class BookingsTable extends Component
         $this->sortDir = 'DESC';
     }
 
+    public function updatedStatus()
+    {
+        $this->resetPage();
+    }
+
     public function updatedSearch()
     {
         $this->resetPage(); 
     }
 
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $bookings = Booking::search($this->search)->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
+        $query = Booking::search($this->search);
+        
+        // Apply status filter if selected
+        if ($this->status !== '') {
+            $query->where('status', $this->status);
+        }
+        
+        $bookings = $query->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
         
         // Get status labels for each booking
         $statusLabels = [];
@@ -50,7 +68,7 @@ class BookingsTable extends Component
         
         return view('livewire.bookings-table', [
             'bookings' => $bookings,
-            'statusLabels' => $statusLabels
+            'statusLabels' => $statusLabels,
         ]);
     }
 }

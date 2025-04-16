@@ -3,9 +3,19 @@
     <div class="w-full">
         <!-- Search and Per Page Controls -->
         <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
-            <div class="w-full sm:w-64">
-                <input wire:model.live="search" type="text" placeholder="Search bookings..." 
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <div class="w-full sm:w-64">
+                    <input wire:model.live="search" type="text" placeholder="Search bookings..." 
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="w-full sm:w-48">
+                    <select wire:model.live="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="">All Status</option>
+                        @foreach(\App\Models\BookingStatus::getAllStatuses() as $statusValue)
+                            <option value="{{ $statusValue }}">{{ \App\Models\BookingStatus::labels($statusValue)[$statusValue] }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
             <div class="flex items-center space-x-2">
                 <a href="{{ route('booking.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -93,8 +103,21 @@
         </div>
 
         <!-- Pagination -->
-        <div class="mt-4">
-            {{ $bookings->links() }}
+        <div class="mt-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <span class="text-sm text-gray-700 mr-2">Show:</span>
+                <select wire:model.live="perPage" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span class="text-sm text-gray-700 ml-2">entries</span>
+            </div>
+            <div>
+                {{ $bookings->links() }}
+            </div>
         </div>
     </div>
 </div>
