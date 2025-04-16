@@ -58,31 +58,6 @@
                         <form action="{{ route('booking.store') }}" method="POST">
                             @csrf
                             <div class="space-y-12">
-                                <!-- Service Information -->
-                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <fieldset>
-                                        <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
-                                        <div class="mt-6 flex gap-x-6">
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="soc" name="service" type="radio" value="SOC" checked
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="soc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Shipped Owned Container (SOC)
-                                                </label>
-                                            </div>
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="coc" name="service" type="radio" value="COC"
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden">
-                                                <label for="coc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Carrier Owned Container (COC)
-                                                </label>
-                                            </div>
-                                        </div>
-                                        @error('service')
-                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
-                                    </fieldset>
-                                </div>
 
                                 <!-- Shipping Schedule -->
                                 <div class="hidden border-b border-gray-900/10 pb-12 space-y-6">
@@ -481,22 +456,20 @@
                                             </ul>
                                         </section>
                                     </div>
-
                                 </div>
 
-                                <!-- Shipping Details -->
+                                <!-- Schedule Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <h2 class="text-base/7 font-semibold text-gray-900">Shipping Details</h2>
-                                    
+                                    <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
-                                            <x-input-label for="vessel" value="Vessel Name" />
-                                            <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" />
+                                            <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
+                                            <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <x-input-label for="voyage" value="Voyage Number" />
-                                            <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full" />
+                                            <x-input-label for="route" value="Route" />
+                                            <livewire:shipping-route-dropdown />
                                         </div>
                                     </div>
                                 </div>
@@ -527,21 +500,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Schedule Information -->
-                                <div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <h2 class="text-base/7 font-semibold text-gray-900">Schedule Information</h2>
-                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                                        <div class="sm:col-span-3">
-                                            <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
-                                            <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
-                                        </div>
-
-                                        <div class="sm:col-span-3">
-                                            <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
-                                            <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full" />
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <!-- Cargo Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -555,10 +513,10 @@
                                                         <tr>
                                                             <th scope="col"
                                                                 class="w-1/3 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                                Container Type</th>
+                                                                Type</th>
                                                             <th scope="col"
                                                                 class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                                Number of Containers</th>
+                                                                Number of Cargo</th>
                                                             <th scope="col"
                                                                 class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                                                 Total Weight (kg)</th>
@@ -611,7 +569,7 @@
 
                                 <!-- Submit button -->
                                 <div class="mt-6 flex items-center justify-end gap-x-6">
-                                    <button type="button" onclick="window.history.back()" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
+                                    <button type="button" onclick="window.history.back()" class="text-sm/6 font-semibold text-gray-900">Back</button>
                                     <button type="submit"
                                         class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                         Submit Booking
@@ -622,109 +580,6 @@
                     </div>
                 </div>
             </main>
-
-            <!-- Right column area -->
-            <aside class="sticky top-8 hidden w-96 shrink-0 xl:block">
-                <div class="overflow-hidden rounded-lg bg-white shadow">
-                    <div class="px-4 py-5 sm:p-6">
-                        <nav aria-label="Progress">
-                            <ol role="list" class="overflow-hidden">
-                                <li class="relative pb-10">
-                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-indigo-600"
-                                        aria-hidden="true"></div>
-                                    <!-- Complete Step -->
-                                    <a href="#" class="group relative flex items-start">
-                                        <span class="flex h-9 items-center">
-                                            <span
-                                                class="relative z-10 flex size-8 items-center justify-center rounded-full bg-indigo-600 group-hover:bg-indigo-800">
-                                                <svg class="size-5 text-white" viewBox="0 0 20 20" fill="currentColor"
-                                                    aria-hidden="true" data-slot="icon">
-                                                    <path fill-rule="evenodd"
-                                                        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span class="ml-4 flex min-w-0 flex-col">
-                                            <span class="text-sm font-medium">Service Information</span>
-                                            <span class="text-sm text-gray-500">Select type of service.</span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="relative pb-10">
-                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
-                                        aria-hidden="true"></div>
-                                    <!-- Current Step -->
-                                    <a href="#" class="group relative flex items-start" aria-current="step">
-                                        <span class="flex h-9 items-center" aria-hidden="true">
-                                            <span
-                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white">
-                                                <span class="size-2.5 rounded-full bg-indigo-600"></span>
-                                            </span>
-                                        </span>
-                                        <span class="ml-4 flex min-w-0 flex-col">
-                                            <span class="text-sm font-medium text-indigo-600">Shipping Schedule</span>
-                                            <span class="text-sm text-gray-500">Select sailing date.</span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="relative pb-10">
-                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
-                                        aria-hidden="true"></div>
-                                    <!-- Upcoming Step -->
-                                    <a href="#" class="group relative flex items-start">
-                                        <span class="flex h-9 items-center" aria-hidden="true">
-                                            <span
-                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
-                                                <span
-                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
-                                            </span>
-                                        </span>
-                                        <span class="ml-4 flex min-w-0 flex-col">
-                                            <span class="text-sm font-medium text-gray-500">Route Information</span>
-                                            <span class="text-sm text-gray-500">Provide route details.</span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="relative pb-10">
-                                    <div class="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-gray-300"
-                                        aria-hidden="true"></div>
-                                    <!-- Upcoming Step -->
-                                    <a href="#" class="group relative flex items-start">
-                                        <span class="flex h-9 items-center" aria-hidden="true">
-                                            <span
-                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
-                                                <span
-                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
-                                            </span>
-                                        </span>
-                                        <span class="ml-4 flex min-w-0 flex-col">
-                                            <span class="text-sm font-medium text-gray-500">Schedule Information</span>
-                                            <span class="text-sm text-gray-500">Select ETS and ETA.</span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="relative">
-                                    <!-- Upcoming Step -->
-                                    <a href="#" class="group relative flex items-start">
-                                        <span class="flex h-9 items-center" aria-hidden="true">
-                                            <span
-                                                class="relative z-10 flex size-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white group-hover:border-gray-400">
-                                                <span
-                                                    class="size-2.5 rounded-full bg-transparent group-hover:bg-gray-300"></span>
-                                            </span>
-                                        </span>
-                                        <span class="ml-4 flex min-w-0 flex-col">
-                                            <span class="text-sm font-medium text-gray-500">Cargo Information</span>
-                                            <span class="text-sm text-gray-500">Provide cargo details.</span>
-                                        </span>
-                                    </a>
-                                </li>
-                            </ol>
-                        </nav>
-                    </div>
-                </div>
-            </aside>
         </div>
     </div>
 </x-app-layout>
@@ -770,12 +625,46 @@ function deleteRow(button) {
     }
 }
 
+// Listen for route selection event
+document.addEventListener('livewire:initialized', function () {
+    console.log('Livewire initialized, setting up routeSelected listener');
+    
+    // Function to populate form fields
+    function populateFormFields(data) {
+        console.log('Populating form fields with data:', data);
+        
+        const placeOfReceipt = document.getElementById('place_of_receipt');
+        const pol = document.getElementById('pol');
+        const pod = document.getElementById('pod');
+        const placeOfDelivery = document.getElementById('place_of_delivery');
+        
+        if (placeOfReceipt) placeOfReceipt.value = data.place_of_receipt;
+        if (pol) pol.value = data.pol;
+        if (pod) pod.value = data.pod;
+        if (placeOfDelivery) placeOfDelivery.value = data.place_of_delivery;
+        
+        console.log('Form fields populated');
+    }
+    
+    // Listen for Livewire 3 events
+    Livewire.on('routeSelected', function (data) {
+        console.log('Livewire 3 routeSelected event received:', data);
+        populateFormFields(data);
+    });
+    
+    // Listen for Livewire 2 events
+    window.addEventListener('routeSelected', function (event) {
+        console.log('Livewire 2 routeSelected event received:', event.detail);
+        populateFormFields(event.detail);
+    });
+});
+
 // Remove the modal show/hide logic since we're using proper form submission
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Validate required fields
-    const required = ['service', 'vessel', 'voyage', 'place_of_receipt', 'pol', 'pod', 'place_of_delivery', 'ets', 'eta'];
+    // Validate required fields - updated to match actual form fields
+    const required = ['place_of_receipt', 'pol', 'pod', 'place_of_delivery', 'ets'];
     let isValid = true;
     
     required.forEach(field => {

@@ -5,6 +5,9 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ShippingInstructionController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ShippingRouteController;
+use App\Http\Controllers\UserController;
+
 Route::redirect('/', '/login');
 
 // Auth middleware Group
@@ -20,13 +23,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::view('booking/create', 'booking.create')->name('booking.create');
         Route::post('booking', [BookingController::class, 'store'])->name('booking.store');
-        Route::post('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
+        Route::put('booking/{booking}/edit', [BookingController::class, 'update'])->name('booking.update');
         Route::get('booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
         Route::get('booking/{booking}/edit', [BookingController::class, 'edit'])->name('booking.edit');
+        Route::get('booking/{booking}/confirm', [BookingController::class, 'confirmBooking'])->name('booking.confirm');
+        Route::get('booking/{booking}/confirm-bl', [BookingController::class, 'confirmBL'])->name('booking.confirm-bl');
         Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
         Route::post('booking/{booking}/submit-invoice', [BookingController::class, 'submitInvoice'])->name('booking.submit-invoice');
         Route::get('/booking/{booking}/payment/confirm', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
         Route::get('/booking/{booking}/payment/reject', [BookingController::class, 'rejectPayment'])->name('booking.reject-payment');
+        Route::get('/booking/{booking}/sailing', [BookingController::class, 'sailing'])->name('booking.sailing');
+        Route::get('/booking/{booking}/arrived', [BookingController::class, 'arrived'])->name('booking.arrived');
+        Route::get('/booking/{booking}/completed', [BookingController::class, 'completed'])->name('booking.completed');
+        Route::get('/booking/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+        Route::delete('/booking/{booking}/delete', [BookingController::class, 'destroy'])->name('booking.delete');
+        Route::post('/bookings/{booking}/upload-document', [BookingController::class, 'uploadDocument'])->name('booking.upload-document');
+        Route::get('/bookings/{booking}/download-document/{type}', [BookingController::class, 'downloadDocument'])->name('documents.download');
 
         // Invoice routes
         Route::post('/booking/{booking}/invoice/upload', [InvoiceController::class, 'upload'])->name('invoice.upload');
@@ -51,16 +63,29 @@ Route::middleware(['auth'])->group(function () {
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
             Route::view('dashboard', 'admin.dashboard')->name('admin.dashboard');
-            // Add more admin routes here that need the same middleware
+
+            // Shipping Routes
+            Route::get('shipping-routes/create', [ShippingRouteController::class, 'create'])->name('shipping-routes.create');
+            Route::post('shipping-routes', [ShippingRouteController::class, 'store'])->name('shipping-routes.store');
+            Route::get('shipping-routes', [ShippingRouteController::class, 'index'])->name('shipping-routes.index');
+            Route::get('shipping-routes/{shippingRoute}/edit', [ShippingRouteController::class, 'edit'])->name('shipping-routes.edit');
+            Route::put('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'update'])->name('shipping-routes.update');
+            Route::delete('shipping-routes/{shippingRoute}', [ShippingRouteController::class, 'destroy'])->name('shipping-routes.destroy');
+
+            // User routes
+            Route::get('users', [UserController::class, 'index'])->name('users.index');
+            Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+            Route::post('users', [UserController::class, 'store'])->name('users.store');
+            Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+            Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         });
 
     });
 
-    Route::post('shipping-instructions/parse-containers', [ShippingInstructionController::class, 'parseContainers'])
-        ->name('shipping-instructions.parse-containers');
 
-    Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])
-        ->name('shipping-instructions.parse-container-list');
+    //Route::post('shipping-instructions/parse-container-list', [ShippingInstructionController::class, 'parseContainerList'])->name('shipping-instructions.parse-container-list');
+    Route::post('shipping-instructions/parse-shipping-instruction', [ShippingInstructionController::class, 'parseShippingInstruction'])->name('shipping-instructions.parse-shipping-instruction');
 
     Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])->name('shipping-instructions.download-template');
 });

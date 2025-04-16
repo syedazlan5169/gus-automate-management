@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('place_of_delivery')->nullable();
             $table->datetime('ets')->nullable(); // Estimated Time of Sailing
             $table->datetime('eta')->nullable(); // Estimated Time of Arrival
-            $table->enum('status', ['Pending SI', 'Pending Invoice', 'Pending Payment','Payment Verification','Payment Confirmed', 'Payment Rejected', 'Shipped', 'Completed', 'Cancelled'])->default('Pending SI');
+            $table->tinyInteger('status')->default(1);
             $table->text('remarks')->nullable();
             $table->text('internal_instructions')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();

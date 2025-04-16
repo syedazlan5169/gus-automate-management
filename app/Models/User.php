@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'email_verified_at',
         'email',
         'password',
         'phone',
@@ -29,7 +30,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'company_address',
         'company_phone',
         'industries',
+        'other_industries',
     ];
+
+    public function scopeSearch($query, $term)
+    {
+        if($term)
+        {
+            $query->where('name', 'like', '%'.$term.'%')
+                ->orWhere('email', 'like', '%'.$term.'%')
+                ->orWhere('phone', 'like', '%'.$term.'%')
+                ->orWhere('company_name', 'like', '%'.$term.'%')
+                ->orWhere('industries', 'like', '%'.$term.'%');
+        }
+        return $query;
+    }
 
     /**
      * The attributes that should be hidden for serialization.

@@ -51,7 +51,6 @@ class PaymentController extends Controller
                 'booking_id' => $booking->id
             ]);
             
-            $booking->update(['status' => 'Payment Verification']);
 
             \DB::commit();
 

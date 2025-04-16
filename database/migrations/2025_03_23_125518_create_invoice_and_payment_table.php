@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('invoice_number');
             $table->date('invoice_date');
             $table->decimal('invoice_amount', 10, 2);
-            $table->string('payment_terms');
+            $table->string('payment_terms')->nullable();
             $table->enum('status', ['Unpaid', 'Paid'])->default('Unpaid');
             $table->string('invoice_file');
             $table->timestamps();

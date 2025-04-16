@@ -44,7 +44,7 @@
         </ol>
       </nav>
       <!-- Booking Heading -->
-      <h1 id="create-booking-heading" class="text-3xl font-bold tracking-tight text-gray-900">My Bookings</h1>
+      <h1 id="create-booking-heading" class="text-3xl font-bold tracking-tight text-gray-900">Users Management</h1>
     </div>
 
     <!-- Success Message -->
@@ -55,9 +55,8 @@
     <div class="flex items-start gap-x-8">
       <main class="flex-1">
         <div class="overflow-hidden rounded-lg bg-white shadow">
-          <livewire:bookings-table />
+            <livewire:user-table />
         </div>
       </main>
     </div>
 </x-app-layout>
-

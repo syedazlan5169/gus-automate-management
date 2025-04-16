@@ -6,6 +6,9 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use App\Models\ShippingRoute;
+use App\Models\BookingStatus;
+use Illuminate\Support\Facades\Storage;
 
 class BookingController extends Controller
 {
@@ -16,27 +19,43 @@ class BookingController extends Controller
     {
         if (auth()->user()->role === 'customer')
         {
-            $bookings = Booking::where('user_id', auth()->id())->paginate(10);
-            return view('booking.index', compact('bookings'));
+            $bookings = Booking::where('user_id', auth()->id())->get();
+            
+            // Get status labels for each booking
+            $statusLabels = [];
+            foreach ($bookings as $booking) {
+                $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+            }
+            
+            return view('booking.index', compact('bookings', 'statusLabels'));
         }
         else
         {
-            $bookings = Booking::paginate(10);
-            return view('booking.index', compact('bookings'));
+            $bookings = Booking::all();
+            
+            // Get status labels for each booking
+            $statusLabels = [];
+            foreach ($bookings as $booking) {
+                $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+            }
+            
+            return view('booking.index', compact('bookings', 'statusLabels'));
         }
     }
 
     // Show the form for creating a new booking.
     public function create()
     {
-        return view('bookings.create');
+        $shippingRoutes = ShippingRoute::all();
+        return view('bookings.create', compact('shippingRoutes'));
     }
 
     // Show Edit page for a booking
     public function edit(Booking $booking)
     {
         $booking->load('cargos');
-        return view('booking.edit', compact('booking'));
+        $shippingRoutes = ShippingRoute::all();
+        return view('booking.edit', compact('booking', 'shippingRoutes'));
     }
 
     // Store a newly created booking in storage.
@@ -44,11 +63,11 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             // Service Information
-            'service' => 'required|string|in:SOC,COC',
+            //'service' => 'required|string|in:SOC,COC',
             
             // Shipping Details
-            'vessel' => 'required|string|max:255',
-            'voyage' => 'required|string|max:255',
+            //'vessel' => 'required|string|max:255',
+            //'voyage' => 'required|string|max:255',
             
             // Route Information
             'place_of_receipt' => 'required|string|max:255',
@@ -58,7 +77,7 @@ class BookingController extends Controller
             
             // Schedule
             'ets' => 'required|date',
-            'eta' => 'required|date',
+            //'eta' => 'required|date',
             
             // Cargo Details
             'container_type' => 'required|array',
@@ -79,15 +98,11 @@ class BookingController extends Controller
             $booking = Booking::create([
                 'booking_number' => $bookingNumber,
                 'booking_date' => now(),
-                'service' => $validated['service'],
-                'vessel' => $validated['vessel'],
-                'voyage' => $validated['voyage'],
                 'place_of_receipt' => $validated['place_of_receipt'],
                 'pol' => $validated['pol'],
                 'pod' => $validated['pod'],
                 'place_of_delivery' => $validated['place_of_delivery'],
                 'ets' => $validated['ets'],
-                'eta' => $validated['eta'],
                 'user_id' => auth()->id(),
             ]);
 
@@ -133,15 +148,12 @@ class BookingController extends Controller
             'shippingInstructions.containers', 
             'invoice.payment'
         ]);
-        return view('booking.show', compact('booking'));
+        $statusLabel = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+        $status = new BookingStatus();
+
+        return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
-    // Shipping Instructions Submission
-    public function submitSI(Booking $booking)
-    {
-        $booking->update(['status' => 'Pending Invoice']);
-        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
-    }
 
     // Invoice Submission
     public function submitInvoice(Request $request, Booking $booking)
@@ -152,7 +164,6 @@ class BookingController extends Controller
                 'invoice_date' => 'required|date',
                 'invoice_number' => 'required|string',
                 'invoice_amount' => 'required|numeric',
-                'payment_terms' => 'required|string|in:cash,credit',
             ]);
 
             \DB::beginTransaction();
@@ -168,7 +179,6 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
                 'invoice_path' => $invoicePath,
                 'file_name' => $fileName,
-                'invoice_data' => $validated
             ]);
 
             $invoice = Invoice::create([
@@ -177,7 +187,7 @@ class BookingController extends Controller
                 'invoice_date' => $validated['invoice_date'],
                 'invoice_number' => $validated['invoice_number'],
                 'invoice_amount' => $validated['invoice_amount'],
-                'payment_terms' => $validated['payment_terms'],
+                'payment_terms' => $request->input('payment_terms'),
             ]);
 
             // Log after invoice creation
@@ -186,8 +196,6 @@ class BookingController extends Controller
                 'booking_id' => $booking->id
             ]);
             
-            $booking->update(['status' => 'Pending Payment']);
-
             \DB::commit();
 
             return redirect()->route('booking.show', $booking)
@@ -235,7 +243,6 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $validated = $request->validate([
-            'service' => 'sometimes|required|string|in:SOC,COC',
             'vessel' => 'sometimes|required|string|max:255',
             'voyage' => 'sometimes|required|string|max:255',
             'place_of_receipt' => 'sometimes|required|string|max:255',
@@ -244,12 +251,11 @@ class BookingController extends Controller
             'place_of_delivery' => 'sometimes|required|string|max:255',
             'ets' => 'sometimes|required|date',
             'eta' => 'sometimes|required|date',
-            'status' => 'sometimes|required|string|in:New,Pending,Confirmed,Shipped,Completed,Cancelled',
         ]);
 
         try {
             $booking->update($validated);
-            return redirect()->route('bookings.index')
+            return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error updating booking: ' . $e->getMessage());
@@ -259,15 +265,41 @@ class BookingController extends Controller
     // Remove the specified booking from storage.
     public function destroy(Booking $booking)
     {
-        if (!in_array($booking->status, ['New', 'Cancelled'])) {
+        if ($booking->status != 0) {
             return back()->with('error', 'Only new or cancelled bookings can be deleted.');
         }
-
+        
         try {
+            \DB::beginTransaction();
+            
+            // Delete related invoice and payment if they exist
+            if ($booking->invoice) {
+                if ($booking->invoice->payment) {
+                    $booking->invoice->payment->delete();
+                }
+                $booking->invoice->delete();
+            }
+            
+            // Delete related shipping instructions
+            foreach ($booking->shippingInstructions as $shippingInstruction) {
+                $shippingInstruction->delete();
+            }
+            
+            // Delete related cargos and their containers
+            foreach ($booking->cargos as $cargo) {
+                // Delete containers related to this cargo
+                $cargo->containers()->delete();
+                $cargo->delete();
+            }
+            
+            // Finally delete the booking
             $booking->delete();
+            
+            \DB::commit();
             return redirect()->route('bookings.index')
                 ->with('success', 'Booking deleted successfully.');
         } catch (\Exception $e) {
+            \DB::rollBack();
             return back()->with('error', 'Error deleting booking: ' . $e->getMessage());
         }
     }
@@ -292,9 +324,26 @@ class BookingController extends Controller
         return response()->json($availableContainers);
     }
 
+    public function confirmBooking(Booking $booking)
+    {
+        $booking->update(['status' => 2]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking confirmed successfully.');
+    }
+
+    public function submitSI(Booking $booking)
+    {
+        $booking->update(['status' => 3]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
+    }
+
+    public function confirmBL(Booking $booking)
+    {
+        $booking->update(['status' => 4]);
+        return redirect()->route('booking.show', $booking)->with('success', 'BL confirmed successfully.');
+    }
+
     public function confirmPayment(Booking $booking)
     {
-        $booking->update(['status' => 'Payment Confirmed']);
         $booking->invoice->update(['status' => 'Paid']);
         $booking->invoice->payment->update(['status' => 'Confirmed']);
         return redirect()->route('booking.show', $booking)->with('success', 'Payment confirmed successfully.');
@@ -302,8 +351,103 @@ class BookingController extends Controller
 
     public function rejectPayment(Booking $booking)
     {
-        $booking->update(['status' => 'Pending Payment']);
         $booking->invoice->payment->delete();
         return redirect()->route('booking.show', $booking)->with('success', 'Payment rejected successfully.');
+    }
+
+    public function sailing(Booking $booking)
+    {
+        $booking->update(['status' => 5]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Sailing confirmed successfully.');
+    }
+
+    public function arrived(Booking $booking)
+    {
+        $booking->update(['status' => 6]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Arrival confirmed successfully.');
+    }
+
+    public function completed(Booking $booking)
+    {
+        $booking->update(['status' => 7]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking completed successfully.');
+    }
+
+    public function cancel(Booking $booking)
+    {
+        $booking->update(['status' => 0]);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking cancelled successfully.');
+    }
+
+    public function uploadDocument(Request $request, Booking $booking)
+    {
+        try {
+            $validated = $request->validate([
+                'document_type' => 'required|string|in:container_load_list,notice_of_arrival,towing_certificate,vendor_invoice',
+                'document_file' => 'required|file|mimes:pdf,jpeg,png,jpg|max:10240',
+            ]);
+
+            \DB::beginTransaction();
+
+            $file = $request->file('document_file');
+            
+            // Generate filename using booking number and document type
+            $fileName = $booking->booking_number . '_' . $validated['document_type'] . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('documents/' . $validated['document_type'], $fileName, 'public');
+
+            // Update the booking with the document path
+            $booking->update([
+                $validated['document_type'] => $filePath
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('booking.show', $booking)
+                ->with('success', ucwords(str_replace('_', ' ', $validated['document_type'])) . ' uploaded successfully.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Document upload failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'document_type' => $request->input('document_type')
+            ]);
+            
+            return back()->with('error', 'Error uploading document: ' . $e->getMessage())
+                        ->withInput();
+        }
+    }
+
+    public function downloadDocument(Booking $booking, string $type)
+    {
+        try {
+            // Validate document type
+            if (!in_array($type, ['container_load_list', 'notice_of_arrival', 'towing_certificate', 'vendor_invoice'])) {
+                abort(404, 'Invalid document type');
+            }
+
+            // Check if document exists
+            $documentPath = $booking->$type;
+            if (!$documentPath || !Storage::disk('public')->exists($documentPath)) {
+                abort(404, 'Document not found');
+            }
+
+            // Get file extension from path
+            $extension = pathinfo($documentPath, PATHINFO_EXTENSION);
+
+            // Generate download filename
+            $downloadName = $booking->booking_number . '_' . str_replace('_', ' ', $type) . '.' . $extension;
+
+            return Storage::disk('public')->download($documentPath, $downloadName);
+
+        } catch (\Exception $e) {
+            \Log::error('Document download failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'document_type' => $type
+            ]);
+            
+            return back()->with('error', 'Error downloading document: ' . $e->getMessage());
+        }
     }
 }
