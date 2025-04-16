@@ -716,6 +716,7 @@
                     @endif
 
                     <!-- Documents -->
+                    @if($booking->status >= 4)
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
@@ -726,6 +727,7 @@
                         </div>
 
                         <!-- Document Upload Form -->
+                        @if(auth()->user()->role != 'customer')
                         <form action="{{ route('booking.upload-document', $booking) }}" method="POST" enctype="multipart/form-data" class="space-y-4 mb-6">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -766,6 +768,7 @@
                                 </x-primary-button>
                             </div>
                         </form>
+                        @endif
 
                         <div class="space-y-4">
                             <!-- Container Load List -->
@@ -813,6 +816,7 @@
                             </div>
 
                             <!-- Towing Certificate -->
+                            @if(auth()->user()->role != 'customer')
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
@@ -855,8 +859,10 @@
                                     @endif
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
 
                     <!-- Action Buttons -->
                     <div class="m-6 flex justify-end space-x-4">
