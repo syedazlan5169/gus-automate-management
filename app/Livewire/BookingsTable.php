@@ -71,4 +71,31 @@ class BookingsTable extends Component
             'statusLabels' => $statusLabels,
         ]);
     }
+    
+    /**
+     * Get the invoice status label for a booking
+     * 
+     * @param \App\Models\Booking $booking
+     * @return string
+     */
+    public function getInvoiceStatusLabel($booking)
+    {
+        if (!$booking->invoice) {
+            return 'No Invoice';
+        }
+        
+        // You can customize this based on your invoice status values
+        $status = $booking->invoice->status;
+        
+        // Example status labels - adjust according to your actual status values
+        $labels = [
+            'pending' => 'Pending',
+            'paid' => 'Paid',
+            'overdue' => 'Overdue',
+            'cancelled' => 'Cancelled',
+            // Add more status labels as needed
+        ];
+        
+        return $labels[$status] ?? ucfirst($status);
+    }
 }
