@@ -8,6 +8,8 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Models\ShippingRoute;
 use App\Models\BookingStatus;
+use Illuminate\Support\Facades\Storage;
+
 class BookingController extends Controller
 {
     /**
@@ -375,5 +377,77 @@ class BookingController extends Controller
     {
         $booking->update(['status' => 0]);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking cancelled successfully.');
+    }
+
+    public function uploadDocument(Request $request, Booking $booking)
+    {
+        try {
+            $validated = $request->validate([
+                'document_type' => 'required|string|in:container_load_list,notice_of_arrival,towing_certificate,vendor_invoice',
+                'document_file' => 'required|file|mimes:pdf,jpeg,png,jpg|max:10240',
+            ]);
+
+            \DB::beginTransaction();
+
+            $file = $request->file('document_file');
+            
+            // Generate filename using booking number and document type
+            $fileName = $booking->booking_number . '_' . $validated['document_type'] . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('documents/' . $validated['document_type'], $fileName, 'public');
+
+            // Update the booking with the document path
+            $booking->update([
+                $validated['document_type'] => $filePath
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('booking.show', $booking)
+                ->with('success', ucwords(str_replace('_', ' ', $validated['document_type'])) . ' uploaded successfully.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Document upload failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'document_type' => $request->input('document_type')
+            ]);
+            
+            return back()->with('error', 'Error uploading document: ' . $e->getMessage())
+                        ->withInput();
+        }
+    }
+
+    public function downloadDocument(Booking $booking, string $type)
+    {
+        try {
+            // Validate document type
+            if (!in_array($type, ['container_load_list', 'notice_of_arrival', 'towing_certificate', 'vendor_invoice'])) {
+                abort(404, 'Invalid document type');
+            }
+
+            // Check if document exists
+            $documentPath = $booking->$type;
+            if (!$documentPath || !Storage::disk('public')->exists($documentPath)) {
+                abort(404, 'Document not found');
+            }
+
+            // Get file extension from path
+            $extension = pathinfo($documentPath, PATHINFO_EXTENSION);
+
+            // Generate download filename
+            $downloadName = $booking->booking_number . '_' . str_replace('_', ' ', $type) . '.' . $extension;
+
+            return Storage::disk('public')->download($documentPath, $downloadName);
+
+        } catch (\Exception $e) {
+            \Log::error('Document download failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'document_type' => $type
+            ]);
+            
+            return back()->with('error', 'Error downloading document: ' . $e->getMessage());
+        }
     }
 }
