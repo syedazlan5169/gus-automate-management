@@ -142,6 +142,46 @@
                 @endif
 
                 <div class="mt-4">
+                    <!--Staff Instructions -->
+                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->invoice)
+                    <x-alert-instruction 
+                        message="Please upload the Invoice to the booking"
+                        color="red"
+                    />
+                    @endif
+                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->container_load_list)
+                    <x-alert-instruction 
+                        message="Please upload the Container Load List to the booking"
+                        color="red"
+                    />
+                    @endif
+                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->towing_certificate)
+                    <x-alert-instruction 
+                        message="Please upload the Towing Certificate to the booking"
+                        color="red"
+                    />
+                    @endif
+                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->vendor_invoice)
+                    <x-alert-instruction 
+                        message="Please upload the Vendor Invoice to the booking"
+                        color="red"
+                    />
+                    @endif
+                    @if($booking->status == 5 && auth()->user()->role != 'customer' && !$booking->notice_of_arrival)
+                    <x-alert-instruction 
+                        message="Please upload the Notice of Arrival"
+                        color="red"
+                    />
+                    @endif
+
+                    <!-- Customer Instructions -->
+                    @if($booking->status >= 4 && auth()->user()->role == 'customer' && $booking->invoice && !$booking->invoice->payment)
+                    <x-alert-instruction 
+                        message="Please upload the Receipt of Payment"
+                        color="red"
+                    />
+                    @endif
+                    
                     <!-- Success Message -->
                     @if (session('success'))
                         <x-alert-success :message="session('success')" />
@@ -163,7 +203,7 @@
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            @if($booking->status < 5 && $booking->status > 0)
+                            @if($booking->status < 2 && $booking->status > 0)
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -738,9 +778,9 @@
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="">Select Document Type</option>
                                         <option value="container_load_list" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
-                                        <option value="notice_of_arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
                                         <option value="towing_certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
                                         <option value="vendor_invoice" {{ old('document_type') == 'vendor_invoice' ? 'selected' : '' }}>Vendor Invoice</option>
+                                        <option value="notice_of_arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
                                     </select>
                                     @error('document_type')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -793,27 +833,6 @@
                                 </div>
                             </div>
 
-                            <!-- Notice of Arrival -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">Notice of Arrival</span>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    @if($booking->notice_of_arrival)
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <a href="{{ route('documents.download', ['type' => 'notice_of_arrival', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </div>
 
                             <!-- Towing Certificate -->
                             @if(auth()->user()->role != 'customer')
@@ -860,6 +879,29 @@
                                 </div>
                             </div>
                             @endif
+
+                            <!-- Notice of Arrival -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-sm font-medium">Notice of Arrival</span>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    @if($booking->notice_of_arrival)
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <a href="{{ route('documents.download', ['type' => 'notice_of_arrival', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    @endif
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                     @endif
@@ -958,34 +1000,66 @@
                             
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
-                            <div class="relative">
-                                <button type="button"
-                                    onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        bg-blue-600 text-white hover:bg-blue-700">
+                                @if($booking->invoice && $booking->container_load_list && $booking->towing_certificate && $booking->vendor_invoice)
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-blue-600 text-white hover:bg-blue-700">
+                                            Sailing
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
                                     Sailing
-                                </button>
-                            </div>
+                                    </div>
+                                @endif
                             @elseif($booking->status == $status::SAILING && auth()->user()->role != 'customer')
                             <!-- Arrival Button -->
-                            <div class="relative">
-                                <button type="button"
-                                    onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        bg-blue-600 text-white hover:bg-blue-700">
-                                    Arrived
-                                </button>
-                            </div>
-                            @elseif($booking->status == $status::ARRIVED && $booking->invoice->status == 'Paid' && auth()->user()->role != 'customer')
+                                @if($booking->notice_of_arrival)
+                                <div class="relative">
+                                    <button type="button"
+                                        onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                            bg-blue-600 text-white hover:bg-blue-700">
+                                        Arrived
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
+                                            Arrived
+                                        </button>
+                                    </div>
+                                @endif
+                            @elseif($booking->status == $status::ARRIVED && auth()->user()->role != 'customer')
                             <!-- Completed Button -->
-                            <div class="relative">
-                                <button type="button"
-                                    onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        bg-blue-600 text-white hover:bg-blue-700">
-                                    Completed
-                                </button>
-                            </div>
+                                @if($booking->invoice->status == 'Paid')
+                                <div class="relative">
+                                    <button type="button"
+                                        onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                            bg-blue-600 text-white hover:bg-blue-700">
+                                        Completed
+                                    </button>
+                                </div>
+                                @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
+                                            Completed
+                                        </button>
+                                    </div>
+                                @endif
                             @endif
 
                             <!-- Completed Confirmation Modal -->

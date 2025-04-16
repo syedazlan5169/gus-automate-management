@@ -33,13 +33,13 @@
                             Booking Number
                         </th>
                         <th scope="col" class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
-                            Created
-                        </th>
-                        <th scope="col" class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                             Vessel | Voyage
                         </th>
                         <th scope="col" class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
                             Route
+                        </th>
+                        <th scope="col" class="text-center hidden px-3 py-3.5 text-sm font-semibold text-gray-900 lg:table-cell">
+                            Invoice
                         </th>
                         <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
                             Status
@@ -54,6 +54,8 @@
                     <tr>
                       <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div class="font-medium text-gray-900">{{ $booking->booking_number }}</div>
+
+                        <!-- Mobile View -->
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
                             <span>ETS : {{ $booking->booking_date ? $booking->booking_date->format('d-m-Y | g:i A') : 'Not set' }}</span>
                         </div>
@@ -62,40 +64,55 @@
                           <span class="hidden sm:inline">·</span>
                             <span>{{ $booking->pol }} → {{ $booking->pod }}</span>
                         </div>
+                        </td>
 
-                        </td>
-                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
-                          <div class="mt-1 flex flex-col text-gray-500 sm:block">
-                            <p>{{ $booking->booking_date ? $booking->booking_date->format('d-m-Y | g:i A') : 'Not set' }}</p>
-                        </div>
-                        </td>
+                        <!-- Desktop View -->
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->vessel }} | {{ $booking->voyage }}</td>
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->pol }} → {{ $booking->pod }}</td>
+                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
+                            @php
+                                $invoiceStatus = $this->getInvoiceStatusLabel($booking);
+                                $invoiceStatusClass = 'bg-gray-50 text-gray-700 ring-gray-600/20';
+                                
+                                if ($invoiceStatus === 'Paid') {
+                                    $invoiceStatusClass = 'bg-green-50 text-green-700 ring-green-600/20';
+                                } elseif ($invoiceStatus === 'Unpaid') {
+                                    $invoiceStatusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
+                                } elseif ($invoiceStatus === 'Overdue') {
+                                    $invoiceStatusClass = 'bg-red-50 text-red-700 ring-red-600/20';
+                                } elseif ($invoiceStatus === 'No Invoice') {
+                                    $invoiceStatusClass = 'bg-gray-50 text-gray-500 ring-gray-600/20';
+                                }
+                            @endphp
+                            <div class="whitespace-nowrap rounded-md {{ $invoiceStatusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $invoiceStatus }}
+                            </div>
+                        </td>
 
-                      <td class="text-center px-3 py-3.5 text-sm text-gray-500">
-                          @php
-                              $statusClass = 'bg-green-50 text-green-700 ring-green-600/20';
-                              if ($booking->status == \App\Models\BookingStatus::CANCELLED) {
-                                  $statusClass = 'bg-red-50 text-red-700 ring-red-600/20';
-                              } elseif ($booking->status == \App\Models\BookingStatus::NEW) {
-                                  $statusClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
-                              } elseif ($booking->status == \App\Models\BookingStatus::BOOKING_CONFIRMED) {
-                                  $statusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
-                              }
-                          @endphp
-                          <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                            {{ $statusLabels[$booking->id] }}
-                          </div>
-                          <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                            {{ $statusLabels[$booking->id] }}
-                          </div>
-                      </td>
-                      <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <a href="{{ route('booking.show', $booking) }}" 
-                               class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                                View
-                            </a>
-                      </td>
+                        <td class="text-center px-3 py-3.5 text-sm text-gray-500">
+                            @php
+                                $statusClass = 'bg-green-50 text-green-700 ring-green-600/20';
+                                if ($booking->status == \App\Models\BookingStatus::CANCELLED) {
+                                    $statusClass = 'bg-red-50 text-red-700 ring-red-600/20';
+                                } elseif ($booking->status == \App\Models\BookingStatus::NEW) {
+                                    $statusClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
+                                } elseif ($booking->status == \App\Models\BookingStatus::BOOKING_CONFIRMED) {
+                                    $statusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
+                                }
+                            @endphp
+                            <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $statusLabels[$booking->id] }}
+                            </div>
+                            <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $statusLabels[$booking->id] }}
+                            </div>
+                        </td>
+                        <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                <a href="{{ route('booking.show', $booking) }}" 
+                                class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
+                                    View
+                                </a>
+                        </td>
                     </tr>
                     @endforeach
                   </tbody>
