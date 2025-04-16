@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Booking;
+
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -21,30 +21,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
-        'email_verified_at',
         'email',
         'password',
-        'phone',
-        'role',
-        'company_name',
-        'company_address',
-        'company_phone',
-        'industries',
-        'other_industries',
     ];
-
-    public function scopeSearch($query, $term)
-    {
-        if($term)
-        {
-            $query->where('name', 'like', '%'.$term.'%')
-                ->orWhere('email', 'like', '%'.$term.'%')
-                ->orWhere('phone', 'like', '%'.$term.'%')
-                ->orWhere('company_name', 'like', '%'.$term.'%')
-                ->orWhere('industries', 'like', '%'.$term.'%');
-        }
-        return $query;
-    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -67,10 +46,5 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
     }
 }

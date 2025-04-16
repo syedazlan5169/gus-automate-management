@@ -2,10 +2,10 @@
 /node_modules
 /public/build
 /public/hot
+/public/storage
 /storage/*.key
 /storage/pail
 /vendor
-/resources/views/sailing-schedule/create-new-ui.blade.php
 .env
 .env.backup
 .env.production
