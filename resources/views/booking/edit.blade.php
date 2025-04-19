@@ -48,31 +48,6 @@
                             @csrf
                             @method('PUT')
                             <div class="space-y-12">
-                                <!-- Service Information -->
-                                <!--<div class="border-b border-gray-900/10 pb-12 space-y-6">
-                                    <fieldset>
-                                        <h2 class="text-base/7 font-semibold text-gray-900">Service Information</h2>
-                                        <div class="mt-6 flex gap-x-6">
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="soc" name="service" type="radio" value="SOC" {{ $booking->service === 'SOC' ? 'checked' : '' }}
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                                <label for="soc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Shipped Owned Container (SOC)
-                                                </label>
-                                            </div>
-                                            <div class="flex items-center gap-x-3">
-                                                <input id="coc" name="service" type="radio" value="COC" {{ $booking->service === 'COC' ? 'checked' : '' }}
-                                                    class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                                <label for="coc" class="block text-sm/6 font-medium text-gray-900">
-                                                    Carrier Owned Container (COC)
-                                                </label>
-                                            </div>
-                                        </div>
-                                        @error('service')
-                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
-                                    </fieldset>
-                                </div>-->
 
                                 <!-- Shipping Details -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -83,12 +58,18 @@
                                             <x-input-label for="vessel" value="Vessel Name" />
                                             <x-text-input id="vessel" name="vessel" type="text" class="mt-1 block w-full" 
                                                 value="{{ old('vessel', $booking->vessel) }}" required />
+                                            @error('vessel')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="voyage" value="Voyage Number" />
                                             <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full"
                                                 value="{{ old('voyage', $booking->voyage) }}" required />
+                                            @error('voyage')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -100,25 +81,37 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="place_of_receipt" value="Place of Receipt" />
                                             <x-text-input id="place_of_receipt" name="place_of_receipt" type="text" class="mt-1 block w-full"
-                                                value="{{ old('place_of_receipt', $booking->place_of_receipt) }}" />
+                                                value="{{ old('place_of_receipt', $booking->place_of_receipt) }}" required />
+                                            @error('place_of_receipt')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="pol" value="Port of Loading (POL)" />
                                             <x-text-input id="pol" name="pol" type="text" class="mt-1 block w-full"
-                                                value="{{ old('pol', $booking->pol) }}" />
+                                                value="{{ old('pol', $booking->pol) }}" required />
+                                            @error('pol')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="pod" value="Port of Discharge (POD)" />
                                             <x-text-input id="pod" name="pod" type="text" class="mt-1 block w-full"
-                                                value="{{ old('pod', $booking->pod) }}" />
+                                                value="{{ old('pod', $booking->pod) }}" required />
+                                            @error('pod')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="place_of_delivery" value="Place of Delivery" />
                                             <x-text-input id="place_of_delivery" name="place_of_delivery" type="text" class="mt-1 block w-full"
-                                                value="{{ old('place_of_delivery', $booking->place_of_delivery) }}" />
+                                                value="{{ old('place_of_delivery', $booking->place_of_delivery) }}" required />
+                                            @error('place_of_delivery')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -130,13 +123,19 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
                                             <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full"
-                                                value="{{ old('ets', $booking->ets?->format('Y-m-d\TH:i')) }}" />
+                                                value="{{ old('ets', $booking->ets?->format('Y-m-d\TH:i')) }}" required/>
+                                            @error('ets')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
                                             <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full"
-                                                value="{{ old('eta', $booking->eta?->format('Y-m-d\TH:i')) }}" />
+                                                value="{{ old('eta', $booking->eta?->format('Y-m-d\TH:i')) }}" required/>
+                                            @error('eta')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>

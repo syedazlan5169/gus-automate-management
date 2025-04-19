@@ -390,6 +390,35 @@ class ShippingInstructionController extends Controller
                 'first_few_rows' => array_slice($rows, 0, 15)
             ]);
 
+            // Check if the file is a template by verifying cell values
+            $expectedHeaders = [
+                0 => 'Box Operator',
+                1 => 'Shipper Name',
+                2 => 'Shipper Contact',
+                3 => 'Consignee Name',
+                4 => 'Consignee Contact',
+                5 => 'Notify Party Name',
+                6 => 'Notify Party Contact',
+                7 => 'Notify Party Address',
+                8 => 'Cargo Description',
+                9 => 'HS Code'
+            ];
+            
+            $isTemplate = true;
+            foreach ($expectedHeaders as $rowIndex => $expectedValue) {
+                if (!isset($rows[$rowIndex][0]) || trim($rows[$rowIndex][0]) !== $expectedValue) {
+                    $isTemplate = false;
+                    break;
+                }
+            }
+            
+            if (!$isTemplate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Wrong file has been uploaded, please use the template given'
+                ], 422);
+            }
+
             // Extract shipping instruction data based on the template structure
             $shippingData = [
                 'box_operator' => trim($rows[0][1] ?? ''),

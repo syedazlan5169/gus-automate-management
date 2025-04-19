@@ -62,12 +62,6 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            // Service Information
-            //'service' => 'required|string|in:SOC,COC',
-            
-            // Shipping Details
-            //'vessel' => 'required|string|max:255',
-            //'voyage' => 'required|string|max:255',
             
             // Route Information
             'place_of_receipt' => 'required|string|max:255',
@@ -76,7 +70,7 @@ class BookingController extends Controller
             'place_of_delivery' => 'required|string|max:255',
             
             // Schedule
-            'ets' => 'required|date',
+            'ets' => 'required|date|after:today',
             //'eta' => 'required|date',
             
             // Cargo Details
@@ -249,8 +243,8 @@ class BookingController extends Controller
             'pol' => 'sometimes|required|string|max:255',
             'pod' => 'sometimes|required|string|max:255',
             'place_of_delivery' => 'sometimes|required|string|max:255',
-            'ets' => 'sometimes|required|date',
-            'eta' => 'sometimes|required|date',
+            'ets' => 'sometimes|required|date|after:today',
+            'eta' => 'sometimes|required|date|after:ets',
         ]);
 
         try {
