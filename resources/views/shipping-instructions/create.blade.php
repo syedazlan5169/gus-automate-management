@@ -448,7 +448,7 @@ function handleFileUpload() {
                     return {
                         container: container.number,
                         seal: container.seal,
-                        type: cargoId || containerType // Use the cargo ID if found, otherwise use the container type
+                        type: containerType // Use the cargo ID if found, otherwise use the container type
                     };
                 });
                 
