@@ -333,10 +333,6 @@
                   <x-primary-button type="submit" class="bg-blue-700">
                     Update SI
                   </x-primary-button>
-                  <a href="#"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
-                    Generate BL
-                  </a>
                 </div>
               </div>
             </div>

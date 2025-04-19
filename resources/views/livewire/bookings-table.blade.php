@@ -53,7 +53,12 @@
                     @foreach($bookings as $booking)
                     <tr>
                       <td class="relative py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div class="font-medium text-gray-900">{{ $booking->booking_number }}</div>
+                        <div>
+                            <div class="font-medium text-gray-900">{{ $booking->booking_number }}</div>
+                            <div class="text-gray-500">
+                                <span>{{ $booking->user->company_name }}</span>
+                            </div>
+                        </div>
 
                         <!-- Mobile View -->
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">

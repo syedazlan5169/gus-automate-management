@@ -14,12 +14,19 @@ class BookingsTable extends Component
     public $search = '';
     public $perPage = 10;
     public $status = '';
-    public $sortBy = 'booking_date';
+    public $sortBy = 'created_at';
     public $sortDir = 'DESC';
 
     public function mount()
     {
-        $this->bookings = Booking::all();
+        if(auth()->user()->role === 'customer')
+        {
+            $this->bookings = Booking::where('user_id', auth()->user()->id)->get();
+        }
+        else
+        {
+            $this->bookings = Booking::all();
+        }
     }
 
     public function setSortBy($sortByField)
@@ -52,6 +59,12 @@ class BookingsTable extends Component
     public function render()
     {
         $query = Booking::search($this->search);
+        
+        // Filter by user_id for customers
+        if(auth()->user()->role === 'customer')
+        {
+            $query->where('user_id', auth()->user()->id);
+        }
         
         // Apply status filter if selected
         if ($this->status !== '') {

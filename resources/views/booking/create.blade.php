@@ -465,6 +465,9 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="ets" value="Estimated Time of Sailing (ETS)" />
                                             <x-text-input id="ets" name="ets" type="datetime-local" class="mt-1 block w-full" />
+                                            @error('ets')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
@@ -480,22 +483,34 @@
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
                                             <x-input-label for="place_of_receipt" value="Place of Receipt" />
-                                            <x-text-input id="place_of_receipt" name="place_of_receipt" type="text" class="mt-1 block w-full" />
+                                            <x-text-input id="place_of_receipt" name="place_of_receipt" type="text" class="mt-1 block w-full" required/>
+                                            @error('place_of_receipt')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="pol" value="Port of Loading (POL)" />
-                                            <x-text-input id="pol" name="pol" type="text" class="mt-1 block w-full" />
+                                            <x-text-input id="pol" name="pol" type="text" class="mt-1 block w-full" required/>
+                                            @error('pol')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="pod" value="Port of Discharge (POD)" />
-                                            <x-text-input id="pod" name="pod" type="text" class="mt-1 block w-full" />
+                                            <x-text-input id="pod" name="pod" type="text" class="mt-1 block w-full" required/>
+                                            @error('pod')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <x-input-label for="place_of_delivery" value="Place of Delivery" />
-                                            <x-text-input id="place_of_delivery" name="place_of_delivery" type="text" class="mt-1 block w-full" />
+                                            <x-text-input id="place_of_delivery" name="place_of_delivery" type="text" class="mt-1 block w-full" required/>
+                                            @error('place_of_delivery')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
