@@ -52,6 +52,25 @@
     <!-- Content section with flex layout -->
     <div class="flex items-start gap-x-8">
       <main class="flex-1">
+        <!-- Error Alert Section -->
+        <div id="error-alert" class="mb-6 hidden">
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <p id="error-message"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <form action="{{ route('shipping-instructions.store', $booking) }}" method="POST" class="space-y-6">
           @csrf
           <!-- First container section -->
@@ -193,7 +212,8 @@
                                     $availableCount = $cargo->container_count - $allocatedCount;
                                 @endphp
                                 <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}" 
-                                   data-container-type="{{ $cargo->id }}" 
+                                   data-container-type="{{ $cargo->container_type }}" 
+                                   data-cargo-id="{{ $cargo->id }}" 
                                    data-total="{{ $cargo->container_count }}">
                                     {{ $cargo->container_type }}: 
                                     <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
@@ -208,6 +228,7 @@
                     <!-- Container sections will be populated here -->
                     <div id="container-sections" class="mt-4 space-y-4"></div>
                 </div>
+
             </div>
           </div>
 
@@ -278,6 +299,21 @@
 </x-app-layout>
 
 <script>
+// Global variable to store container type to cargo ID mapping
+let containerTypeToCargoId = {};
+
+// Function to show error message
+function showError(message) {
+    const errorAlert = document.getElementById('error-alert');
+    const errorMessage = document.getElementById('error-message');
+    
+    errorMessage.textContent = message;
+    errorAlert.classList.remove('hidden');
+    
+    // Scroll to the error message
+    errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function removeContainer(button) {
     const containerItem = button.closest('.flex');
     if (containerItem) {
@@ -358,7 +394,7 @@ function addShippingInstruction() {
         // Process file upload
         handleFileUpload();
     } else {
-        alert("Please select a file to upload");
+        showError("Please select a file to upload");
     }
 }
 
@@ -424,10 +460,10 @@ function handleFileUpload() {
                 console.log("Processing containers:", data.containers);
                 
                 // Create a mapping of container type codes to cargo IDs
-                const containerTypeToCargoId = {};
+                containerTypeToCargoId = {};
                 document.querySelectorAll('#allocation-info p').forEach(p => {
-                    const containerType = p.textContent.split(':')[0].trim();
-                    const cargoId = p.getAttribute('data-container-type');
+                    const containerType = p.getAttribute('data-container-type');
+                    const cargoId = p.getAttribute('data-cargo-id');
                     containerTypeToCargoId[containerType] = cargoId;
                 });
                 
@@ -436,7 +472,7 @@ function handleFileUpload() {
                 // Map the container data to the format expected by processContainers
                 const formattedContainers = data.containers.map(container => {
                     // Get the container type from the Excel file
-                    const containerType = container.type || '20GP';
+                    const containerType = container.type;
                     
                     // Find the corresponding cargo ID
                     const cargoId = containerTypeToCargoId[containerType];
@@ -448,24 +484,25 @@ function handleFileUpload() {
                     return {
                         container: container.number,
                         seal: container.seal,
-                        type: containerType // Use the cargo ID if found, otherwise use the container type
+                        type: containerType 
                     };
                 });
                 
                 processContainers(formattedContainers);
             } else {
                 console.log("No containers found in the uploaded file");
+                showError("No containers found in the uploaded file");
             }
             
             // Clear the file input
             fileInput.value = '';
         } else {
-            alert(data.message || 'Error parsing file');
+            showError(data.message || 'Error parsing file');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error uploading file');
+        showError('Error uploading file: ' + error.message);
     });
 }
 
@@ -475,7 +512,7 @@ function processTextareaInput() {
     let containers = [];
 
     if (!textarea.value.trim()) {
-        alert("Please enter container details or select a file to upload");
+        showError("Please enter container details or select a file to upload");
         return;
     }
 
@@ -491,7 +528,7 @@ function processTextareaInput() {
     });
 
     if (containers.length === 0) {
-        alert("Invalid format! Please enter containers in the format: CONTAINER,SEAL");
+        showError("Invalid format! Please enter containers in the format: CONTAINER,SEAL");
         return;
     }
 
@@ -518,6 +555,14 @@ function processContainers(containers) {
     // Process each container type group
     for (const containerType in containersByType) {
         const containerList = containersByType[containerType];
+        
+        // Find the cargo ID for this container type
+        const cargoId = containerTypeToCargoId[containerType];
+        
+        if (!cargoId) {
+            console.warn(`No matching cargo ID found for container type: ${containerType}`);
+            continue; // Skip this container type if no matching cargo ID is found
+        }
         
         // Check if a section for this container type already exists
         let existingSection = document.querySelector(`div[data-container-type="${containerType}"]`);
@@ -561,10 +606,10 @@ function processContainers(containers) {
             div.classList.add("flex", "items-center", "gap-x-4", "w-full");
             
             div.innerHTML = `
-                <input type="hidden" name="containers[${containerType}][${index}][container_type]" value="${containerType}">
-                <input type="text" name="containers[${containerType}][${index}][container_number]" value="${entry.container}" 
+                <input type="hidden" name="containers[${cargoId}][${index}][container_type]" value="${containerType}">
+                <input type="text" name="containers[${cargoId}][${index}][container_number]" value="${entry.container}" 
                     class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
-                <input type="text" name="containers[${containerType}][${index}][seal_number]" value="${entry.seal}" 
+                <input type="text" name="containers[${cargoId}][${index}][seal_number]" value="${entry.seal}" 
                     class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
                 <button type="button" class="text-gray-400 hover:text-red-600" onclick="removeContainer(this)">
                     <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -629,11 +674,14 @@ document.querySelector('form').addEventListener('submit', function(e) {
     ];
 
     let isValid = true;
+    let missingFields = [];
+    
     requiredFields.forEach(field => {
         const element = document.getElementById(field);
         if (!element.value.trim()) {
             isValid = false;
             element.classList.add('outline-red-500');
+            missingFields.push(field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
         } else {
             element.classList.remove('outline-red-500');
         }
@@ -643,7 +691,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     const containerSections = document.getElementById('container-sections');
     if (!containerSections.children.length) {
         isValid = false;
-        alert('Please add at least one container');
+        showError('Please add at least one container');
         return;
     }
 
@@ -651,7 +699,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
         // Submit the form
         this.submit();
     } else {
-        alert('Please fill in all required fields');
+        showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
     }
 });
 </script>

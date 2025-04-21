@@ -835,7 +835,6 @@
 
 
                             <!-- Towing Certificate -->
-                            @if(auth()->user()->role != 'customer')
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
@@ -857,6 +856,7 @@
                                 </div>
                             </div>
 
+                            @if(auth()->user()->role != 'customer')
                             <!-- Vendor Invoice -->
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
