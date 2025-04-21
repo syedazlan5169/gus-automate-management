@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use App\Models\ShippingRoute;
 use App\Models\BookingStatus;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingStatusUpdated;
 
 class BookingController extends Controller
 {
@@ -333,6 +335,8 @@ class BookingController extends Controller
     public function confirmBL(Booking $booking)
     {
         $booking->update(['status' => 4]);
+        Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
+        Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
         return redirect()->route('booking.show', $booking)->with('success', 'BL confirmed successfully.');
     }
 
