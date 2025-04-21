@@ -1,14 +1,5 @@
 <x-app-layout>
 
-    <!-- <div class="py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("View from Client Dashboard Page") }}
-                </div>
-            </div>
-        </div>
-    </div> -->
     <main class="flex-1 pb-8">
         <!-- Page header -->
         <div class="bg-white shadow">
@@ -33,18 +24,28 @@
                                                 d="M4 16.5v-13h-.25a.75.75 0 0 1 0-1.5h12.5a.75.75 0 0 1 0 1.5H16v13h.25a.75.75 0 0 1 0 1.5h-3.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 1-.75.75h-3.5a.75.75 0 0 1 0-1.5H4Zm3-11a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM7.5 9a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1ZM11 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm.5 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1Z"
                                                 clip-rule="evenodd" />
                                         </svg>
-                                        Company Name
+                                        {{ Auth::user()->company_name }}
                                     </dd>
                                     <dt class="sr-only">Account status</dt>
                                     <dd
                                         class="mt-3 flex items-center text-sm font-medium capitalize text-gray-500 sm:mr-6 sm:mt-0">
-                                        <svg class="mr-1.5 size-5 shrink-0 text-green-400" viewBox="0 0 20 20"
-                                            fill="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path fill-rule="evenodd"
-                                                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Verified account
+                                        @if(Auth::user()->email_verified_at)
+                                            <svg class="mr-1.5 size-5 shrink-0 text-green-400" viewBox="0 0 20 20"
+                                                fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Verified account
+                                        @else
+                                            <svg class="mr-1.5 size-5 shrink-0 text-yellow-400" viewBox="0 0 20 20"
+                                                fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm1-12a1 1 0 1 0-2 0v4a1 1 0 0 0 2 0V6Zm-1 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Unverified account
+                                        @endif
                                     </dd>
                                 </dl>
                             </div>
