@@ -7,6 +7,8 @@ use App\Models\Payment;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UploadPayment;
 
 class PaymentController extends Controller
 {
@@ -53,6 +55,7 @@ class PaymentController extends Controller
             
 
             \DB::commit();
+            Mail::to(env('MAIL_TO_ADDRESS'))->send(new UploadPayment($booking, $payment, $booking->invoice));
 
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Payment submitted successfully.');

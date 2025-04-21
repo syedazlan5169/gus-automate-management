@@ -8,22 +8,28 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\BookingStatus;
+use App\Models\Booking;
+use App\Models\Invoice;
+use App\Models\Payment;
 
-class BookingStatusUpdated extends Mailable
+class PaymentVerification extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $booking;
-    public $recipientType;
+    public $payment;
+    public $invoice;
+    public $payment_response;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($booking, $recipientType = 'customer')
+    public function __construct($booking, $invoice, $payment, $payment_response)
     {
         $this->booking = $booking->load('user');
-        $this->recipientType = $recipientType;
+        $this->invoice = $booking->invoice;
+        $this->payment = $invoice->payment;
+        $this->payment_response = $payment_response;
     }
 
     /**
@@ -32,7 +38,7 @@ class BookingStatusUpdated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'GU Shipping Booking Notification',
+            subject: 'Payment Verification',
         );
     }
 
@@ -41,22 +47,13 @@ class BookingStatusUpdated extends Mailable
      */
     public function content(): Content
     {
-        $view = $this->recipientType == 'customer' 
-            ? 'emails.booking-status-updated-customer' 
-            : 'emails.booking-status-updated-admin';
-            
         return new Content(
-            view: $view,
+            view: 'emails.payment-verification',
             with: [
                 'booking' => $this->booking,
-                'CANCELLED' => BookingStatus::CANCELLED,
-                'NEW' => BookingStatus::NEW,
-                'BOOKING_CONFIRMED' => BookingStatus::BOOKING_CONFIRMED,
-                'BL_VERIFICATION' => BookingStatus::BL_VERIFICATION,
-                'BL_CONFIRMED' => BookingStatus::BL_CONFIRMED,
-                'SAILING' => BookingStatus::SAILING,
-                'ARRIVED' => BookingStatus::ARRIVED,
-                'COMPLETED' => BookingStatus::COMPLETED,
+                'payment' => $this->payment,
+                'invoice' => $this->invoice,
+                'payment_response' => $this->payment_response,
             ],
         );
     }
