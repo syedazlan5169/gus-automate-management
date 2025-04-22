@@ -97,7 +97,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/test-email', function () {
     try {
         Mail::raw('This is a test email from your application.', function($message) {
-            $message->to(env('MAIL_FROM_ADDRESS'))
+            $message->to('logicgame1001@gmail.com')
                    ->subject('Test Email');
         });
         return 'Test email sent successfully!';
