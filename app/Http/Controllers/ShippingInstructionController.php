@@ -261,6 +261,12 @@ class ShippingInstructionController extends Controller
                 'hs_code' => $validated['hs_code'],
             ]);
 
+            if ($shippingInstruction->booking->status >= 4 && $shippingInstruction->bl_confirmed == true) {
+                $shippingInstruction->update([
+                    'post_bl_edit_count' => $shippingInstruction->post_bl_edit_count + 1,
+                ]);
+            }
+
             // Handle containers
             if ($request->has('containers')) {
                 // Get all container numbers from the request

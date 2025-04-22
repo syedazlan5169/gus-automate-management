@@ -7,6 +7,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ShippingRouteController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Mail;
 
 Route::redirect('/', '/login');
 
@@ -88,6 +89,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('shipping-instructions/parse-shipping-instruction', [ShippingInstructionController::class, 'parseShippingInstruction'])->name('shipping-instructions.parse-shipping-instruction');
 
     Route::get('shipping-instructions/download-template', [ShippingInstructionController::class, 'downloadTemplate'])->name('shipping-instructions.download-template');
+
+    
+});
+
+// Test email route
+Route::get('/test-email', function () {
+    try {
+        Mail::raw('This is a test email from your application.', function($message) {
+            $message->to(env('MAIL_FROM_ADDRESS'))
+                   ->subject('Test Email');
+        });
+        return 'Test email sent successfully!';
+    } catch (\Exception $e) {
+        return 'Error sending email: ' . $e->getMessage();
+    }
 });
 
 require __DIR__ . '/auth.php';

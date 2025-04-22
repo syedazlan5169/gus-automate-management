@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingStatusUpdated;
 use App\Mail\InvoiceUploaded;
 use App\Mail\PaymentVerification;
+use App\Models\ShippingInstruction;
 
 class BookingController extends Controller
 {
@@ -349,6 +350,10 @@ class BookingController extends Controller
     public function confirmBL(Booking $booking)
     {
         $booking->update(['status' => 4]);
+        // Update each shipping instruction individually
+        foreach ($booking->shippingInstructions as $shippingInstruction) {
+            $shippingInstruction->update(['bl_confirmed' => true]);
+        }
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
         return redirect()->route('booking.show', $booking)->with('success', 'BL confirmed successfully.');

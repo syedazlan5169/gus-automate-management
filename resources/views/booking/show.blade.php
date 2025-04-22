@@ -419,8 +419,10 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div class="text-right mt-4">
+
+                                            <p class="text-left italic text-red-500 text-sm">Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}</p>
+
                                             @if($booking->status < 5)
                                             <a href="{{ route('shipping-instructions.show', $si) }}"
                                                 class="text-indigo-600 hover:text-indigo-900">
