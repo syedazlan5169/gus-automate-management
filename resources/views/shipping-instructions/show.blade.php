@@ -339,30 +339,7 @@
           </div>
         </form>
       </main>
-
-      <!-- Right Sidebar -->
-      <aside class="sticky top-8 hidden w-96 shrink-0 xl:block">
-        <div class="overflow-hidden rounded-lg bg-white shadow">
-          <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">Shipping Instruction Status</h3>
-            <div class="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Current status and next steps for this shipping instruction.</p>
-            </div>
-            <div class="mt-5">
-              <div class="rounded-md bg-blue-50 p-4">
-                <div class="flex">
-                  <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800">Ready for Bill of Lading</h3>
-                    <div class="mt-2 text-sm text-blue-700">
-                      <p>All information has been verified. You can now generate the Bill of Lading.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      
     </div>
   </div>
 </x-app-layout>

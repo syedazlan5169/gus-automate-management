@@ -268,12 +268,37 @@ class ShippingInstructionController extends Controller
                     ->flatMap(function ($containerGroup) {
                         return collect($containerGroup)->pluck('container_number');
                     })
-                    ->filter();
+                    ->filter()
+                    ->unique() // Ensure we have unique container numbers
+                    ->values() // Reset array keys
+                    ->toArray();
+
+                // Get existing containers for this shipping instruction
+                $existingContainers = $shippingInstruction->containers()
+                    ->pluck('container_number')
+                    ->unique() // Ensure we have unique container numbers
+                    ->values() // Reset array keys
+                    ->toArray();
+
+                // Debug information
+                \Log::info('Container comparison', [
+                    'existing_containers' => $existingContainers,
+                    'request_containers' => $requestContainers,
+                ]);
+
+                // Find containers that need to be released (in existing but not in request)
+                $containersToRelease = array_diff($existingContainers, $requestContainers);
+                
+                \Log::info('Containers to release', [
+                    'containers_to_release' => $containersToRelease
+                ]);
 
                 // Release containers that are no longer in the request
-                $shippingInstruction->containers()
-                    ->whereNotIn('container_number', $requestContainers)
-                    ->update(['shipping_instruction_id' => null]);
+                if (!empty($containersToRelease)) {
+                    CargoContainer::whereIn('container_number', $containersToRelease)
+                        ->where('shipping_instruction_id', $shippingInstruction->id)
+                        ->update(['shipping_instruction_id' => null]);
+                }
 
                 // Update or create containers
                 foreach ($request->containers as $cargoId => $containerGroup) {
@@ -282,29 +307,38 @@ class ShippingInstructionController extends Controller
                             continue;
                         }
 
-                        // Try to find existing container first
-                        $existingContainer = CargoContainer::where('container_number', $container['container_number'])
-                            ->where(function ($query) use ($shippingInstruction) {
-                                $query->whereNull('shipping_instruction_id')
-                                    ->orWhere('shipping_instruction_id', $shippingInstruction->id);
-                            })
-                            ->first();
-
-                        if ($existingContainer) {
-                            // Update existing container
-                            $existingContainer->update([
-                                'cargo_id' => $cargoId,
-                                'shipping_instruction_id' => $shippingInstruction->id,
-                                'seal_number' => $container['seal_number'],
-                            ]);
+                        $containerNumber = $container['container_number'];
+                        
+                        // Check if this container already exists in this shipping instruction
+                        if (in_array($containerNumber, $existingContainers)) {
+                            // Update the existing container
+                            CargoContainer::where('container_number', $containerNumber)
+                                ->where('shipping_instruction_id', $shippingInstruction->id)
+                                ->update([
+                                    'seal_number' => $container['seal_number'],
+                                ]);
                         } else {
-                            // Create new container
-                            CargoContainer::create([
-                                'cargo_id' => $cargoId,
-                                'shipping_instruction_id' => $shippingInstruction->id,
-                                'container_number' => $container['container_number'],
-                                'seal_number' => $container['seal_number'],
-                            ]);
+                            // This is a new container, look for an available container to reuse
+                            $availableContainer = CargoContainer::where('cargo_id', $cargoId)
+                                ->whereNull('shipping_instruction_id')
+                                ->first();
+
+                            if ($availableContainer) {
+                                // Reuse the available container
+                                $availableContainer->update([
+                                    'container_number' => $containerNumber,
+                                    'shipping_instruction_id' => $shippingInstruction->id,
+                                    'seal_number' => $container['seal_number'],
+                                ]);
+                            } else {
+                                // Only create a new container if no existing container can be reused
+                                CargoContainer::create([
+                                    'cargo_id' => $cargoId,
+                                    'shipping_instruction_id' => $shippingInstruction->id,
+                                    'container_number' => $containerNumber,
+                                    'seal_number' => $container['seal_number'],
+                                ]);
+                            }
                         }
                     }
                 }
