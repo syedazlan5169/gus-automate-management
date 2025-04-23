@@ -421,12 +421,28 @@
                                         </div>
                                         <div class="text-right mt-4">
 
-                                            <p class="text-left italic text-red-500 text-sm">Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}</p>
+                                            <p class="text-left italic text-red-500 text-sm">
+                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
+                                                @php
+                                                    $freeRevisionsLimit = 3;
+                                                    $remainingFreeRevisions = max(0, $freeRevisionsLimit - $si->post_bl_edit_count);
+                                                @endphp
+                                                <br>
+                                                <span class="{{ $remainingFreeRevisions > 0 ? 'text-green-500' : 'text-red-500' }}">
+                                                    Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
+                                                </span>
+                                            </p>
 
-                                            @if($booking->status < 5)
+                                            @if($booking->status < 5 && $remainingFreeRevisions > 0)
                                             <a href="{{ route('shipping-instructions.show', $si) }}"
                                                 class="text-indigo-600 hover:text-indigo-900">
-                                                Edit 
+                                                Edit
+                                            </a>
+                                            @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
+                                            <a href="#"
+                                                onclick="showRevisionWarning(event, '{{ $si->id }}')"
+                                                class="text-indigo-600 hover:text-indigo-900">
+                                                Edit
                                             </a>
                                             @endif
                                             @if($booking->status == 3)
@@ -435,7 +451,7 @@
                                                 View BL
                                             </a>
                                             @endif
-                                            @if($booking->status == 4 || $booking->status == 5)
+                                            @if($booking->status >= 4)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download BL
@@ -1487,4 +1503,47 @@ function updatePaymentFileName(input) {
     const fileName = input.files[0]?.name || '';
     document.getElementById('payment_file_name').textContent = fileName;
 }
+
+function showRevisionWarning(event, siId) {
+    event.preventDefault();
+    const modal = document.getElementById('revisionWarningModal');
+    modal.classList.remove('hidden');
+    
+    // Store the SI ID for the continue button
+    document.getElementById('continueButton').setAttribute('data-si-id', siId);
+}
+
+function continueToEdit() {
+    const siId = document.getElementById('continueButton').getAttribute('data-si-id');
+    window.location.href = `/shipping-instructions/${siId}`;
+}
+
+function closeModal() {
+    const modal = document.getElementById('revisionWarningModal');
+    modal.classList.add('hidden');
+}
 </script>
+
+<!-- Revision Warning Modal -->
+<div id="revisionWarningModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Additional Charges Warning</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    You have exceeded the free revision limit. Additional charges may apply for this revision.
+                </p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="continueButton" onclick="continueToEdit()" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    Continue
+                </button>
+                <button onclick="closeModal()" class="ml-3 px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+ritten_file>
