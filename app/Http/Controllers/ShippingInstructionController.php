@@ -267,7 +267,6 @@ class ShippingInstructionController extends Controller
                 $shippingInstruction->update([
                     'post_bl_edit_count' => $shippingInstruction->post_bl_edit_count + 1,
                 ]);
-                Mail::to($shippingInstruction->booking->user->email)->send(new UpdateSI($shippingInstruction));
                 Mail::to(env('MAIL_TO_ADDRESS'))->send(new UpdateSI($shippingInstruction));
             }
 
