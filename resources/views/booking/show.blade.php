@@ -499,6 +499,16 @@
                                     <div class="flex items-center gap-1">
                                         <div class="flex items-center gap-2">
                                             <div class="relative">
+                                                <x-input-label for="invoice_name" :value="__('Invoice Type')" />
+                                                <select name="invoice_name" id="invoice_name" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                    <option value="">Select Invoice</option>
+                                                    <option value="Revenue">Revenue</option>
+                                                    <option value="Recovery Charge">Recovery Charge</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                                @error('invoice_name')
+                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                @enderror
                                                 <input type="file" 
                                                     id="invoice_file" 
                                                     name="invoice_file" 

@@ -50,8 +50,15 @@ class Booking extends Model
         return $this->hasMany(Cargo::class);
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function invoice()
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasOne(Invoice::class)->latestOfMany();
     }
+
+   
 }
