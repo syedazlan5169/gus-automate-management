@@ -11,28 +11,28 @@ new class extends Component {
     }
 }; ?>
 
-<div x-data="{ open: false }">
+<div x-data="{ sidebarOpen: false, profileOpen: false }">
     <!-- Off-canvas menu for mobile, show/hide based on off-canvas menu state. -->
-    <div class="relative z-40 lg:hidden" role="dialog" aria-modal="true" x-show="open" x-cloak>
+    <div class="relative z-40 lg:hidden" role="dialog" aria-modal="true" x-show="sidebarOpen" x-cloak>
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-gray-900/80" aria-hidden="true" x-show="open"
+        <div class="fixed inset-0 bg-gray-900/80" aria-hidden="true" x-show="sidebarOpen"
             x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
 
         <div class="fixed inset-0 flex">
             <!-- Mobile menu panel -->
-            <div class="relative mr-16 flex w-full max-w-xs flex-1" x-show="open"
+            <div class="relative mr-16 flex w-full max-w-xs flex-1" x-show="sidebarOpen"
                 x-transition:enter="transition ease-in-out duration-300 transform"
                 x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
                 x-transition:leave="transition ease-in-out duration-300 transform"
                 x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
                 <!-- Close button -->
-                <div class="absolute left-full top-0 flex w-16 justify-center pt-5" x-show="open"
+                <div class="absolute left-full top-0 flex w-16 justify-center pt-5" x-show="sidebarOpen"
                     x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0"
                     x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300"
                     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                    <button type="button" class="-m-2.5 p-2.5" @click="open = false">
+                    <button type="button" class="-m-2.5 p-2.5" @click="sidebarOpen = false">
                         <span class="sr-only">Close sidebar</span>
                         <svg class="size-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" aria-hidden="true" data-slot="icon">
@@ -44,7 +44,7 @@ new class extends Component {
                 <!-- Sidebar component, swap this element with another sidebar if you like -->
                 <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                     <div class="flex h-16 shrink-0 items-center">
-                        <a href="{{ route('client.dashboard') }}" wire:navigate>
+                        <a href="{{ route('admin.dashboard') }}" wire:navigate>
                             <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                         </a>
                     </div>
@@ -86,6 +86,29 @@ new class extends Component {
                                                     d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                             </svg>
                                             {{ __('Bookings') }}
+                                        </x-responsive-nav-link>
+                                    </li>
+                                    <li>
+                                        <x-responsive-nav-link :href="route('shipping-routes.index')"
+                                            :active="request()->routeIs('shipping-routes.index')" wire:navigate>
+                                            <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
+                                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                                data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+                                            </svg>
+                                            {{ __('Routes') }}
+                                        </x-responsive-nav-link>
+                                    </li>
+                                    <li>
+                                        <x-responsive-nav-link :href="route('users.index')"
+                                            :active="request()->routeIs('users.index')" wire:navigate>
+                                            <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
+                                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"
+                                                data-slot="icon">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                            </svg>
+                                            {{ __('Users') }}
                                         </x-responsive-nav-link>
                                     </li>
                                 </ul>
@@ -172,7 +195,7 @@ new class extends Component {
                                     {{ __('Routes') }}
                                 </x-nav-link>
                             </li> 
-                            <li>
+                            <!--<li>
                                 <x-nav-link href="#"
                                     :active="request()->routeIs('')" wire:navigate>
                                     <svg class="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600" fill="none"
@@ -183,7 +206,7 @@ new class extends Component {
                                     </svg>
                                     {{ __('Vessels') }}
                                 </x-nav-link>
-                            </li>
+                            </li> -->
                             <li>
                                 <x-nav-link href="{{ route('users.index') }}"
                                     :active="request()->routeIs('users.index')" wire:navigate>
@@ -220,7 +243,7 @@ new class extends Component {
     <div class="lg:pl-72">
         <div
             class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-            <button type="button" class="-m-2.5 p-2.5 text-gray-700 lg:hidden" @click="open = true">
+            <button type="button" class="-m-2.5 p-2.5 text-gray-700 lg:hidden" @click="sidebarOpen = true">
                 <span class="sr-only">Open sidebar</span>
                 <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                     aria-hidden="true" data-slot="icon">
@@ -248,9 +271,9 @@ new class extends Component {
                     <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true"></div>
 
                     <!-- Profile dropdown -->
-                    <div class="relative" x-data="{ open: false }">
+                    <div class="relative">
                         <button type="button" class="-m-1.5 flex items-center p-1.5" id="user-menu-button"
-                            @click="open = !open" :aria-expanded="open" aria-haspopup="true">
+                            @click="profileOpen = !profileOpen" :aria-expanded="profileOpen" aria-haspopup="true">
                             <span class="sr-only">Open user menu</span>
                             <img class="size-8 rounded-full bg-gray-50" src={{ asset('images/avatar.jpg') }} alt="">
                             <span class="hidden lg:flex lg:items-center">
@@ -267,12 +290,12 @@ new class extends Component {
                             </span>
                         </button>
 
-                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                        <div x-show="profileOpen" x-transition:enter="transition ease-out duration-100"
                             x-transition:enter-start="transform opacity-0 scale-95"
                             x-transition:enter-end="transform opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-75"
                             x-transition:leave-start="transform opacity-100 scale-100"
-                            x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
+                            x-transition:leave-end="transform opacity-0 scale-95" @click.away="profileOpen = false"
                             class="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                             <x-dropdown-link :href="route('profile')" wire:navigate>
