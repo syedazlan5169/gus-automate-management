@@ -10,10 +10,11 @@ class Invoice extends Model
 {
     protected $fillable = [
         'booking_id',
-        'name',
+        'invoice_name',
         'invoice_number',
         'invoice_date',
         'invoice_amount',
+        'invoice_amount_usd',
         'payment_terms',
         'status',
         'invoice_file',
@@ -22,6 +23,7 @@ class Invoice extends Model
     protected $casts = [
         'invoice_date' => 'date',
         'invoice_amount' => 'decimal:2',
+        'invoice_amount_usd' => 'decimal:2',
     ];
 
     public function booking()

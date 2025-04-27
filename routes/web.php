@@ -30,7 +30,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('booking/{booking}/confirm', [BookingController::class, 'confirmBooking'])->name('booking.confirm');
         Route::get('booking/{booking}/confirm-bl', [BookingController::class, 'confirmBL'])->name('booking.confirm-bl');
         Route::get('booking/{booking}/submit-si', [BookingController::class, 'submitSI'])->name('booking.submit-si');
-        Route::post('booking/{booking}/submit-invoice', [BookingController::class, 'submitInvoice'])->name('booking.submit-invoice');
         Route::get('/booking/{booking}/payment/confirm', [BookingController::class, 'confirmPayment'])->name('booking.confirm-payment');
         Route::get('/booking/{booking}/payment/reject', [BookingController::class, 'rejectPayment'])->name('booking.reject-payment');
         Route::get('/booking/{booking}/sailing', [BookingController::class, 'sailing'])->name('booking.sailing');
@@ -42,12 +41,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/bookings/{booking}/download-document/{type}', [BookingController::class, 'downloadDocument'])->name('documents.download');
 
         // Invoice routes
+        Route::post('booking/{booking}/invoice/submit', [InvoiceController::class, 'store'])->name('invoice.submit');
+        Route::delete('invoice/{invoice}/delete', [InvoiceController::class, 'destroy'])->name('invoice.delete');
         Route::post('/booking/{booking}/invoice/upload', [InvoiceController::class, 'upload'])->name('invoice.upload');
         Route::post('/booking/{booking}/invoice/extract', [InvoiceController::class, 'extract'])->name('invoice.extract');
-        Route::get('/booking/{booking}/invoice/download', [InvoiceController::class, 'download'])->name('invoice.download');
+        Route::get('invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
+        Route::get('/invoice/payment/{payment}/download', [InvoiceController::class, 'downloadPayment'])->name('invoice.payment.download');
 
         // Payment routes
-        Route::post('/booking/{booking}/payment/submit', [PaymentController::class, 'submit'])->name('payment.submit');
+        Route::post('/invoice/payment/submit/{invoice}', [PaymentController::class, 'submit'])->name('payment.submit');
         Route::get('/invoice/{invoice}/payment/download', [PaymentController::class, 'download'])->name('payment.download');
 
         // Shipping Instruction routes

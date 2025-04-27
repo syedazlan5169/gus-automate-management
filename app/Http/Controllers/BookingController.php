@@ -158,94 +158,6 @@ class BookingController extends Controller
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
-
-    // Invoice Submission
-    public function submitInvoice(Request $request, Booking $booking)
-    {
-        try {
-            $validated = $request->validate([
-                'invoice_file' => 'required|file|mimes:pdf',
-                'invoice_date' => 'required|date',
-                'invoice_number' => 'required|string',
-                'invoice_amount' => 'required|numeric',
-            ]);
-
-            \DB::beginTransaction();
-
-            $invoice = $request->file('invoice_file');
-            
-            // Generate filename using booking number and timestamp
-            $fileName = $booking->booking_number . '_' . date('Ymd_His') . '_invoice.' . $invoice->getClientOriginalExtension();
-            $invoicePath = $invoice->storeAs('invoices', $fileName, 'public');
-
-            // Log before creating invoice
-            \Log::info('Attempting to create invoice', [
-                'booking_id' => $booking->id,
-                'invoice_path' => $invoicePath,
-                'file_name' => $fileName,
-            ]);
-
-            $invoice = Invoice::create([
-                'booking_id' => $booking->id,
-                'invoice_file' => $invoicePath,
-                'invoice_date' => $validated['invoice_date'],
-                'invoice_number' => $validated['invoice_number'],
-                'invoice_amount' => $validated['invoice_amount'],
-                'payment_terms' => $request->input('payment_terms'),
-            ]);
-
-            // Log after invoice creation
-            \Log::info('Invoice created successfully', [
-                'invoice_id' => $invoice->id,
-                'booking_id' => $booking->id
-            ]);
-            
-            \DB::commit();
-
-            // Send email notification to customer
-            Mail::to($booking->user->email)->send(new InvoiceUploaded($booking));
-
-            return redirect()->route('booking.show', $booking)
-                ->with('success', 'Invoice submitted successfully.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::warning('Invoice validation failed', [
-                'booking_id' => $booking->id,
-                'errors' => $e->errors()
-            ]);
-            return back()->withErrors($e->errors())
-                        ->withInput();
-
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            
-            // Log the detailed error
-            \Log::error('Failed to submit invoice', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-                'stack_trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            
-            // If file was uploaded, attempt to remove it
-            if (isset($invoicePath) && \Storage::disk('public')->exists($invoicePath)) {
-                try {
-                    \Storage::disk('public')->delete($invoicePath);
-                    \Log::info('Cleaned up uploaded file', ['path' => $invoicePath]);
-                } catch (\Exception $deleteError) {
-                    \Log::error('Failed to delete uploaded file', [
-                        'path' => $invoicePath,
-                        'error' => $deleteError->getMessage()
-                    ]);
-                }
-            }
-
-            return back()->with('error', 'Error submitting invoice: ' . $e->getMessage())
-                        ->withInput();
-        }
-    }
-
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {
@@ -256,7 +168,7 @@ class BookingController extends Controller
             'pol' => 'sometimes|required|string|max:255',
             'pod' => 'sometimes|required|string|max:255',
             'place_of_delivery' => 'sometimes|required|string|max:255',
-            'ets' => 'sometimes|required|date|after:today',
+            'ets' => 'sometimes|required|date',
             'eta' => 'sometimes|required|date|after:ets',
         ]);
 
