@@ -151,12 +151,15 @@ class ShippingInstructionController extends Controller
                     return [
                         'count' => $containers->count(),
                         'total_weight' => $shippingInstruction->cargos->first()->total_weight,
-                        'containers' => $containers
-                            ->pluck('container_number')
-                            ->values()
+                        'containers' => $containers->map(function ($container) {
+                            return [
+                                'container_number' => $container->container_number,
+                                'seal_number' => $container->seal_number,
+                            ];
+                        })->values()
                     ];
                 });
-
+            
             // Generate PDF
             $pdf = PDF::loadView('shipping-instructions.bill-of-lading', compact(
                 'shippingInstruction',
