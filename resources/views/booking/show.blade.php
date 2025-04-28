@@ -135,7 +135,7 @@
                     />
                     @else
                     <x-alert-instruction 
-                        message="This shipment has arrived at the destination port. The complete button will be enabled once the invoice is paid."
+                        message="This shipment has arrived at the destination port. The complete button will be enabled once all the below conditions are met:"
                         color="green"
                     />
                     @endif
@@ -143,36 +143,51 @@
 
                 <div class="mt-4">
                     <!--Staff Instructions -->
-                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->invoice)
-                    <x-alert-instruction 
-                        message="Please upload the Invoice to the booking"
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && !$booking->invoices->first())
+                    <x-alert-instruction
+                        message="Please upload all Invoice related to this booking"
                         color="red"
                     />
                     @endif
-                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->container_load_list)
-                    <x-alert-instruction 
-                        message="Please upload the Container Load List to the booking"
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && !$booking->invoices->every(function($invoice) { return $invoice->status == 'Paid'; }))
+                    <x-alert-instruction
+                        message="Please upload payment slip for all the invoices"
                         color="red"
                     />
                     @endif
-                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->towing_certificate)
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && !$booking->relatedDocuments->where('document_name', 'Manifest')->first())
                     <x-alert-instruction 
-                        message="Please upload the Towing Certificate to the booking"
+                        message="Please upload the Manifest"
                         color="red"
                     />
                     @endif
-                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->vendor_invoice)
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && !$booking->relatedDocuments->where('document_name', 'Container Load List')->first())
                     <x-alert-instruction 
-                        message="Please upload the Vendor Invoice to the booking"
+                        message="Please upload the Container Load List"
                         color="red"
                     />
                     @endif
-                    @if($booking->status == 5 && auth()->user()->role != 'customer' && !$booking->notice_of_arrival)
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && !$booking->relatedDocuments->where('document_name', 'Towing Certificate')->first())
                     <x-alert-instruction 
-                        message="Please upload the Notice of Arrival"
+                        message="Please upload the Towing Certificate"
                         color="red"
                     />
                     @endif
+                    @if($booking->status == 6 && auth()->user()->role != 'customer' && (!$booking->relatedDocuments->where('document_name', 'Vendor Invoice CVS')->first() ||
+                        !$booking->relatedDocuments->where('document_name', 'Vendor Invoice MRN')->first() ||
+                        !$booking->relatedDocuments->where('document_name', 'Vendor Invoice Northsea')->first()))
+                    <x-alert-instruction 
+                        message="Please upload all Vendor Invoice (CVS, MRN, Northsea)"
+                        color="red"
+                    />
+                    @endif
+                    @if($booking->status == 5 && auth()->user()->role != 'customer' && !$booking->relatedDocuments->where('document_name', 'Notice of Arrival')->first())
+                    <x-alert-instruction 
+                        message="Please upload the Notice of Arrival to mark the booking as arrived"
+                        color="red"
+                    />
+                    @endif
+
 
                     <!-- Success Message -->
                     @if (session('success'))
@@ -703,7 +718,6 @@
                                         <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
                                         <option value="Container Load List" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
                                         <option value="Towing Certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
-                                        <option value="Vendor Invoice" {{ old('document_type') == 'vendor_invoice' ? 'selected' : '' }}>Vendor Invoice</option>
                                         <option value="Notice of Arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
                                         <option value="Vendor Invoice CVS" {{ old('document_type') == 'vendor_invoice_cvs' ? 'selected' : '' }}>Vendor Invoice CVS</option>
                                         <option value="Vendor Invoice MRN" {{ old('document_type') == 'vendor_invoice_mrn' ? 'selected' : '' }}>Vendor Invoice MRN</option>
@@ -941,27 +955,17 @@
                             
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
-                                @if($booking->invoice && $booking->container_load_list && $booking->towing_certificate && $booking->vendor_invoice)
-                                    <div class="relative">
-                                        <button type="button"
-                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                                bg-blue-600 text-white hover:bg-blue-700">
-                                            Sailing
-                                        </button>
-                                    </div>
-                                @else
-                                    <div class="relative">
-                                        <button type="button"
-                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                                bg-gray-300 text-gray-500 cursor-not-allowed">
-                                    Sailing
-                                    </div>
-                                @endif
+                                <div class="relative">
+                                    <button type="button"
+                                        onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                            bg-blue-600 text-white hover:bg-blue-700">
+                                        Sailing
+                                    </button>
+                                </div>
                             @elseif($booking->status == $status::SAILING && auth()->user()->role != 'customer')
                             <!-- Arrival Button -->
-                                @if($booking->notice_of_arrival)
+                                @if($booking->relatedDocuments->where('document_name', 'Notice of Arrival')->first())
                                 <div class="relative">
                                     <button type="button"
                                         onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
@@ -973,31 +977,37 @@
                                 @else
                                     <div class="relative">
                                         <button type="button"
-                                            onclick="document.getElementById('arrival-confirmation-modal').classList.remove('hidden')"
                                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                                 bg-gray-300 text-gray-500 cursor-not-allowed">
                                             Arrived
                                         </button>
                                     </div>
                                 @endif
-                            @elseif($booking->status == $status::ARRIVED && auth()->user()->role != 'customer')
+                            @elseif($booking->status == 6 && auth()->user()->role != 'customer')
                             <!-- Completed Button -->
-                                @if($booking->invoice->status == 'Paid')
+                                @if($booking->invoices->first() &&
+                                    $booking->invoices->every(function($invoice) { return $invoice->status == 'Paid'; }) &&
+                                    $booking->relatedDocuments->where('document_name', 'Manifest')->first() &&
+                                    $booking->relatedDocuments->where('document_name', 'Container Load List')->first() &&
+                                    $booking->relatedDocuments->where('document_name', 'Towing Certificate')->first() &&
+                                    $booking->relatedDocuments->where('document_name', 'Vendor Invoice CVS')->first() &&
+                                    $booking->relatedDocuments->where('document_name', 'Vendor Invoice MRN')->first() &&
+                                    $booking->relatedDocuments->where('document_name', 'Vendor Invoice Northsea')->first()
+                                )
                                 <div class="relative">
                                     <button type="button"
                                         onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
                                         class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                             bg-blue-600 text-white hover:bg-blue-700">
-                                        Completed
+                                        Complete
                                     </button>
                                 </div>
                                 @else
                                     <div class="relative">
                                         <button type="button"
-                                            onclick="document.getElementById('completed-confirmation-modal').classList.remove('hidden')"
                                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
                                                 bg-gray-300 text-gray-500 cursor-not-allowed">
-                                            Completed
+                                            Complete
                                         </button>
                                     </div>
                                 @endif

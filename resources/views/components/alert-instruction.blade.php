@@ -35,7 +35,7 @@ $colorClasses = [
 $currentColor = $colorClasses[$color] ?? $colorClasses['yellow'];
 @endphp
 
-<div class="border-l-4 {{ $currentColor['border'] }} {{ $currentColor['bg'] }} p-4">
+<div class="border-l-4 {{ $currentColor['border'] }} {{ $currentColor['bg'] }} px-4 py-2">
     <div class="flex">
         <div class="shrink-0">
             <svg class="size-5 {{ $currentColor['icon'] }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
