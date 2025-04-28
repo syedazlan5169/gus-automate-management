@@ -8,6 +8,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ShippingRouteController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\RelatedDocumentController;
 
 Route::redirect('/', '/login');
 
@@ -37,8 +38,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/booking/{booking}/completed', [BookingController::class, 'completed'])->name('booking.completed');
         Route::get('/booking/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
         Route::delete('/booking/{booking}/delete', [BookingController::class, 'destroy'])->name('booking.delete');
-        Route::post('/bookings/{booking}/upload-document', [BookingController::class, 'uploadDocument'])->name('booking.upload-document');
-        Route::get('/bookings/{booking}/download-document/{type}', [BookingController::class, 'downloadDocument'])->name('documents.download');
+
+        // Related Document routes
+        Route::post('/booking/{booking}/related-document/upload', [RelatedDocumentController::class, 'store'])->name('related-document.upload');
+        Route::delete('/booking/{booking}/related-document/{document}/delete', [RelatedDocumentController::class, 'destroy'])->name('related-document.delete');
+        Route::get('/booking/{booking}/related-document/{document}/download', [RelatedDocumentController::class, 'download'])->name('related-document.download');
+
 
         // Invoice routes
         Route::post('booking/{booking}/invoice/submit', [InvoiceController::class, 'store'])->name('invoice.submit');
@@ -59,7 +64,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
         Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])->name('shipping-instructions.update');
         Route::get('shipping-instructions/{shippingInstruction}/generate-bl', [ShippingInstructionController::class, 'generateBL'])->name('shipping-instructions.generate-bl');
-        Route::get('shipping-instructions/{shippingInstruction}/generate-manifest', [ShippingInstructionController::class, 'generateManifest'])->name('shipping-instructions.generate-manifest');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
 

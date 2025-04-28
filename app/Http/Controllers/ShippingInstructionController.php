@@ -176,7 +176,7 @@ class ShippingInstructionController extends Controller
     }
 
     // Generate Manifest for a shipping instruction
-    public function generateManifest(ShippingInstruction $shippingInstruction)
+    /*public function generateManifest(ShippingInstruction $shippingInstruction)
     {
         try {
             // Load necessary relationships
@@ -214,7 +214,7 @@ class ShippingInstructionController extends Controller
             \Log::error('Manifest generation failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to generate Manifest. Please try again.');
         }
-    }
+    }*/
 
     // Display the specified shipping instruction.
     public function show(ShippingInstruction $shippingInstruction)

@@ -60,5 +60,9 @@ class Booking extends Model
         return $this->hasOne(Invoice::class)->latestOfMany();
     }
 
+    public function relatedDocuments()
+    {
+        return $this->hasMany(RelatedDocument::class);
+    }
    
 }

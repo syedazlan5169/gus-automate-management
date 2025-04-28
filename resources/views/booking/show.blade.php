@@ -174,14 +174,6 @@
                     />
                     @endif
 
-                    <!-- Customer Instructions -->
-                    @if($booking->status >= 4 && auth()->user()->role == 'customer' && $booking->invoice && !$booking->invoice->payment)
-                    <x-alert-instruction 
-                        message="Please upload the Receipt of Payment"
-                        color="red"
-                    />
-                    @endif
-                    
                     <!-- Success Message -->
                     @if (session('success'))
                         <x-alert-success :message="session('success')" />
@@ -456,10 +448,6 @@
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download BL
                                             </a>
-                                            <a href="{{ route('shipping-instructions.generate-manifest', $si) }}"
-                                                class="ml-4 text-green-600 hover:text-green-900">
-                                                Download Manifest
-                                            </a>
                                             @endif
                                             @if($booking->status < 4)
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
@@ -497,7 +485,7 @@
                                     @csrf
                                     <!-- Invoice Actions -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                        <div>
+                                        <div class="col-span-1">
                                             <x-input-label for="invoice_name_select" :value="__('Invoice Type')" />
                                             <select id="invoice_name_select" 
                                                 name="invoice_name_select" 
@@ -511,14 +499,14 @@
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <div>
+                                        <div class="col-span-2">
                                             <x-input-label for="invoice_file" :value="__('Invoice File')" />
                                             <div class="flex items-center gap-2">
                                                 <input type="file" 
                                                     id="invoice_file" 
                                                     name="invoice_file" 
                                                     class="mt-1 block w-full text-sm text-gray-500
-                                                        file:mr-4 file:py-2 file:px-4
+                                                        file:file:py-2 file:px-2
                                                         file:rounded-md file:border-0
                                                         file:text-sm file:font-semibold
                                                         file:bg-indigo-50 file:text-indigo-700
@@ -526,7 +514,7 @@
                                                 <button type="button"
                                                     x-show="invoiceType === 'Revenue' || invoiceType === 'Recovery Charge'"
                                                     onclick="extractInvoiceData()"
-                                                    class="mt-1 inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                                    class="mt-1 inline-flex items-center justify-end gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                                     </svg>
@@ -563,7 +551,7 @@
                                             @enderror
                                         </div>
                                         <div>
-                                            <x-input-label for="invoice_amount" :value="__('Invoice Amount')" />
+                                            <x-input-label for="invoice_amount" :value="__('Amount (MYR)')" />
                                             <div class="relative mt-1">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-gray-500 sm:text-sm">RM</span>
@@ -583,7 +571,7 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <x-input-label for="invoice_amount_usd" :value="__('Invoice Amount (USD)')" />
+                                            <x-input-label for="invoice_amount_usd" :value="__('Amount (USD)')" />
                                             <div class="relative mt-1">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-gray-500 sm:text-sm">USD</span>
@@ -692,7 +680,7 @@
 
                     <!-- Documents -->
                     @if($booking->status >= 4)
-                    <div class="bg-gray-50 p-4 rounded-lg">
+                    <div x-data="{ documentType: '' }" class="bg-gray-50 p-4 rounded-lg">
                         <div class="sm:flex sm:items-center mb-4">
                             <div class="sm:flex-auto">
                                 <div class="flex items-center gap-3">
@@ -703,28 +691,35 @@
 
                         <!-- Document Upload Form -->
                         @if(auth()->user()->role != 'customer')
-                        <form action="{{ route('booking.upload-document', $booking) }}" method="POST" enctype="multipart/form-data" class="space-y-4 mb-6">
+                        <form action="{{ route('related-document.upload', $booking) }}" method="POST" enctype="multipart/form-data" class="space-y-4 mb-6">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <x-input-label for="document_type" :value="__('Document Type')" />
-                                    <select id="document_type" 
-                                        name="document_type" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <x-input-label for="document_name_select" :value="__('Document Type')" />
+                                    <select id="document_name_select" 
+                                        name="document_name_select" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" x-model="documentType">
                                         <option value="">Select Document Type</option>
-                                        <option value="container_load_list" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
-                                        <option value="towing_certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
-                                        <option value="vendor_invoice" {{ old('document_type') == 'vendor_invoice' ? 'selected' : '' }}>Vendor Invoice</option>
-                                        <option value="notice_of_arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
+                                        <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
+                                        <option value="Container Load List" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
+                                        <option value="Towing Certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
+                                        <option value="Vendor Invoice" {{ old('document_type') == 'vendor_invoice' ? 'selected' : '' }}>Vendor Invoice</option>
+                                        <option value="Notice of Arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
+                                        <option value="Vendor Invoice CVS" {{ old('document_type') == 'vendor_invoice_cvs' ? 'selected' : '' }}>Vendor Invoice CVS</option>
+                                        <option value="Vendor Invoice MRN" {{ old('document_type') == 'vendor_invoice_mrn' ? 'selected' : '' }}>Vendor Invoice MRN</option>
+                                        <option value="Vendor Invoice Northsea" {{ old('document_type') == 'vendor_invoice_northsea' ? 'selected' : '' }}>Vendor Invoice Northsea</option>
+                                        <option value="Credit Note" {{ old('document_type') == 'credit_note' ? 'selected' : '' }}>Credit Note</option>
+                                        <option value="Store Charges" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Store Charges</option>
+                                        <option value="Other" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Other</option>
                                     </select>
                                     @error('document_type')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <x-input-label for="document" :value="__('Document File')" />
+                                    <x-input-label for="document_file" :value="__('Document File')" />
                                     <input type="file" 
-                                        id="document" 
+                                        id="document_file" 
                                         name="document_file" 
                                         class="mt-1 block w-full text-sm text-gray-500
                                             file:mr-4 file:py-2 file:px-4
@@ -737,7 +732,57 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="flex justify-end">
+
+                            <!-- Document Information -->
+                            <div class="grid grid-cols-3 gap-6">
+                                <div x-show="documentType === 'Other'">
+                                    <x-input-label for="document_name" :value="__('Document Name')" />
+                                    <x-text-input id="document_name" class="block mt-1 w-full" type="text" name="document_name" :value="old('document_name')" />
+                                    @error('document_name')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div x-show="documentType === 'Other' ||
+                                             documentType === 'Vendor Invoice' ||
+                                             documentType === 'Vendor Invoice CVS' ||
+                                             documentType === 'Vendor Invoice MRN' ||
+                                             documentType === 'Vendor Invoice Northsea' ||
+                                             documentType === 'Credit Note' ||
+                                             documentType === 'Store Charges'">
+                                    <x-input-label for="document_number" :value="__('Document Number')" />
+                                    <x-text-input id="document_number" class="block mt-1 w-full" type="text" name="document_number" :value="old('document_number')" />
+                                    @error('document_number')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div x-show="documentType === 'Other' ||
+                                             documentType === 'Vendor Invoice' ||
+                                             documentType === 'Vendor Invoice CVS' ||
+                                             documentType === 'Vendor Invoice MRN' ||
+                                             documentType === 'Vendor Invoice Northsea' ||
+                                             documentType === 'Credit Note' ||
+                                             documentType === 'Store Charges'">
+                                    <x-input-label for="invoice_amount" :value="__('Amount (MYR)')" />
+                                    <div class="relative mt-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                            <span class="text-gray-500 sm:text-sm">RM</span>
+                                        </div>
+                                        <x-text-input 
+                                            id="invoice_amount" 
+                                            class="block w-full pl-12" 
+                                            type="number" 
+                                            step="0.01" 
+                                            name="invoice_amount" 
+                                            :value="old('invoice_amount')" 
+                                            placeholder="0.00"
+                                        />
+                                        @error('invoice_amount')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                    <div class="flex justify-end">
                                 <x-primary-button>
                                     {{ __('Upload Document') }}
                                 </x-primary-button>
@@ -745,98 +790,59 @@
                         </form>
                         @endif
 
-                        <div class="space-y-4">
-                            <!-- Container Load List -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">Container Load List</span>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    @if($booking->container_load_list)
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <a href="{{ route('documents.download', ['type' => 'container_load_list', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </div>
-
-
-                            <!-- Towing Certificate -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">Towing Certificate</span>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    @if($booking->towing_certificate)
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <a href="{{ route('documents.download', ['type' => 'towing_certificate', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </div>
-
-                            @if(auth()->user()->role != 'customer')
-                            <!-- Vendor Invoice -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">Vendor Invoice</span>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    @if($booking->vendor_invoice)
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <a href="{{ route('documents.download', ['type' => 'vendor_invoice', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    @endif
+                        <!-- List of Uploaded Documents -->
+                        @if($booking->relatedDocuments && $booking->relatedDocuments->count() > 0)
+                        <div class="mt-8">
+                                <h4 class="text-lg font-medium text-gray-900 mb-4">Uploaded Documents</h4>
+                                <div class="overflow-x-auto pb-12">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document Name</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach($booking->relatedDocuments as $document)
+                                                @php
+                                                    // For customers, only show specific document types
+                                                    $showDocument = true;
+                                                    if (auth()->user()->role == 'customer') {
+                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival'];
+                                                        $showDocument = in_array($document->document_name, $allowedTypes);
+                                                    }
+                                                @endphp
+                                                
+                                                @if($showDocument)
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $document->document_name ?? 'N/A' }}</td>
+                                                    
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                        <div class="relative inline-block text-left">
+                                                            <a href="{{ route('related-document.download', [$booking, $document]) }}" class="text-indigo-600 hover:text-indigo-900 inline-flex items-center">
+                                                                Download
+                                                            </a>
+                                                        </div>
+                                                        @if(auth()->user()->role != 'customer')
+                                                            <form action="{{ route('related-document.delete', [$booking, $document]) }}" method="POST" class="inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this document?')">Delete</button>
+                                                            </form>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                @endif
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
+                            @else
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800">No documents uploaded yet.</h3>
+                                </div>
                             @endif
-
-                            <!-- Notice of Arrival -->
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">Notice of Arrival</span>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    @if($booking->notice_of_arrival)
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <a href="{{ route('documents.download', ['type' => 'notice_of_arrival', 'booking' => $booking]) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Download</a>
-                                    @else
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-600">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                     @endif
