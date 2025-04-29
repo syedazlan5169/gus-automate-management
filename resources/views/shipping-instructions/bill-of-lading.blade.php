@@ -10,6 +10,7 @@
     $allContainers = collect();
     foreach ($containersByType as $type => $group) {
         foreach ($group['containers'] as $container) {
+            $container['container_type'] = $type;
             $allContainers->push($container);
         }
     }
@@ -147,7 +148,7 @@
             <tr>
                 <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 40%;">
                     @foreach ($chunk as $container)
-                        {{ $container['container_number'] }} / {{ $container['seal_number'] }}<br>
+                        {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
