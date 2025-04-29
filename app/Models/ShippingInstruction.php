@@ -14,6 +14,12 @@ class ShippingInstruction extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'shipper_address' => 'array',
+        'consignee_address' => 'array',
+        'notify_party_address' => 'array',
+    ];
+
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);

@@ -109,10 +109,22 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_shipper">Shipper Contact</x-input-label>
+                    <x-input-label for="shipper_contact">Shipper Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_shipper" id="contact_shipper" value="{{ $shippingInstruction->contact_shipper }}" required/>
+                      <x-text-input type="text" name="shipper_contact" id="shipper_contact" value="{{ $shippingInstruction->shipper_contact }}" required/>
                     </div>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-full">
+                  <x-input-label for="shipper_address">Shipper Address</x-input-label>
+                  <div class="mt-2 border rounded-md overflow-hidden">
+                      <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                          <input type="text" name="shipper_address[line1]" id="shipper_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->shipper_address['line1'] }}" required />
+                          <input type="text" name="shipper_address[line2]" id="shipper_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->shipper_address['line2'] }}" />
+                          <input type="text" name="shipper_address[line3]" id="shipper_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->shipper_address['line3'] }}" />
+                          <input type="text" name="shipper_address[line4]" id="shipper_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->shipper_address['line4'] }}" />
+                      </div>
                   </div>
                 </div>
 
@@ -127,10 +139,22 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_consignee">Consignee Contact</x-input-label>
+                    <x-input-label for="consignee_contact">Consignee Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_consignee" id="contact_consignee" value="{{ $shippingInstruction->contact_consignee }}" required/>
+                      <x-text-input type="text" name="consignee_contact" id="consignee_contact" value="{{ $shippingInstruction->consignee_contact }}" required/>
                     </div>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-full">
+                  <x-input-label for="consignee_address">Consignee Address</x-input-label>
+                  <div class="mt-2 border rounded-md overflow-hidden">
+                      <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                          <input type="text" name="consignee_address[line1]" id="consignee_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->consignee_address['line1'] }}" required />
+                          <input type="text" name="consignee_address[line2]" id="consignee_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->consignee_address['line2'] }}" />
+                          <input type="text" name="consignee_address[line3]" id="consignee_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->consignee_address['line3'] }}" />
+                          <input type="text" name="consignee_address[line4]" id="consignee_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->consignee_address['line4'] }}" />
+                      </div>
                   </div>
                 </div>
 
@@ -153,9 +177,13 @@
 
                   <div class="sm:col-span-full">
                     <x-input-label for="notify_party_address">Notify Party Address</x-input-label>
-                    <div class="mt-2">
-                      <textarea rows="3" name="notify_party_address" id="notify_party_address"
-                        class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">{{ $shippingInstruction->notify_party_address }}</textarea>
+                    <div class="mt-2 border rounded-md overflow-hidden">
+                        <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                            <input type="text" name="notify_party_address[line1]" id="notify_party_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->notify_party_address['line1'] }}" required />
+                            <input type="text" name="notify_party_address[line2]" id="notify_party_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->notify_party_address['line2'] }}" />
+                            <input type="text" name="notify_party_address[line3]" id="notify_party_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->notify_party_address['line3'] }}" />
+                            <input type="text" name="notify_party_address[line4]" id="notify_party_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" value="{{ $shippingInstruction->notify_party_address['line4'] }}" />
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -292,7 +320,7 @@
                                     </h3>
                                 </div>
                                 <div class="px-4 py-3">
-                                    <div id="container-group-{{ $containers->first()->cargo_id }}" class="space-y-3">
+                                    <div id="container-group-{{ $containers->first()->cargo_id }}" class="space-y-3 max-h-[400px] overflow-y-auto">
                                         @foreach($containers as $container)
                                         <div class="flex items-center gap-x-4 w-full">
                                             <input type="hidden" name="containers[{{ $container->cargo_id }}][{{ $loop->index }}][container_type]" value="{{ $container->cargo_id }}">
@@ -521,9 +549,9 @@ document.querySelector('form').addEventListener('submit', function(e) {
     const requiredFields = [
         'box_operator',
         'shipper',
-        'contact_shipper',
+        'shipper_contact',
         'consignee',
-        'contact_consignee',
+        'consignee_contact',
         'notify_party',
         'notify_party_contact',
         'notify_party_address',

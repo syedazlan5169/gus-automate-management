@@ -128,10 +128,22 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_shipper">Shipper Contact</x-input-label>
+                    <x-input-label for="shipper_contact">Shipper Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_shipper" id="contact_shipper" required/>
+                      <x-text-input type="text" name="shipper_contact" id="shipper_contact" required/>
                     </div>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-full">
+                  <x-input-label for="shipper_address">Shipper Address</x-input-label>
+                  <div class="mt-2 border rounded-md overflow-hidden">
+                      <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                          <input type="text" name="shipper_address[line1]" id="shipper_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" required />
+                          <input type="text" name="shipper_address[line2]" id="shipper_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                          <input type="text" name="shipper_address[line3]" id="shipper_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                          <input type="text" name="shipper_address[line4]" id="shipper_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                      </div>
                   </div>
                 </div>
 
@@ -146,10 +158,22 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_consignee">Consignee Contact</x-input-label>
+                    <x-input-label for="consignee_contact">Consignee Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_consignee" id="contact_consignee" required/>
+                      <x-text-input type="text" name="consignee_contact" id="consignee_contact" required/>
                     </div>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-full">
+                  <x-input-label for="consignee_address">Consignee Address</x-input-label>
+                  <div class="mt-2 border rounded-md overflow-hidden">
+                      <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                          <input type="text" name="consignee_address[line1]" id="consignee_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" required />
+                          <input type="text" name="consignee_address[line2]" id="consignee_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                          <input type="text" name="consignee_address[line3]" id="consignee_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                          <input type="text" name="consignee_address[line4]" id="consignee_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                      </div>
                   </div>
                 </div>
 
@@ -172,9 +196,13 @@
 
                   <div class="sm:col-span-full">
                     <x-input-label for="notify_party_address">Notify Party Address</x-input-label>
-                    <div class="mt-2">
-                      <textarea rows="3" name="notify_party_address" id="notify_party_address"
-                        class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"></textarea>
+                    <div class="mt-2 border rounded-md overflow-hidden">
+                        <div class="flex flex-col w-full rounded-md bg-white outline outline-1 -outline-offset-1 outline-gray-300">
+                            <input type="text" name="notify_party_address[line1]" id="notify_party_address_line1" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" required />
+                            <input type="text" name="notify_party_address[line2]" id="notify_party_address_line2" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                            <input type="text" name="notify_party_address[line3]" id="notify_party_address_line3" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                            <input type="text" name="notify_party_address[line4]" id="notify_party_address_line4" class="rounded-none border-0 focus:ring-0 focus:outline-none shadow-none text-sm" />
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -423,16 +451,40 @@ function handleFileUpload() {
                 if (data.shippingData.shipper) {
                     document.getElementById('shipper').value = data.shippingData.shipper;
                 }
-                if (data.shippingData.contact_shipper) {
-                    document.getElementById('contact_shipper').value = data.shippingData.contact_shipper;
+                if (data.shippingData.shipper_contact) {
+                    document.getElementById('shipper_contact').value = data.shippingData.shipper_contact;
                 }
-                
+                if (data.shippingData.shipper_address_line1) {
+                    document.getElementById('shipper_address_line1').value = data.shippingData.shipper_address_line1;
+                }
+                if (data.shippingData.shipper_address_line2) {
+                    document.getElementById('shipper_address_line2').value = data.shippingData.shipper_address_line2;
+                }
+                if (data.shippingData.shipper_address_line3) {
+                    document.getElementById('shipper_address_line3').value = data.shippingData.shipper_address_line3;
+                }
+                if (data.shippingData.shipper_address_line4) {
+                    document.getElementById('shipper_address_line4').value = data.shippingData.shipper_address_line4;
+                }
+               
                 // Consignee Information
                 if (data.shippingData.consignee) {
                     document.getElementById('consignee').value = data.shippingData.consignee;
                 }
-                if (data.shippingData.contact_consignee) {
-                    document.getElementById('contact_consignee').value = data.shippingData.contact_consignee;
+                if (data.shippingData.consignee_contact) {
+                    document.getElementById('consignee_contact').value = data.shippingData.consignee_contact;
+                }
+                if (data.shippingData.consignee_address_line1) {
+                    document.getElementById('consignee_address_line1').value = data.shippingData.consignee_address_line1;
+                }
+                if (data.shippingData.consignee_address_line2) {
+                    document.getElementById('consignee_address_line2').value = data.shippingData.consignee_address_line2;
+                }
+                if (data.shippingData.consignee_address_line3) {
+                    document.getElementById('consignee_address_line3').value = data.shippingData.consignee_address_line3;
+                }
+                if (data.shippingData.consignee_address_line4) {
+                    document.getElementById('consignee_address_line4').value = data.shippingData.consignee_address_line4;
                 }
                 
                 // Notify Party Information
@@ -442,8 +494,17 @@ function handleFileUpload() {
                 if (data.shippingData.notify_party_contact) {
                     document.getElementById('notify_party_contact').value = data.shippingData.notify_party_contact;
                 }
-                if (data.shippingData.notify_party_address) {
-                    document.getElementById('notify_party_address').value = data.shippingData.notify_party_address;
+                if (data.shippingData.notify_party_address_line1) {
+                    document.getElementById('notify_party_address_line1').value = data.shippingData.notify_party_address_line1;
+                }
+                if (data.shippingData.notify_party_address_line2) {
+                    document.getElementById('notify_party_address_line2').value = data.shippingData.notify_party_address_line2;
+                }
+                if (data.shippingData.notify_party_address_line3) {
+                    document.getElementById('notify_party_address_line3').value = data.shippingData.notify_party_address_line3;
+                }
+                if (data.shippingData.notify_party_address_line4) {
+                    document.getElementById('notify_party_address_line4').value = data.shippingData.notify_party_address_line4;
                 }
                 
                 // Cargo Details
@@ -659,16 +720,18 @@ document.querySelector = ((function(original) {
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Basic validation - removed container_type from required fields
+    // Basic validation 
     const requiredFields = [
         'box_operator',
         'shipper',
-        'contact_shipper',
+        'shipper_contact',
+        'shipper_address_line1',
         'consignee',
-        'contact_consignee',
+        'consignee_contact',
+        'consignee_address_line1',
         'notify_party',
         'notify_party_contact',
-        'notify_party_address',
+        'notify_party_address_line1',
         'cargo_description',
         'hs_code'
     ];

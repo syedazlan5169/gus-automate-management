@@ -55,12 +55,23 @@ class ShippingInstructionController extends Controller
             $validated = $request->validate([
                 'box_operator' => 'required|string|max:255',
                 'shipper' => 'required|string|max:255',
-                'contact_shipper' => 'required|string|max:255',
+                'shipper_contact' => 'required|string|max:255',
+                'shipper_address.line1' => 'required|string|max:255',
+                'shipper_address.line2' => 'nullable|string|max:255',
+                'shipper_address.line3' => 'nullable|string|max:255',
+                'shipper_address.line4' => 'nullable|string|max:255',
                 'consignee' => 'required|string|max:255',
-                'contact_consignee' => 'required|string|max:255',
+                'consignee_contact' => 'required|string|max:255',
+                'consignee_address.line1' => 'required|string|max:255',
+                'consignee_address.line2' => 'nullable|string|max:255',
+                'consignee_address.line3' => 'nullable|string|max:255',
+                'consignee_address.line4' => 'nullable|string|max:255',
                 'notify_party' => 'required|string|max:255',
                 'notify_party_contact' => 'required|string|max:255',
-                'notify_party_address' => 'required|string',
+                'notify_party_address.line1' => 'required|string|max:255',
+                'notify_party_address.line2' => 'nullable|string|max:255',
+                'notify_party_address.line3' => 'nullable|string|max:255',
+                'notify_party_address.line4' => 'nullable|string|max:255',
                 'cargo_description' => 'required|string|max:255',
                 'hs_code' => 'required|string|max:255',
                 'containers' => 'required|array',
@@ -71,18 +82,22 @@ class ShippingInstructionController extends Controller
 
             DB::beginTransaction();
 
-            // Generate sub booking number
+            // Generate sub booking number and bl number
             $siCount = $booking->shippingInstructions()->count() + 1;
             $subBookingNumber = $booking->booking_number . '-A' . str_pad($siCount, 3, '0', STR_PAD_LEFT);
+            $blNumber = $booking->voyage . '/4' . str_pad($siCount, 2, '0', STR_PAD_LEFT);
 
             // Create shipping instruction
             $shippingInstruction = $booking->shippingInstructions()->create([
                 'sub_booking_number' => $subBookingNumber,
+                'bl_number' => $blNumber,
                 'box_operator' => $validated['box_operator'],
                 'shipper' => $validated['shipper'],
-                'contact_shipper' => $validated['contact_shipper'],
+                'shipper_contact' => $validated['shipper_contact'],
+                'shipper_address' => $validated['shipper_address'],
                 'consignee' => $validated['consignee'],
-                'contact_consignee' => $validated['contact_consignee'],
+                'consignee_contact' => $validated['consignee_contact'],
+                'consignee_address' => $validated['consignee_address'],
                 'notify_party' => $validated['notify_party'],
                 'notify_party_contact' => $validated['notify_party_contact'],
                 'notify_party_address' => $validated['notify_party_address'],
@@ -167,7 +182,12 @@ class ShippingInstructionController extends Controller
             ));
 
             // Generate filename using booking number and SI number
-            $filename = "BL_{$shippingInstruction->sub_booking_number}.pdf";
+            // Replace / and \ with -
+            $blNumberSafe = str_replace(['/', '\\'], '-', $shippingInstruction->bl_number);
+
+            // Now use the safe version
+            $filename = "BL_{$blNumberSafe}.pdf";
+
 
             // Return the PDF for download
             return $pdf->download($filename);
@@ -239,12 +259,23 @@ class ShippingInstructionController extends Controller
             $validated = $request->validate([
                 'box_operator' => 'required|string|max:255',
                 'shipper' => 'required|string|max:255',
-                'contact_shipper' => 'required|string|max:255',
+                'shipper_contact' => 'required|string|max:255',
+                'shipper_address.line1' => 'required|string|max:255',
+                'shipper_address.line2' => 'nullable|string|max:255',
+                'shipper_address.line3' => 'nullable|string|max:255',
+                'shipper_address.line4' => 'nullable|string|max:255',
                 'consignee' => 'required|string|max:255',
-                'contact_consignee' => 'required|string|max:255',
+                'consignee_contact' => 'required|string|max:255',
+                'consignee_address.line1' => 'required|string|max:255',
+                'consignee_address.line2' => 'nullable|string|max:255',
+                'consignee_address.line3' => 'nullable|string|max:255',
+                'consignee_address.line4' => 'nullable|string|max:255',
                 'notify_party' => 'required|string|max:255',
                 'notify_party_contact' => 'required|string|max:255',
-                'notify_party_address' => 'required|string',
+                'notify_party_address.line1' => 'required|string|max:255',
+                'notify_party_address.line2' => 'nullable|string|max:255',
+                'notify_party_address.line3' => 'nullable|string|max:255',
+                'notify_party_address.line4' => 'nullable|string|max:255',
                 'cargo_description' => 'required|string|max:255',
                 'hs_code' => 'required|string|max:255',
                 'containers' => 'required|array',
@@ -256,9 +287,11 @@ class ShippingInstructionController extends Controller
             $shippingInstruction->update([
                 'box_operator' => $validated['box_operator'],
                 'shipper' => $validated['shipper'],
-                'contact_shipper' => $validated['contact_shipper'],
+                'shipper_contact' => $validated['shipper_contact'],
+                'shipper_address' => $validated['shipper_address'],
                 'consignee' => $validated['consignee'],
-                'contact_consignee' => $validated['contact_consignee'],
+                'consignee_contact' => $validated['consignee_contact'],
+                'consignee_address' => $validated['consignee_address'],
                 'notify_party' => $validated['notify_party'],
                 'notify_party_contact' => $validated['notify_party_contact'],
                 'notify_party_address' => $validated['notify_party_address'],
@@ -405,7 +438,7 @@ class ShippingInstructionController extends Controller
         try {
             // Validate the request
             $validator = Validator::make($request->all(), [
-                'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+                'file' => 'required|file|mimes:xlsx,xls,csv',
             ]);
 
             if ($validator->fails()) {
@@ -414,7 +447,7 @@ class ShippingInstructionController extends Controller
                 ]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
+                    'message' => $validator->errors()->first(),
                     'errors' => $validator->errors()
                 ], 422);
             }
@@ -438,21 +471,19 @@ class ShippingInstructionController extends Controller
 
             // Check if the file is a template by verifying cell values
             $expectedHeaders = [
-                0 => 'Box Operator',
-                1 => 'Shipper Name',
-                2 => 'Shipper Contact',
-                3 => 'Consignee Name',
-                4 => 'Consignee Contact',
-                5 => 'Notify Party Name',
-                6 => 'Notify Party Contact',
-                7 => 'Notify Party Address',
-                8 => 'Cargo Description',
-                9 => 'HS Code'
+                'B2' => 'BOX OPERATOR',
+                'B4' => 'SHIPPER NAME',
+                'B5' => 'SHIPPER CONTACT',
+                'B6' => 'SHIPPER ADDRESS',
+                'B11' => 'CONSIGNEE NAME',
+                'B12' => 'CONSIGNEE CONTACT',
+                'B13' => 'CONSIGNEE ADDRESS'
             ];
             
             $isTemplate = true;
-            foreach ($expectedHeaders as $rowIndex => $expectedValue) {
-                if (!isset($rows[$rowIndex][0]) || trim($rows[$rowIndex][0]) !== $expectedValue) {
+            foreach ($expectedHeaders as $cell => $expectedValue) {
+                $cellValue = $worksheet->getCell($cell)->getValue();
+                if (empty($cellValue) || trim(strtoupper($cellValue)) !== $expectedValue) {
                     $isTemplate = false;
                     break;
                 }
@@ -467,36 +498,49 @@ class ShippingInstructionController extends Controller
 
             // Extract shipping instruction data based on the template structure
             $shippingData = [
-                'box_operator' => trim($rows[0][1] ?? ''),
-                'shipper' => trim($rows[1][1] ?? ''),
-                'contact_shipper' => trim($rows[2][1] ?? ''),
-                'consignee' => trim($rows[3][1] ?? ''),
-                'contact_consignee' => trim($rows[4][1] ?? ''),
-                'notify_party' => trim($rows[5][1] ?? ''),
-                'notify_party_contact' => trim($rows[6][1] ?? ''),
-                'notify_party_address' => trim($rows[7][1] ?? ''),
-                'cargo_description' => trim($rows[8][1] ?? ''),
-                'hs_code' => trim($rows[9][1] ?? ''),
+                'box_operator' => trim($worksheet->getCell('C2')->getValue() ?? ''),
+                'shipper' => trim($worksheet->getCell('C4')->getValue() ?? ''),
+                'shipper_contact' => trim($worksheet->getCell('C5')->getValue() ?? ''),
+                'shipper_address_line1' => trim($worksheet->getCell('C6')->getValue() ?? ''),
+                'shipper_address_line2' => trim($worksheet->getCell('C7')->getValue() ?? ''),
+                'shipper_address_line3' => trim($worksheet->getCell('C8')->getValue() ?? ''),
+                'shipper_address_line4' => trim($worksheet->getCell('C9')->getValue() ?? ''),
+                'consignee' => trim($worksheet->getCell('C11')->getValue() ?? ''),
+                'consignee_contact' => trim($worksheet->getCell('C12')->getValue() ?? ''),
+                'consignee_address_line1' => trim($worksheet->getCell('C13')->getValue() ?? ''),
+                'consignee_address_line2' => trim($worksheet->getCell('C14')->getValue() ?? ''),
+                'consignee_address_line3' => trim($worksheet->getCell('C15')->getValue() ?? ''),
+                'consignee_address_line4' => trim($worksheet->getCell('C16')->getValue() ?? ''),
+                'notify_party' => trim($worksheet->getCell('F11')->getValue() ?? ''),
+                'notify_party_contact' => trim($worksheet->getCell('F12')->getValue() ?? ''),
+                'notify_party_address_line1' => trim($worksheet->getCell('F13')->getValue() ?? ''),
+                'notify_party_address_line2' => trim($worksheet->getCell('F14')->getValue() ?? ''),
+                'notify_party_address_line3' => trim($worksheet->getCell('F15')->getValue() ?? ''),
+                'notify_party_address_line4' => trim($worksheet->getCell('F16')->getValue() ?? ''),
+                'cargo_description' => trim($worksheet->getCell('E19')->getValue() ?? ''),
+                'hs_code' => trim($worksheet->getCell('F19')->getValue() ?? '')
             ];
 
             \Log::info('Extracted shipping data', $shippingData);
 
-            // Extract container data starting from row 12
+            // Extract container data starting from row 19
             $containers = [];
-            for ($i = 12; $i < count($rows); $i++) {
-                $containerNumber = trim($rows[$i][0] ?? '');
-                $sealNumber = trim($rows[$i][1] ?? '');
-                $containerType = trim($rows[$i][2] ?? '20GP'); // Get container type from column 3
+            $row = 19;
+            
+            while (true) {
+                $containerNumber = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
+                $sealNumber = trim($worksheet->getCell('C' . $row)->getValue() ?? '');
+                $containerType = trim($worksheet->getCell('D' . $row)->getValue() ?? '');
                 
-                // Skip empty rows
-                if (empty($containerNumber) || empty($sealNumber)) {
-                    continue;
+                // Break if we find an empty container number
+                if (empty($containerNumber)) {
+                    break;
                 }
 
                 // Validate container number format (you can adjust this regex as needed)
                 if (!preg_match('/^[A-Z]{4}\d{7}$/', $containerNumber)) {
                     \Log::warning('Invalid container number format', [
-                        'row' => $i + 1,
+                        'row' => $row,
                         'container_number' => $containerNumber
                     ]);
                     continue;
@@ -507,6 +551,8 @@ class ShippingInstructionController extends Controller
                     'seal' => $sealNumber,
                     'type' => $containerType
                 ];
+                
+                $row++;
             }
 
             \Log::info('Extracted containers', [
@@ -539,7 +585,6 @@ class ShippingInstructionController extends Controller
             // Validate the request
             $validator = Validator::make($request->all(), [
                 'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
-                'container_type' => 'required'
             ]);
 
             if ($validator->fails()) {

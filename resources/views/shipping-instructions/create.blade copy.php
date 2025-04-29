@@ -84,9 +84,9 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_shipper">Shipper Contact</x-input-label>
+                    <x-input-label for="shipper_contact">Shipper Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_shipper" id="contact_shipper" required/>
+                      <x-text-input type="text" name="shipper_contact" id="shipper_contact" required/>
                     </div>
                   </div>
                 </div>
@@ -102,9 +102,9 @@
                   </div>
 
                   <div class="sm:col-span-3">
-                    <x-input-label for="contact_consignee">Consignee Contact</x-input-label>
+                    <x-input-label for="consignee_contact">Consignee Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="contact_consignee" id="contact_consignee" required/>
+                      <x-text-input type="text" name="consignee_contact" id="consignee_contact" required/>
                     </div>
                   </div>
                 </div>
@@ -648,9 +648,9 @@ document.querySelector('form').addEventListener('submit', function(e) {
     const requiredFields = [
         'box_operator',
         'shipper',
-        'contact_shipper',
+        'shipper_contact',
         'consignee',
-        'contact_consignee',
+        'consignee_contact',
         'notify_party',
         'notify_party_contact',
         'notify_party_address',

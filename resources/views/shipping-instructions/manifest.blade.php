@@ -87,14 +87,14 @@
             <td class="label">Shipper</td>
             <td>
                 {{ $shippingInstruction->shipper }}<br>
-                {{ $shippingInstruction->contact_shipper }}
+                {{ $shippingInstruction->shipper_contact }}
             </td>
         </tr>
         <tr>
             <td class="label">Consignee</td>
             <td>
                 {{ $shippingInstruction->consignee }}<br>
-                {{ $shippingInstruction->contact_consignee }}
+                {{ $shippingInstruction->consignee_contact }}
             </td>
         </tr>
         <tr>
