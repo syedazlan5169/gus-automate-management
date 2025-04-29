@@ -76,11 +76,10 @@ class BookingController extends Controller
             
             // Schedule
             'ets' => 'required|date|after:today',
-            //'eta' => 'required|date',
             
             // Cargo Details
             'container_type' => 'required|array',
-            'container_type.*' => 'required|string|in:20GP,40GP,40HC,20RF,40RF',
+            'container_type.*' => 'required|string',
             'container_count' => 'required|array',
             'container_count.*' => 'required|integer|min:1',
             'total_weight' => 'required|array',
@@ -102,6 +101,7 @@ class BookingController extends Controller
                 'pod' => $validated['pod'],
                 'place_of_delivery' => $validated['place_of_delivery'],
                 'ets' => $validated['ets'],
+                'delivery_terms' => 'Port to Port',
                 'user_id' => auth()->id(),
                 'status' => 1,
             ]);
@@ -170,9 +170,27 @@ class BookingController extends Controller
             'place_of_delivery' => 'sometimes|required|string|max:255',
             'ets' => 'sometimes|required|date',
             'eta' => 'sometimes|required|date|after:ets',
+            'delivery_terms' => 'sometimes|required|string|max:255',
+            'tug' => 'sometimes|required|string|max:255',
         ]);
 
         try {
+            // Check if voyage number is being updated
+            if (isset($validated['voyage']) && $validated['voyage'] !== $booking->voyage) {
+                // Check if the voyage number exists in any other booking
+                $duplicateVoyage = \App\Models\Booking::where('voyage', $validated['voyage'])
+                    ->where('id', '!=', $booking->id)
+                    ->exists();
+                
+                if ($duplicateVoyage) {
+                    // Add a warning message but still proceed with the update
+                    $booking->update($validated);
+                    return redirect()->route('booking.show', $booking)
+                        ->with('warning', 'This voyage number has been used in another booking.')
+                        ->with('success', 'Booking updated successfully.');
+                }
+            }
+            
             $booking->update($validated);
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');

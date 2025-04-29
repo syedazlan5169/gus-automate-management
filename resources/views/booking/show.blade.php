@@ -188,6 +188,10 @@
                     />
                     @endif
 
+                    <!-- Warning Message -->
+                    @if (session('warning'))
+                        <x-alert-warning :message="session('warning')" />
+                    @endif
 
                     <!-- Success Message -->
                     @if (session('success'))
@@ -256,9 +260,9 @@
                         </div>
                     </div>
 
-                    <!-- Vessel Information -->
+                    <!-- Shipping Information -->
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-lg font-medium mb-4">Vessel Information</h3>
+                        <h3 class="text-lg font-medium mb-4">Shipping Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Vessel Name</p>
@@ -275,6 +279,29 @@
                                 <p class="font-medium">
                                     @if (!empty($booking->voyage))
                                         {{ $booking->voyage }}
+                                        @if (session('warning'))
+                                            <p class="text-xs font-medium text-amber-800">{{ session('warning') }}</p>
+                                        @endif
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Tug</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->tug))
+                                        {{ $booking->tug }}
+                                    @else
+                                        <span class="italic text-red-500">Not set</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Delivery Terms</p>
+                                <p class="font-medium">
+                                    @if (!empty($booking->delivery_terms))
+                                        {{ $booking->delivery_terms }}
                                     @else
                                         <span class="italic text-red-500">Not set</span>
                                     @endif

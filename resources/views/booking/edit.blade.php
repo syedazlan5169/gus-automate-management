@@ -62,12 +62,29 @@
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
-
                                         <div class="sm:col-span-3">
                                             <x-input-label for="voyage" value="Voyage Number" />
                                             <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full"
                                                 value="{{ old('voyage', $booking->voyage) }}" required />
                                             @error('voyage')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                        <div class="sm:col-span-3">
+                                            <x-input-label for="tug" value="Tug" />
+                                            <x-text-input id="tug" name="tug" type="text" class="mt-1 block w-full" 
+                                                value="{{ old('tug', $booking->tug) }}" required />
+                                            @error('tug')
+                                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div class="sm:col-span-3">
+                                            <x-input-label for="delivery_terms" value="Delivery Terms" />
+                                            <x-text-input id="delivery_terms" name="delivery_terms" type="text" class="mt-1 block w-full"
+                                                value="{{ old('delivery_terms', $booking->delivery_terms) }}" required />
+                                            @error('delivery_terms')
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
