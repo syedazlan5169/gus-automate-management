@@ -490,6 +490,12 @@
                                                 class="ml-4 text-green-600 hover:text-green-900">
                                                 Download BL
                                             </a>
+                                            @if(auth()->user()->role != 'customer')
+                                                <a href="{{ route('shipping-instructions.generate-manifest', $si) }}"
+                                                    class="ml-4 text-green-600 hover:text-green-900">
+                                                    Download Manifest
+                                                </a>
+                                            @endif
                                             @endif
                                             @if($booking->status < 4)
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">

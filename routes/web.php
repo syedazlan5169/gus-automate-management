@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
         Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])->name('shipping-instructions.update');
         Route::get('shipping-instructions/{shippingInstruction}/generate-bl', [ShippingInstructionController::class, 'generateBL'])->name('shipping-instructions.generate-bl');
+        Route::get('shipping-instructions/{shippingInstruction}/generate-manifest', [ShippingInstructionController::class, 'generateManifest'])->name('shipping-instructions.generate-manifest');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
 

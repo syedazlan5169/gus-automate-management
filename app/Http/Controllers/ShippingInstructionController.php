@@ -199,7 +199,7 @@ class ShippingInstructionController extends Controller
     }
 
     // Generate Manifest for a shipping instruction
-    /*public function generateManifest(ShippingInstruction $shippingInstruction)
+    public function generateManifest(ShippingInstruction $shippingInstruction)
     {
         try {
             // Load necessary relationships
@@ -209,35 +209,44 @@ class ShippingInstructionController extends Controller
                 'cargos' // Load cargos to get container types
             ]);
 
-            // Group containers by type for the manifest
+            // Group containers by type for the BL
             $containersByType = $shippingInstruction->containers
                 ->groupBy('cargo.container_type') // Group by the cargo's container type
                 ->map(function ($containers) use ($shippingInstruction) {
                     return [
                         'count' => $containers->count(),
                         'total_weight' => $shippingInstruction->cargos->first()->total_weight,
-                        'containers' => $containers
-                            ->pluck('container_number')
-                            ->values()
+                        'containers' => $containers->map(function ($container) {
+                            return [
+                                'container_number' => $container->container_number,
+                                'seal_number' => $container->seal_number,
+                            ];
+                        })->values()
                     ];
                 });
-
+            
             // Generate PDF
             $pdf = PDF::loadView('shipping-instructions.manifest', compact(
                 'shippingInstruction',
                 'containersByType'
             ));
 
-            // Generate filename using booking number and SI number
-            $filename = "Manifest_{$shippingInstruction->sub_booking_number}.pdf";
+            // Generate filename using bl number
+            // Replace / and \ with -
+            $blNumberSafe = str_replace(['/', '\\'], '-', $shippingInstruction->bl_number);
+
+            // Now use the safe version
+            $filename = "Manifest_{$blNumberSafe}.pdf";
+
 
             // Return the PDF for download
             return $pdf->download($filename);
+
         } catch (\Exception $e) {
-            \Log::error('Manifest generation failed: ' . $e->getMessage());
+            \Log::error('Manifest Generation failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to generate Manifest. Please try again.');
         }
-    }*/
+    }
 
     // Display the specified shipping instruction.
     public function show(ShippingInstruction $shippingInstruction)
