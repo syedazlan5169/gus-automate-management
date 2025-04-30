@@ -862,7 +862,7 @@
                                                     // For customers, only show specific document types
                                                     $showDocument = true;
                                                     if (auth()->user()->role == 'customer') {
-                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival'];
+                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival', 'BL with Telex Release'];
                                                         $showDocument = in_array($document->document_name, $allowedTypes);
                                                     }
                                                 @endphp

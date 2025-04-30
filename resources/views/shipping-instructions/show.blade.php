@@ -91,9 +91,9 @@
                   <div class="mt-2">
                     <select id="box_operator" name="box_operator" 
                       class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                      <option value="MAERSK" {{ $shippingInstruction->box_operator === 'MAERSK' ? 'selected' : '' }}>MAERSK</option>
-                      <option value="CMA CGM" {{ $shippingInstruction->box_operator === 'CMA CGM' ? 'selected' : '' }}>CMA CGM</option>
-                      <option value="HAPPAG LLOYD" {{ $shippingInstruction->box_operator === 'HAPPAG LLOYD' ? 'selected' : '' }}>HAPPAG LLOYD</option>
+                      <option value="OOCL" {{ $shippingInstruction->box_operator === 'OOCL' ? 'selected' : '' }}>OOCL</option>
+                      <option value="EVERGREEN" {{ $shippingInstruction->box_operator === 'EVERGREEN' ? 'selected' : '' }}>EVERGREEN</option>
+                      <option value="NAVEGACION" {{ $shippingInstruction->box_operator === 'NAVEGACION' ? 'selected' : '' }}>NAVEGACION</option>
                     </select>
                   </div>
                 </div>
@@ -190,18 +190,32 @@
 
                 <!-- Cargo Details -->
                 <h2 class="text-base/7 font-semibold text-gray-900">Cargo Details</h2>
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                  <div class="sm:col-span-3">
+                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4">
+                  <div class="sm:col-span-1">
                     <x-input-label for="cargo_description">Cargo Description</x-input-label>
                     <div class="mt-2">
                       <x-text-input type="text" name="cargo_description" id="cargo_description" value="{{ $shippingInstruction->cargo_description }}" required/>
                     </div>
                   </div>
 
-                  <div class="sm:col-span-3">
+                  <div class="sm:col-span-1">
                     <x-input-label for="hs_code">HS Code</x-input-label>
                     <div class="mt-2">
                       <x-text-input type="text" name="hs_code" id="hs_code" value="{{ $shippingInstruction->hs_code }}" required/>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-1">
+                    <x-input-label for="gross_weight">Gross Weight</x-input-label>
+                    <div class="mt-2">
+                      <x-text-input type="text" name="gross_weight" id="gross_weight" value="{{ $shippingInstruction->gross_weight }}" required/>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-1">
+                    <x-input-label for="volume">Volume</x-input-label>
+                    <div class="mt-2">
+                      <x-text-input type="text" name="volume" id="volume" value="{{ $shippingInstruction->volume }}" />
                     </div>
                   </div>
                 </div>

@@ -165,12 +165,12 @@
                 </td>
                 <td style="border: 1px solid #000; vertical-align: top; padding: 8px; text-align: center; width: 15%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->cargos->sum('total_weight') }}<br>
+                        {{ $shippingInstruction->gross_weight }}<br>
                     </span>
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 15%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->cargos->sum('total_volume') }}<br>
+                        {{ $shippingInstruction->volume }}<br>
                     </span>
                 </td>
             </tr>

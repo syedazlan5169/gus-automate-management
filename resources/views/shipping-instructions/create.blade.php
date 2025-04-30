@@ -209,18 +209,32 @@
 
                 <!-- Cargo Details -->
                 <h2 class="text-base/7 font-semibold text-gray-900">Cargo Details</h2>
-                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                  <div class="sm:col-span-3">
+                <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4">
+                  <div class="sm:col-span-1">
                     <x-input-label for="cargo_description">Cargo Description</x-input-label>
                     <div class="mt-2">
                       <x-text-input type="text" name="cargo_description" id="cargo_description" required/>
                     </div>
                   </div>
 
-                  <div class="sm:col-span-3">
+                  <div class="sm:col-span-1">
                     <x-input-label for="hs_code">HS Code</x-input-label>
                     <div class="mt-2">
                       <x-text-input type="text" name="hs_code" id="hs_code" required/>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-1">
+                    <x-input-label for="gross_weight">Gross Weight</x-input-label>
+                    <div class="mt-2">
+                      <x-text-input type="number" step="0.01" name="gross_weight" id="gross_weight" required/>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-1">
+                    <x-input-label for="volume">Volume</x-input-label>
+                    <div class="mt-2">
+                      <x-text-input type="number" step="0.01" name="volume" id="volume"/>
                     </div>
                   </div>
                 </div>
@@ -514,6 +528,12 @@ function handleFileUpload() {
                 if (data.shippingData.hs_code) {
                     document.getElementById('hs_code').value = data.shippingData.hs_code;
                 }
+                if (data.shippingData.gross_weight) {
+                    document.getElementById('gross_weight').value = data.shippingData.gross_weight;
+                }
+                if (data.shippingData.volume) {
+                    document.getElementById('volume').value = data.shippingData.volume;
+                }
             }
             
             // Process the containers
@@ -733,7 +753,8 @@ document.querySelector('form').addEventListener('submit', function(e) {
         'notify_party_contact',
         'notify_party_address_line1',
         'cargo_description',
-        'hs_code'
+        'hs_code',
+        'gross_weight',
     ];
 
     let isValid = true;

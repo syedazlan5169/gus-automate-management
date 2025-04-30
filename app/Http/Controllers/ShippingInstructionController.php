@@ -74,6 +74,8 @@ class ShippingInstructionController extends Controller
                 'notify_party_address.line4' => 'nullable|string|max:255',
                 'cargo_description' => 'required|string|max:255',
                 'hs_code' => 'required|string|max:255',
+                'gross_weight' => 'required|numeric|min:0',
+                'volume' => 'nullable|numeric|min:0',
                 'containers' => 'required|array',
                 'containers.*' => 'array',
                 'containers.*.*' => 'array',
@@ -103,6 +105,8 @@ class ShippingInstructionController extends Controller
                 'notify_party_address' => $validated['notify_party_address'],
                 'cargo_description' => $validated['cargo_description'],
                 'hs_code' => $validated['hs_code'],
+                'gross_weight' => $validated['gross_weight'],
+                'volume' => $validated['volume'],
             ]);
 
             // Process containers
@@ -287,6 +291,8 @@ class ShippingInstructionController extends Controller
                 'notify_party_address.line4' => 'nullable|string|max:255',
                 'cargo_description' => 'required|string|max:255',
                 'hs_code' => 'required|string|max:255',
+                'gross_weight' => 'required|numeric|min:0',
+                'volume' => 'nullable|numeric|min:0',
                 'containers' => 'required|array',
             ]);
 
@@ -306,6 +312,8 @@ class ShippingInstructionController extends Controller
                 'notify_party_address' => $validated['notify_party_address'],
                 'cargo_description' => $validated['cargo_description'],
                 'hs_code' => $validated['hs_code'],
+                'gross_weight' => $validated['gross_weight'],
+                'volume' => $validated['volume'],
             ]);
 
             if ($shippingInstruction->booking->status >= 4 && $shippingInstruction->bl_confirmed == true) {
@@ -527,7 +535,9 @@ class ShippingInstructionController extends Controller
                 'notify_party_address_line3' => trim($worksheet->getCell('F15')->getValue() ?? ''),
                 'notify_party_address_line4' => trim($worksheet->getCell('F16')->getValue() ?? ''),
                 'cargo_description' => trim($worksheet->getCell('E19')->getValue() ?? ''),
-                'hs_code' => trim($worksheet->getCell('F19')->getValue() ?? '')
+                'hs_code' => trim($worksheet->getCell('F19')->getValue() ?? ''),
+                'gross_weight' => trim($worksheet->getCell('G19')->getValue() ?? ''),
+                'volume' => trim($worksheet->getCell('H19')->getValue() ?? '')
             ];
 
             \Log::info('Extracted shipping data', $shippingData);

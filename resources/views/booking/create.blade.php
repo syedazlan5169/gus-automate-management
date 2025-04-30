@@ -545,11 +545,8 @@
                                                             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                                                                 <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
                                                                     <option value="">Select container type</option>
-                                                                    <option value="20GP">20' General Purpose</option>
-                                                                    <option value="40GP">40' General Purpose</option>
                                                                     <option value="40HC">40' High Cube</option>
-                                                                    <option value="20RF">20' Reefer</option>
-                                                                    <option value="40RF">40' Reefer</option>
+                                                                    <option value="20DC">20' Dry Cargo</option>
                                                                 </select>
                                                             </td>
                                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
