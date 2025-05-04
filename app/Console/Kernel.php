@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // Check for BL with Telex Release reminders every hour
-        $schedule->command('reminders:bl-telex-release')->hourly();
+        $schedule->command('reminders:bl-telex-release')->everySixHours();
     }
 
     /**
