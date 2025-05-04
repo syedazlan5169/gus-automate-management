@@ -26,6 +26,8 @@ class SendBlTelexReleaseReminders extends Command
             })
             ->get();
 
+        $this->info('Found ' . $bookings->count() . ' bookings to send reminders for.');
+
         foreach ($bookings as $booking) {
             Mail::to(env('MAIL_TO_ADDRESS'))->send(new BlTelexReleaseReminder($booking));
             $this->info("Sent reminder for booking #{$booking->booking_number}");
