@@ -36,7 +36,7 @@ class UploadPayment extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Payment Received',
+            subject: 'Booking #' . $this->booking->booking_number . ' Payment Received',
         );
     }
 
