@@ -38,7 +38,7 @@ class PaymentVerification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Payment Verification',
+            subject: 'Booking #' . $this->booking->booking_number . ' Payment Verification',
         );
     }
 

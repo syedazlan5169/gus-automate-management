@@ -32,7 +32,7 @@ class UpdateSI extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Upadate S I',
+            subject: 'Update S I for Booking #' . $this->booking->booking_number,
         );
     }
 

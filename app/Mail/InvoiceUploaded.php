@@ -31,7 +31,7 @@ class InvoiceUploaded extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invoice Issued',
+            subject: 'Booking #' . $this->booking->booking_number . ' Invoice Issued',
         );
     }
 

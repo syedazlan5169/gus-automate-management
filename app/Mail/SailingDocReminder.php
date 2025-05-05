@@ -29,7 +29,7 @@ class SailingDocReminder extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Sailing Doc Reminder',
+            subject: '#' . $this->booking->booking_number . ' Sailing Doc Reminder',
         );
     }
 
