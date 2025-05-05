@@ -32,7 +32,7 @@ class BookingStatusUpdated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'GU Shipping Booking Notification',
+            subject: 'Booking #' . $this->booking->booking_number . ' Status Updated',
         );
     }
 
