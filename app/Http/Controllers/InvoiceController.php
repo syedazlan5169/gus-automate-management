@@ -224,6 +224,19 @@ class InvoiceController extends Controller
             abort(403);
         }
 
+        // Find the payment associated with the invoice (if any)
+        $payment = Payment::where('invoice_id', $invoice->id)->first();
+
+        // Delete the payment file from storage if it exists
+        if ($payment && $payment->payment_file && Storage::disk('public')->exists($payment->payment_file)) {
+            Storage::disk('public')->delete($payment->payment_file);
+        }
+
+        // Delete the payment record
+        if ($payment) {
+            $payment->delete();
+        }
+
         // Delete the invoice file from storage
         if ($invoice->invoice_file && Storage::disk('public')->exists($invoice->invoice_file)) {
             Storage::disk('public')->delete($invoice->invoice_file);
