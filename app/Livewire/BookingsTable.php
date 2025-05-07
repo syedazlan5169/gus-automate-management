@@ -19,6 +19,11 @@ class BookingsTable extends Component
 
     public function mount()
     {
+        // Get status from URL if present
+        if (request()->has('status')) {
+            $this->status = request()->get('status');
+        }
+
         if(auth()->user()->role === 'customer')
         {
             $this->bookings = Booking::where('user_id', auth()->user()->id)->get();
@@ -68,7 +73,12 @@ class BookingsTable extends Component
         
         // Apply status filter if selected
         if ($this->status !== '') {
-            $query->where('status', $this->status);
+            if ($this->status === 'ongoing') {
+                // For ongoing, show all bookings that are not completed or cancelled
+                $query->whereNotIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED]);
+            } else {
+                $query->where('status', $this->status);
+            }
         }
         
         $bookings = $query->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
