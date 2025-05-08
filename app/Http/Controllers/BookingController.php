@@ -14,6 +14,7 @@ use App\Mail\BookingStatusUpdated;
 use App\Mail\InvoiceUploaded;
 use App\Mail\PaymentVerification;
 use App\Models\ShippingInstruction;
+use App\Models\ActivityLog;
 
 class BookingController extends Controller
 {
@@ -130,6 +131,8 @@ class BookingController extends Controller
             Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
             Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
 
+            ActivityLog::logBookingCreated(auth()->user(), $booking);
+
             if (auth()->user()->role === 'customer') {
                 return redirect()->route('booking.show', $booking)
                     ->with('success', 'Booking created successfully.');
@@ -192,6 +195,8 @@ class BookingController extends Controller
             }
             
             $booking->update($validated);
+            ActivityLog::logBookingEdited(auth()->user(), $booking);
+
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
         } catch (\Exception $e) {
@@ -231,7 +236,9 @@ class BookingController extends Controller
             
             // Finally delete the booking
             $booking->delete();
-            
+            // Log the deletion
+            ActivityLog::logBookingDeleted(auth()->user(), $booking);
+
             \DB::commit();
             return redirect()->route('bookings.index')
                 ->with('success', 'Booking deleted successfully.');
@@ -266,6 +273,7 @@ class BookingController extends Controller
         $booking->update(['status' => 2]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logBookingConfirmed(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking confirmed successfully.');
     }
 
@@ -274,6 +282,7 @@ class BookingController extends Controller
         $booking->update(['status' => 3]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logShippingInstructionSubmitted(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Shipping Instructions submitted successfully.');
     }
 
@@ -286,6 +295,7 @@ class BookingController extends Controller
         }
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logBLConfirmed(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'BL confirmed successfully.');
     }
 
@@ -309,6 +319,7 @@ class BookingController extends Controller
         $booking->update(['status' => 5]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logSailing(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Sailing confirmed successfully.');
     }
 
@@ -317,6 +328,7 @@ class BookingController extends Controller
         $booking->update(['status' => 6]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logArrived(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Arrival confirmed successfully.');
     }
 
@@ -325,6 +337,7 @@ class BookingController extends Controller
         $booking->update(['status' => 7]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logCompleted(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking completed successfully.');
     }
 
@@ -333,6 +346,7 @@ class BookingController extends Controller
         $booking->update(['status' => 0]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logBookingCancelled(auth()->user(), $booking);
         return redirect()->route('booking.show', $booking)->with('success', 'Booking cancelled successfully.');
     }
 

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\RelatedDocument;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ActivityLog;
+
 class RelatedDocumentController extends Controller
 {
     public function store(Request $request, Booking $booking)
@@ -37,6 +39,8 @@ class RelatedDocumentController extends Controller
             'document_file' => $documentPath,
         ]);
 
+        ActivityLog::logDocumentUploaded(auth()->user(), $booking, $validated['document_name']);
+
         return redirect()->route('booking.show', $booking)->with('success', 'Document uploaded successfully');
     }
 
@@ -54,6 +58,7 @@ class RelatedDocumentController extends Controller
 
         // Delete the document record
         $document->delete();
+        ActivityLog::logDocumentDeleted(auth()->user(), $booking, $document);
 
         return redirect()->back()->with('success', 'Document deleted successfully');
     }

@@ -923,11 +923,11 @@
                                         @else
                                             bg-gray-300 text-gray-500 cursor-not-allowed
                                         @endif"
-                                    @if(empty($booking->vessel) || empty($booking->voyage)) disabled @endif>
+                                    @if(empty($booking->vessel) || empty($booking->voyage) || empty($booking->tug)) disabled @endif>
                                     Confirm Booking
                                 </button>
                                 <!-- Tooltip -->
-                                @if(empty($booking->vessel) || empty($booking->voyage))
+                                @if(empty($booking->vessel) || empty($booking->voyage) || empty($booking->tug))
                                     <div x-show="showTooltip" 
                                         x-transition
                                         class="absolute bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
@@ -936,6 +936,8 @@
                                             Please add vessel before confirming the booking.
                                         @elseif(empty($booking->voyage))
                                             Please add voyage before confirming the booking.
+                                        @elseif(empty($booking->tug))
+                                            Please add tug before confirming the booking.
                                         @endif
                                     </div>
                                 @endif
