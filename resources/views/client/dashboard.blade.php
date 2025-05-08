@@ -51,14 +51,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="mt-6 flex space-x-3 md:ml-4 md:mt-0">
-                        <button type="button"
-                            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Add
-                            money</button>
-                        <button type="button"
-                            class="inline-flex items-center rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600">Send
-                            money</button>
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -75,14 +67,14 @@
                                     <svg class="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                         stroke="currentColor" aria-hidden="true" data-slot="icon">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z" />
+                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="truncate text-sm font-medium text-gray-500">Pending Actions</dt>
+                                        <dt class="truncate text-sm font-medium text-green-500">Completed Bookings</dt>
                                         <dd>
-                                            <div class="text-lg font-medium text-gray-900">12</div>
+                                            <div class="text-lg font-medium text-gray-900">{{ $completedBookings }}</div>
                                         </dd>
                                     </dl>
                                 </div>
@@ -90,7 +82,7 @@
                         </div>
                         <div class="bg-gray-50 px-5 py-3">
                             <div class="text-sm">
-                                <a href="#" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
+                                <a href="{{ route('bookings.index', ['status' => \App\Models\BookingStatus::COMPLETED]) }}" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
                             </div>
                         </div>
                     </div>
@@ -102,14 +94,14 @@
                                     <svg class="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                         stroke="currentColor" aria-hidden="true" data-slot="icon">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z" />
+                                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="truncate text-sm font-medium text-gray-500">Ongoing Bookings</dt>
+                                        <dt class="truncate text-sm font-medium text-blue-500">Ongoing Bookings</dt>
                                         <dd>
-                                            <div class="text-lg font-medium text-gray-900">33</div>
+                                            <div class="text-lg font-medium text-gray-900">{{ $ongoingBookings }}</div>
                                         </dd>
                                     </dl>
                                 </div>
@@ -117,7 +109,7 @@
                         </div>
                         <div class="bg-gray-50 px-5 py-3">
                             <div class="text-sm">
-                                <a href="#" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
+                                <a href="{{ route('bookings.index', ['status' => 'ongoing']) }}" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
                             </div>
                         </div>
                     </div>
@@ -129,14 +121,14 @@
                                     <svg class="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                         stroke="currentColor" aria-hidden="true" data-slot="icon">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z" />
+                                            d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="truncate text-sm font-medium text-gray-500">Completed Bookings</dt>
+                                        <dt class="truncate text-sm font-medium text-red-500">Cancelled Bookings</dt>
                                         <dd>
-                                            <div class="text-lg font-medium text-gray-900">102</div>
+                                            <div class="text-lg font-medium text-gray-900">{{ $cancelledBookings }}</div>
                                         </dd>
                                     </dl>
                                 </div>
@@ -144,62 +136,17 @@
                         </div>
                         <div class="bg-gray-50 px-5 py-3">
                             <div class="text-sm">
-                                <a href="#" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
+                                <a href="{{ route('bookings.index', ['status' => \App\Models\BookingStatus::CANCELLED]) }}" class="font-medium text-cyan-700 hover:text-cyan-900">View all</a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- More items... -->
                 </div>
-
             </div>
 
+            <!--
             <h2 class="mx-auto mt-8 max-w-10xl px-4 text-lg/6 font-medium text-gray-900 sm:px-6 lg:px-8">Recent Bookings
             </h2>
 
-            <!-- Activity list (smallest breakpoint only) -->
-            <div class="shadow sm:hidden">
-                <ul role="list" class="mt-2 divide-y divide-gray-200 overflow-hidden shadow sm:hidden">
-                    <li>
-                        <a href="#" class="block bg-white px-4 py-4 hover:bg-gray-50">
-                            <span class="flex items-center space-x-4">
-                                <span class="flex flex-1 space-x-2 truncate">
-                                    <svg class="size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
-                                        aria-hidden="true" data-slot="icon">
-                                        <path fill-rule="evenodd"
-                                            d="M1 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4Zm12 4a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM4 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm13-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM1.75 14.5a.75.75 0 0 0 0 1.5c4.417 0 8.693.603 12.749 1.73 1.111.309 2.251-.512 2.251-1.696v-.784a.75.75 0 0 0-1.5 0v.784a.272.272 0 0 1-.35.25A49.043 49.043 0 0 0 1.75 14.5Z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <div class="flex flex-col">
-                                        <p class="truncate font-bold text-gray-900">Payment to Molly Sanders</p>
-                                        <p class="truncate text-xs text-gray-500">Transaction details here</p>
-                                    </div>
-                                </span>
-                                <svg class="size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
-                                    aria-hidden="true" data-slot="icon">
-                                    <path fill-rule="evenodd"
-                                        d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </span>
-                        </a>
-                    </li>
-
-                    <!-- More transactions... -->
-                </ul>
-
-                <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3"
-                    aria-label="Pagination">
-                    <div class="flex flex-1 justify-between">
-                        <a href="#"
-                            class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Previous</a>
-                        <a href="#"
-                            class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Next</a>
-                    </div>
-                </nav>
-            </div>
-
-            <!-- Activity table (small breakpoint and up) -->
             <div class="hidden sm:block">
                 <div class="mx-auto max-w-10xl px-4 sm:px-6 lg:px-8">
                     <div class="mt-2 flex flex-col">
@@ -308,10 +255,8 @@
                                         </td>
                                     </tr>
 
-                                    <!-- More transactions... -->
                                 </tbody>
                             </table>
-                            <!-- Pagination -->
                             <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
                                 aria-label="Pagination">
                                 <div class="hidden sm:block">
@@ -335,7 +280,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </main>
 
