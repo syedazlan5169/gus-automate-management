@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Client middleware Group
     Route::middleware(['verified'])->group(function () {
-        Route::view('client-portal', 'client.dashboard')->name('client.dashboard');
+        Route::get('client-portal', [DashboardController::class, 'clientDashboard'])->name('client.dashboard');
 
         // Booking routes
         Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');

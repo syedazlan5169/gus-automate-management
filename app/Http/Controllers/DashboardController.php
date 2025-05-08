@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -47,7 +48,18 @@ class DashboardController extends Controller
 
     public function clientDashboard()
     {
-        return view('client.dashboard');
+        $user = Auth::user();
+        $bookings = Booking::where('user_id', $user->id)->get();
+        $completedBookings = $bookings->where('status', 7)->count();
+        $ongoingBookings = $bookings->where('status', '<', 7, 'and', '>', 0)->count();
+        $cancelledBookings = $bookings->where('status', 0)->count();
+
+        return view('client.dashboard', compact(
+            'bookings',
+            'completedBookings',
+            'ongoingBookings',
+            'cancelledBookings',
+        ));
     }
     
 }
