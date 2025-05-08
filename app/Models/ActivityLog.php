@@ -55,7 +55,7 @@ class ActivityLog extends Model
         self::create([
             'user_id' => $user->id,
             'booking_id' => $booking->id,
-            'action' => 'booking_edited',
+            'action' => 'Booking Edited',
             'description' => $description,
         ]);
     }
@@ -75,7 +75,7 @@ class ActivityLog extends Model
         self::create([
             'user_id' => $user->id,
             'booking_id' => $shippingInstruction->booking_id,
-            'action' => 'Shipping Instruction Created',
+            'action' => 'SI Created',
             'description' => $user->name . ' has created a new shipping instruction (' . $shippingInstruction->sub_booking_number . ') for booking ' . $shippingInstruction->booking->booking_number,
         ]);
     }
@@ -96,7 +96,7 @@ class ActivityLog extends Model
         self::create([
             'user_id' => $user->id,
             'booking_id' => $shippingInstruction->booking_id,
-            'action' => 'Shipping Instruction Edited',
+            'action' => 'SI Edited',
             'description' => $description,
         ]);
     }
@@ -106,7 +106,7 @@ class ActivityLog extends Model
         self::create([
             'user_id' => $user->id,
             'booking_id' => $shippingInstruction->booking_id,
-            'action' => 'Shipping Instruction Deleted',
+            'action' => 'SI Deleted',
             'description' => $user->name . ' has deleted shipping instruction (' . $shippingInstruction->sub_booking_number . ') for booking ' . $shippingInstruction->booking->booking_number,
         ]);
     }
@@ -116,7 +116,7 @@ class ActivityLog extends Model
         self::create([
             'user_id' => $user->id,
             'booking_id' => $booking->id,
-            'action' => 'Shipping Instruction Submitted',
+            'action' => 'SI Submitted',
             'description' => $user->name . ' has submitted shipping instruction for booking ' . $booking->booking_number,
         ]);
     }
