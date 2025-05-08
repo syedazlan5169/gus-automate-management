@@ -238,6 +238,9 @@ class ShippingInstructionController extends Controller
                 'containersByType'
             ));
 
+            // Set PDF page size to A4 landscape
+            $pdf->setPaper('a4', 'landscape');
+
             // Generate filename using bl number
             // Replace / and \ with -
             $blNumberSafe = str_replace(['/', '\\'], '-', $shippingInstruction->bl_number);
