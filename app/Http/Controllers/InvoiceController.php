@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceUploaded;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\ActivityLog;
 
 class InvoiceController extends Controller
 {
@@ -73,6 +74,8 @@ class InvoiceController extends Controller
             ]);
             
             \DB::commit();
+
+            ActivityLog::logInvoiceUploaded(auth()->user(), $booking, $invoice);
 
             // Send email notification to customer
             Mail::to($booking->user->email)->send(new InvoiceUploaded($booking));
@@ -224,6 +227,20 @@ class InvoiceController extends Controller
             abort(403);
         }
 
+        // Find the payment associated with the invoice (if any)
+        $payment = Payment::where('invoice_id', $invoice->id)->first();
+        $booking = $invoice->booking;
+
+        // Delete the payment file from storage if it exists
+        if ($payment && $payment->payment_file && Storage::disk('public')->exists($payment->payment_file)) {
+            Storage::disk('public')->delete($payment->payment_file);
+        }
+
+        // Delete the payment record
+        if ($payment) {
+            $payment->delete();
+        }
+
         // Delete the invoice file from storage
         if ($invoice->invoice_file && Storage::disk('public')->exists($invoice->invoice_file)) {
             Storage::disk('public')->delete($invoice->invoice_file);
@@ -231,6 +248,7 @@ class InvoiceController extends Controller
 
         // Delete the invoice record
         $invoice->delete();
+        ActivityLog::logInvoiceDeleted(auth()->user(), $booking, $invoice);
 
         return redirect()->back()->with('success', 'Invoice deleted successfully');
     }

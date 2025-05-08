@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UpdateSI;
+use App\Models\ActivityLog;
 
 class ShippingInstructionController extends Controller
 {
@@ -134,6 +135,8 @@ class ShippingInstructionController extends Controller
             }
 
             DB::commit();
+
+            ActivityLog::logShippingInstructionCreated(auth()->user(), $shippingInstruction);
 
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Shipping Instruction created successfully.');
@@ -408,6 +411,8 @@ class ShippingInstructionController extends Controller
 
             DB::commit();
 
+            ActivityLog::logShippingInstructionEdited(auth()->user(), $shippingInstruction);
+
             return redirect()
                 ->route('shipping-instructions.show', $shippingInstruction)
                 ->with('success', 'Shipping instruction updated successfully.');
@@ -439,6 +444,8 @@ class ShippingInstructionController extends Controller
             $shippingInstruction->delete();
 
             DB::commit();
+
+            ActivityLog::logShippingInstructionDeleted(auth()->user(), $shippingInstruction);
 
             return redirect()->route('booking.show', $shippingInstruction->booking)
                 ->with('success', 'Shipping instruction deleted successfully.');

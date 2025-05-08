@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\UploadPayment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\ActivityLog;
 
 class PaymentController extends Controller
 {
@@ -56,6 +57,7 @@ class PaymentController extends Controller
             
 
             DB::commit();
+            ActivityLog::logPaymentUploaded(auth()->user(), $invoice->booking, $payment);
 
             Mail::to(env('MAIL_TO_ADDRESS'))->send(new UploadPayment($invoice->booking, $payment, $invoice));
             $invoice->update(['status' => 'Paid']);

@@ -9,6 +9,7 @@ use App\Http\Controllers\ShippingRouteController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\RelatedDocumentController;
+use App\Http\Controllers\DashboardController;
 
 Route::redirect('/', '/login');
 
@@ -70,7 +71,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
-            Route::view('dashboard', 'admin.dashboard')->name('admin.dashboard');
+            Route::get('dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
 
             // Shipping Routes
             Route::get('shipping-routes/create', [ShippingRouteController::class, 'create'])->name('shipping-routes.create');
