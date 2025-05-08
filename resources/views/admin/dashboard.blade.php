@@ -151,7 +151,7 @@
                             <h2 class="text-lg/6 font-medium text-gray-900">Recent Activities</h2>
                             <div class="mt-2 flex flex-col">
                                 <div class="min-w-full overflow-hidden overflow-x-auto align-middle shadow sm:rounded-lg">
-                                    <table class="min-w-full divide-y divide-gray-200">
+                                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg border-gray-300">
                                         <thead class="bg-gray-100">
                                             <tr>
                                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-90">Action</th>
@@ -184,141 +184,16 @@
                     </div>
                 </div>
 
-                <!-- Recent Bookings -->
+                <!-- Monthly Booking Chart -->
                 <div class="w-full lg:w-1/2 mt-8">
                     <div class="sm:block">
                         <div class="px-4 sm:px-6 lg:px-8">
-                            <h2 class="text-lg/6 font-medium text-gray-900">Recent Bookings</h2>
+                            <h2 class="text-lg/6 font-medium text-gray-900">Booking Trends</h2>
                             <div class="mt-2 flex flex-col">
                                 <div class="min-w-full overflow-hidden overflow-x-auto align-middle shadow sm:rounded-lg">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead>
-                                            <tr>
-                                                <th class="bg-gray-50 px-6 py-3 text-left text-sm font-semibold text-gray-900"
-                                                    scope="col">Booking Number</th>
-                                                <th class="bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-900"
-                                                    scope="col">Amount</th>
-                                                <th class="hidden bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-900 md:block"
-                                                    scope="col">Status</th>
-                                                <th class="bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-900"
-                                                    scope="col">Sailing Date</th>
-                                                <th class="bg-gray-50 px-6 py-3 text-center text-sm font-semibold text-gray-900"
-                                                    scope="col">Arrival Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200 bg-white">
-                                            <tr class="bg-white align-middle">
-                                                <td class="w-full max-w-0 whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                                    <div class="flex">
-                                                        <a href="#" class="group inline-flex space-x-2 truncate text-sm">
-                                                            <div class="flex flex-col">
-                                                                <p class="truncate font-bold text-gray-900">BC00001203030</p>
-                                                                <p class="truncate text-xs text-gray-500">Created on 2025-03-01
-                                                                </p>
-                                                            </div>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <span class="font-medium text-gray-900">$20,000</span>
-                                                    USD
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <p
-                                                        class="mt-0.5 whitespace-nowrap rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                        Complete</p>
-
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                            </tr>
-                                            <tr class="bg-white align-middle">
-                                                <td class="w-full max-w-0 whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                                    <div class="flex">
-                                                        <a href="#" class="group inline-flex space-x-2 truncate text-sm">
-                                                            <div class="flex flex-col">
-                                                                <p class="truncate font-bold text-gray-900">BC00001203030</p>
-                                                                <p class="truncate text-xs text-gray-500">Created on 2025-03-01
-                                                                </p>
-                                                            </div>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <span class="font-medium text-gray-900">$20,000</span>
-                                                    USD
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <p
-                                                        class="mt-0.5 whitespace-nowrap rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                                                        Processing</p>
-
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                            </tr>
-                                            <tr class="bg-white align-middle">
-                                                <td class="w-full max-w-0 whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                                    <div class="flex">
-                                                        <a href="#" class="group inline-flex space-x-2 truncate text-sm">
-                                                            <div class="flex flex-col">
-                                                                <p class="truncate font-bold text-gray-900">BC00001203030</p>
-                                                                <p class="truncate text-xs text-gray-500">Created on 2025-03-01
-                                                                </p>
-                                                            </div>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <span class="font-medium text-gray-900">$20,000</span>
-                                                    USD
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <p
-                                                        class="mt-0.5 whitespace-nowrap rounded-md bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
-                                                        Pending</p>
-
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                                <td class="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
-                                                    <time datetime="2020-07-11">July 11, 2020</time>
-                                                </td>
-                                            </tr>
-
-                                            <!-- More transactions... -->
-                                        </tbody>
-                                    </table>
-                                    <!-- Pagination -->
-                                    <nav class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-                                        aria-label="Pagination">
-                                        <div class="hidden sm:block">
-                                            <p class="text-sm text-gray-700">
-                                                Showing
-                                                <span class="font-medium">1</span>
-                                                to
-                                                <span class="font-medium">10</span>
-                                                of
-                                                <span class="font-medium">20</span>
-                                                results
-                                            </p>
-                                        </div>
-                                        <div class="flex flex-1 justify-between gap-x-3 sm:justify-end">
-                                            <a href="#"
-                                                class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:ring-gray-400">Previous</a>
-                                            <a href="#"
-                                                class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:ring-gray-400">Next</a>
-                                        </div>
-                                    </nav>
+                                    <div class="p-4 border rounded-lg border-gray-300" style="height: 475px;">
+                                        <canvas id="monthlyBookingsChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -329,5 +204,11 @@
         </div>
     </main>
 
+    @push('scripts')
+    <script>
+        window.monthlyData = @json(array_values($monthlyData));
+    </script>
+    @vite(['resources/js/dashboard.js'])
+    @endpush
 
 </x-app-layout>

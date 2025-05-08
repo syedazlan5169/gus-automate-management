@@ -18,7 +18,31 @@ class DashboardController extends Controller
 
         $recentActivities = ActivityLog::orderBy('created_at', 'desc')->paginate(10);
         $recentBookings = Booking::orderBy('created_at', 'desc')->paginate(10);
-        return view('admin.dashboard', compact('bookings', 'completedBookings', 'ongoingBookings', 'cancelledBookings', 'recentActivities', 'recentBookings'));
+
+        // Get monthly booking data for the current year
+        $monthlyBookings = Booking::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->whereYear('created_at', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->pluck('count', 'month')
+            ->toArray();
+
+        // Fill in missing months with 0
+        $monthlyData = array_fill(1, 12, 0);
+        foreach ($monthlyBookings as $month => $count) {
+            $monthlyData[$month] = $count;
+        }
+
+        return view('admin.dashboard', compact(
+            'bookings',
+            'completedBookings',
+            'ongoingBookings',
+            'cancelledBookings',
+            'recentActivities',
+            'recentBookings',
+            'monthlyData'
+        ));
     }
 
     public function clientDashboard()
