@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manifest</title>
+    <title>Manifests</title>
 </head>
 
 @php
@@ -18,247 +18,213 @@
 @endphp
 
 @foreach ($containerChunks as $chunkIndex => $chunk)
-<body style="width: 700px; margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #000;">
-
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
+<body style="width: 1029px; margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #000;">
+    <table style="width: 1029px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
         <tbody>
             <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <img src="{{ public_path('images/logo-header.webp') }}" alt="Logo" style="max-width: 150px; max-height: 60px;">
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 90%;">
                     <strong>Shipper</strong><br>
+                    <span style="font-weight: normal;"><strong>GU SHIPPING SDN BHD (1051565-U)</strong><br>
+                    5-01 (FIRST FLOOR), JALAN PONDEROSA 2/2 <br>
+                    TAMAN PONDEROSA, 81100 JOHOR BAHRU<br>
+                    JOHOR, MALAYSIA<br></span>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 1029px; border-collapse: collapse; margin: 0; font-family: Arial, sans-serif;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100%;">
+                    <strong>*** EXPORT CARGO MANIFEST ***</strong><br>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 10px; font-family: Arial, sans-serif;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>CARRIER: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        GU SHIPPING<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>DATE: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->date }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>PREPARED BY: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 30%;">
+                    <span style="font-weight: normal;">
+                        GUCS1<br>
+                    </span>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 1029px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>VESSEL / TUG: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->vessel }} / {{ $shippingInstruction->booking->tug }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>POL: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->pol }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>ETD POL: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->etd_pol }}<br>
+                    </span>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 10px; font-family: Arial, sans-serif;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>VOYAGE: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->voyage }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>POD: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->pod }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
+                    <strong>ETA DEST: </strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->booking->eta_dest }}<br>
+                    </span>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 6%;">
+                    <strong>B/L</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                    <strong>SHIPPER</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                    <strong>CONSIGNEE</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 19%;">
+                    <strong>CONTAINER / SEAL NO</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
+                    <strong>PKG</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                    <strong>GOODS DESCRIPTION</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
+                    <strong>WEIGHT</strong><br>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
+                    <strong>VOLUME</strong><br>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 1029px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
+        <tbody>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 6%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal;">
+                        {{ $shippingInstruction->bl_number }}<br>
+                    </span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">{{ $shippingInstruction->shipper }}<br>
                     {{ $shippingInstruction->shipper_address['line1'] ? $shippingInstruction->shipper_address['line1'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line2'] ? $shippingInstruction->shipper_address['line2'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line3'] ? $shippingInstruction->shipper_address['line3'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line4'] ? $shippingInstruction->shipper_address['line4'] : '' }}<br></span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 25%;">
-                    <img src="{{ public_path('images/logo-header.webp') }}" alt="Logo" style="max-width: 150px; max-height: 60px;">
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: right; width: 25%;">
-                    <strong>B/L NO </strong><span style="font-weight: normal;">{{ $shippingInstruction->bl_number }}</span><br>
-                    <strong>Page </strong><span style="font-weight: normal;">{{ $chunkIndex + 1 }}/{{ $containerChunks->count() }}</span>
-                </th>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                    <strong>Consignee</strong><br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">{{ $shippingInstruction->consignee }}<br>
                     {{ $shippingInstruction->consignee_address['line1'] ? $shippingInstruction->consignee_address['line1'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line2'] ? $shippingInstruction->consignee_address['line2'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line3'] ? $shippingInstruction->consignee_address['line3'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line4'] ? $shippingInstruction->consignee_address['line4'] : '' }}<br></span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                    <strong>Notify Party</strong><br>
-                    <span style="font-weight: normal;">{{ $shippingInstruction->notify_party }}<br>
-                    {{ $shippingInstruction->notify_party_address['line1'] ? $shippingInstruction->notify_party_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line2'] ? $shippingInstruction->notify_party_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line3'] ? $shippingInstruction->notify_party_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line4'] ? $shippingInstruction->notify_party_address['line4'] : '' }}<br></span>
-                </th>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Vessel</strong>
-                    <br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 19%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->vessel }}<br>
+                        @foreach ($chunk as $container)
+                            {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
+                        @endforeach
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Voyage</strong>
-                    <br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->voyage }}<br>
+                        {{ $shippingInstruction->package_type }}<br>
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Port of Loading</strong>
-                    <br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->pol }}<br>
+                        @foreach ($containersByType as $type => $group)
+                            ({{ $type }} x {{ $group['count'] }})
+                        @endforeach
+                        CONTAINER/S STC:<br>
+                        {{ $shippingInstruction->cargo_description}}<br>
+                        H456JY<br>
+                        HS CODE : {{ $shippingInstruction->hs_code }}<br>
+                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Place of Receipt</strong>
-                    <br>
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->place_of_receipt }}<br>
-                    </span>
-                </th>
-            </tr>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Tug</strong>
-                    <br>
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->tug }}<br>
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Delivery Terms</strong>
-                    <br>
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->delivery_terms }}<br>
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Port of Discharge</strong>
-                    <br>
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->pod }}<br>
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Place of Delivery</strong>
-                    <br>
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->place_of_delivery }}<br>
-                    </span>
-                </th>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 40%;">
-                    <strong>Marks and Numbers</strong>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 30%;">
-                    <strong>Goods Description</strong>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
-                    <strong>Gross Weight (KGS)</strong>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
-                    <strong>Volume (M3)</strong>
-                </th>
-            </tr>
-            <!-- Data details here -->
-            
-            <tr>
-                <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 40%;">
-                    @foreach ($chunk as $container)
-                        {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
-                    @endforeach
-                </td>
-                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
-                    <span style="font-weight: normal;">
-                    @foreach ($containersByType as $type => $group)
-                        ({{ $type }} x {{ $group['count'] }})
-                    @endforeach
-                    CONTAINER/S STC:<br>
-                    {{ $shippingInstruction->cargo_description}}<br>
-                    H456JY<br>
-                    HS CODE : {{ $shippingInstruction->hs_code }}<br>
-                    BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
-                    </span>
-                </td>
-                <td style="border: 1px solid #000; vertical-align: top; padding: 8px; text-align: center; width: 15%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
                         {{ $shippingInstruction->cargos->sum('total_weight') }}<br>
                     </span>
-                </td>
-                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 15%;">
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->cargos->sum('total_volume') }}<br>
+                        {{ $shippingInstruction->volume }}<br>
                     </span>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100%;">
-                    <span style="font-weight: normal;">
-                        CONTINUED ON NEXT PAGE
-                    </span>
-                </th>
-            </tr>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 100%;">
-                    <span style="font-weight: normal;">
-                    RECEIVED by Carrier the Goods as specified above in apparent good order and condition unless otherwise 
-                            stated, to be transported to such place as agreed, authorized or permitted therein and subject to all 
-                            the terms and conditions appearing on the front and reverse of this Bill of Lading to which the Merchant 
-                            agrees by accepting this Bill of Lading, any local previleges and customs not withstanding.
-                            <br>
-                            <br>
-                            The particulars given below as stated by the shipper are stated by shipper and the weight, measure, 
-                            quantity, condition contents and value of the Goods are unknown to the Carrier.
-                            The WITNESS whereof one (1) original Bill of Lading has been signed if not otherwise stated below, the 
-                            same being accomplished the other(s), if any, to be void. If required by the Carrier one (1) original 
-                            Bill of Lading must be surrendered duly endorsed in exchange for the Goods or delivery order.
-                            <br>
-                            <br>
-                            The cargo is carried on deck at the sole risk of the shipper and the carrier shall have no liability 
-                            whatsoever for loss or damages of whatsoever nature arising during carriage, even if caused by 
-                            unseaworthiness of the vessel or negligence of the carrier or his servants or agents.
-                    </span>
-                </th>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr style="vertical-align: top;">
-                <th style="height: 42px; border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                        OUTWARD / INWARD CARRIER AGENT:
-                </th>
-                <th style="height: 42px; border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                        REMARKS:
-                </th>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
-        <tbody>
-            <tr style="vertical-align: top;">
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Place & Date of Issue</strong><br>
-                    <span style="font-weight: normal;"> 
-                        {{ $shippingInstruction->booking->place_of_receipt }}<br>
-                        {{ now()->format('d/m/Y') }}
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Port of Discharge ETA</strong>
-                    <span style="font-weight: normal;">
-                    {{ $shippingInstruction->booking->eta->format('d/m/Y') }}<br>
-                    </span>
-                </th>
-                <th style="border-top: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                    <strong>SIGNED ON BEHALF OF THE CARRIER</strong><br>
-                    <span style="font-weight: normal;">
-                        GU SHIPPING SDN BHD
-                    </span>
-                </th>
-            </tr>
-            <tr style="vertical-align: top;">
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>Freight Payable at</strong><br>
-                    <span style="font-weight: normal;">
-                        MALAYSIA
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
-                    <strong>No. of Original B/L</strong><br>
-                    <span style="font-weight: normal;">
-                        {{ $containerChunks->count() }}
-                    </span>
-                </th>
-                <th style="border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
-                    
                 </th>
             </tr>
         </tbody>
