@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
             Route::get('dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+            Route::get('export-bookings', [DashboardController::class, 'exportBookings'])->name('export-bookings');
 
             // Shipping Routes
             Route::get('shipping-routes/create', [ShippingRouteController::class, 'create'])->name('shipping-routes.create');
