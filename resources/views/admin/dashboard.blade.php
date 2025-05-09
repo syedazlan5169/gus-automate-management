@@ -198,6 +198,11 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mt-4 flex justify-center">
+                        <form action="{{ route('export-bookings') }}" method="GET">
+                            <x-primary-button type="submit">Export Bookings</x-primary-button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

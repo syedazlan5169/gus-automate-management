@@ -7,6 +7,9 @@ use App\Models\Booking;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\BookingsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -61,5 +64,16 @@ class DashboardController extends Controller
             'cancelledBookings',
         ));
     }
-    
+
+    public function exportBookings()
+    {
+        try {
+            \Log::info('Starting export process');
+            return Excel::download(new BookingsExport, 'master_data.xlsx');
+        } catch (\Exception $e) {
+            \Log::error('Export failed: ' . $e->getMessage());
+            return back()->with('error', 'Export failed: ' . $e->getMessage());
+        }
+    }
+
 }
