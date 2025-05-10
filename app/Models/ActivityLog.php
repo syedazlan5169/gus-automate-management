@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Booking;
 use App\Models\User;
+
 class ActivityLog extends Model
 {
     protected $guarded = [];
@@ -208,6 +209,25 @@ class ActivityLog extends Model
             'booking_id' => $booking->id,
             'action' => 'Payment Uploaded',
             'description' => $user->name . ' has uploaded ' . $booking->invoice->invoice_name . ' payment slip for booking ' . $booking->booking_number,
+        ]);
+    }
+
+    public static function logShippingRouteCreated($user)
+    {
+        self::create([
+            'user_id' => $user->id,
+            'action' => 'Shipping Route Created',
+            'description' => $user->name . ' has created a new shipping route',
+        ]);
+    }
+
+    public static function logTelexBLReleased($user, $shippingInstruction)
+    {
+        self::create([
+            'user_id' => $user->id,
+            'booking_id' => $shippingInstruction->booking_id,
+            'action' => 'Telex BL Released',
+            'description' => $user->name . ' has released the Telex BL for shipping instruction ' . $shippingInstruction->sub_booking_number . ' for booking ' . $shippingInstruction->booking->booking_number,
         ]);
     }
 

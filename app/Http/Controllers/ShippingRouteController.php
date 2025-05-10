@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ShippingRoute;
+use App\Models\ActivityLog;
 
 class ShippingRouteController extends Controller
 {
@@ -38,6 +39,8 @@ class ShippingRouteController extends Controller
             'pod' => $request->pod,
             'place_of_delivery' => $request->place_of_delivery,
         ]);
+
+        ActivityLog::logShippingRouteCreated($request->user());
 
         return redirect()->route('shipping-routes.index')->with('success', 'Shipping route created successfully');
     }

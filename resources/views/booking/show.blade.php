@@ -144,9 +144,9 @@
 
                 <div class="mt-4">
                     <!--Staff Instructions -->
-                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->relatedDocuments->where('document_name', 'BL with Telex Release')->first())
+                    @if($booking->status == 4 && auth()->user()->role != 'customer' && !$booking->shippingInstructions->every(function($si) { return $si->telex_bl_released; }))
                     <x-alert-instruction
-                        message="Please upload the BL with Telex Release"
+                        message="Please release the Telex BL for all the shipping instructions"
                         color="red"
                     />
                     @endif
@@ -493,16 +493,23 @@
                                             </a>
                                             @endif
                                             @if($booking->status >= 4)
-                                            <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
-                                                class="ml-4 text-green-600 hover:text-green-900">
-                                                Download BL
-                                            </a>
-                                            @if(auth()->user()->role != 'customer')
-                                                <a href="{{ route('shipping-instructions.generate-manifest', $si) }}"
-                                                    class="ml-4 text-green-600 hover:text-green-900">
-                                                    Download Manifest
-                                                </a>
-                                            @endif
+                                                @if($si->telex_bl_released)
+                                                    <a href="{{ route('shipping-instructions.generate-telex-bl', $si) }}"
+                                                        class="ml-4 text-green-600 hover:text-green-900">
+                                                        Download Telex BL
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
+                                                        class="ml-4 text-red-600 hover:text-red-900">
+                                                        Download BL
+                                                    </a>
+                                                @endif
+                                                @if(auth()->user()->role != 'customer')
+                                                    <a href="{{ route('shipping-instructions.generate-manifest', $si) }}"
+                                                        class="ml-4 text-green-600 hover:text-green-900">
+                                                        Download Manifest
+                                                    </a>
+                                                @endif
                                             @endif
                                             @if($booking->status < 4)
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
@@ -514,6 +521,16 @@
                                                     Delete
                                                 </button>
                                             </form>
+                                            @endif
+                                            @if(auth()->user()->role != 'customer' && $booking->status == 4 && !$si->telex_bl_released)
+                                                <form action="{{ route('shipping-instructions.release-telex-bl', $si) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <x-primary-button type="button" 
+                                                        onclick="document.getElementById('telex-bl-release-modal').classList.remove('hidden')"
+                                                        class="ml-4">
+                                                        Release Telex BL
+                                                    </x-primary-button>
+                                                </form>
                                             @endif
                                         </div>
                                     </div>
@@ -757,7 +774,6 @@
                                         <option value="">Select Document Type</option>
                                         <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
                                         <option value="Container Load List" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
-                                        <option value="BL with Telex Release" {{ old('document_type') == 'bl_with_telex_release' ? 'selected' : '' }}>BL with Telex Release</option>
                                         <option value="Towing Certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
                                         <option value="Notice of Arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
                                         <option value="Vendor Invoice CVS" {{ old('document_type') == 'vendor_invoice_cvs' ? 'selected' : '' }}>Vendor Invoice CVS</option>
@@ -998,7 +1014,7 @@
                             
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
-                                @if($booking->relatedDocuments->where('document_name', 'BL with Telex Release')->first())
+                                @if($booking->shippingInstructions->every(function($si) { return $si->telex_bl_released; }))
                                 <div class="relative">
                                     <button type="button"
                                         onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
@@ -1118,6 +1134,36 @@
                                                     class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
                                                 <div class="flex gap-3">
                                                     <button type="button" onclick="window.location.href='{{ route('booking.arrived', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Telex BL Release Modal -->
+                            <div id="telex-bl-release-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Telex BL Release</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Are you sure to release the Telex BL for this box operator?</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('telex-bl-release-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('shipping-instructions.release-telex-bl', $si) }}'"
                                                         class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
                                                 </div>
                                             </div>

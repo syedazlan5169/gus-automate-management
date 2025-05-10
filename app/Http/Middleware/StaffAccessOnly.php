@@ -15,7 +15,7 @@ class StaffAccessOnly
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedRoles = ['staff', 'manager', 'admin'];
+        $allowedRoles = ['staff', 'manager', 'finance', 'admin'];
         
         if (!in_array($request->user()->role, $allowedRoles)) {
             return redirect()->route('client.dashboard')->with('error', 'Access denied. Staff only area.');
