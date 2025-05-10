@@ -221,6 +221,16 @@ class ActivityLog extends Model
         ]);
     }
 
+    public static function logTelexBLReleased($user, $shippingInstruction)
+    {
+        self::create([
+            'user_id' => $user->id,
+            'booking_id' => $shippingInstruction->booking_id,
+            'action' => 'Telex BL Released',
+            'description' => $user->name . ' has released the Telex BL for shipping instruction ' . $shippingInstruction->sub_booking_number . ' for booking ' . $shippingInstruction->booking->booking_number,
+        ]);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
