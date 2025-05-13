@@ -523,14 +523,11 @@
                                             </form>
                                             @endif
                                             @if(auth()->user()->role != 'customer' && $booking->status == 4 && !$si->telex_bl_released)
-                                                <form action="{{ route('shipping-instructions.release-telex-bl', $si) }}" method="POST" class="inline">
-                                                    @csrf
                                                     <x-primary-button type="button" 
-                                                        onclick="document.getElementById('telex-bl-release-modal').classList.remove('hidden')"
+                                                        onclick="showTelexBlReleaseModal('{{ $si->id }}')"
                                                         class="ml-4">
                                                         Release Telex BL
                                                     </x-primary-button>
-                                                </form>
                                             @endif
                                         </div>
                                     </div>
@@ -1163,7 +1160,7 @@
                                                 <button type="button" onclick="document.getElementById('telex-bl-release-modal').classList.add('hidden')"
                                                     class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
                                                 <div class="flex gap-3">
-                                                    <button type="button" onclick="window.location.href='{{ route('shipping-instructions.release-telex-bl', $si) }}'"
+                                                    <button type="button" id="confirm-telex-bl-release"
                                                         class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
                                                 </div>
                                             </div>
@@ -1171,6 +1168,20 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <script>
+                                function showTelexBlReleaseModal(siId) {
+                                    const modal = document.getElementById('telex-bl-release-modal');
+                                    const confirmButton = document.getElementById('confirm-telex-bl-release');
+                                    
+                                    // Update the confirm button's onclick handler with the current SI ID
+                                    confirmButton.onclick = function() {
+                                        window.location.href = `/shipping-instructions/${siId}/release-telex-bl`;
+                                    };
+                                    
+                                    modal.classList.remove('hidden');
+                                }
+                            </script>
 
                             <!-- Sailing Confirmation Modal -->
                             <div id="sailing-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
