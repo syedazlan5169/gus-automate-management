@@ -14,7 +14,7 @@
             $allContainers->push($container);
         }
     }
-    $containerChunks = $allContainers->chunk(30); // split into groups of 30
+    $containerChunks = $allContainers->chunk(44); // split into groups of 30
 @endphp
 
 @foreach ($containerChunks as $chunkIndex => $chunk)
@@ -46,7 +46,7 @@
         </tbody>
     </table>
 
-    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 10px; font-family: Arial, sans-serif;">
+    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 13px; font-family: Arial, sans-serif;">
         <tbody>
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
@@ -62,13 +62,13 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->date }}<br>
+                        {{ now()->format('d/m/Y') }}<br>
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
                     <strong>PREPARED BY: </strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 30%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
                         GUCS1<br>
                     </span>
@@ -101,14 +101,14 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->etd_pol }}<br>
+                        {{ $shippingInstruction->booking->ets->format('d/m/Y') }}<br>
                     </span>
                 </th>
             </tr>
         </tbody>
     </table>
 
-    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 10px; font-family: Arial, sans-serif;">
+    <table style="width: 1029px; border-collapse: collapse; margin-bottom: 12.5px; font-family: Arial, sans-serif;">
         <tbody>
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
@@ -132,7 +132,7 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->eta_dest }}<br>
+                        {{ $shippingInstruction->booking->eta->format('d/m/Y') }}<br>
                     </span>
                 </th>
             </tr>
@@ -211,7 +211,6 @@
                         @endforeach
                         CONTAINER/S STC:<br>
                         {{ $shippingInstruction->cargo_description}}<br>
-                        H456JY<br>
                         HS CODE : {{ $shippingInstruction->hs_code }}<br>
                         BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
                     </span>
