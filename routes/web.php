@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\RelatedDocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FinanceController;
 
 Route::redirect('/', '/login');
 
@@ -91,6 +92,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
             Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+            // Finance routes
+            Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
         });
 
     });

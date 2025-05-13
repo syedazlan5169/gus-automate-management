@@ -14,6 +14,12 @@ Breadcrumbs::for('/', function (BreadcrumbTrail $trail) {
     $trail->push('Home', $route);
 });
 
+// Home > Finance
+Breadcrumbs::for('finance', function (BreadcrumbTrail $trail) {
+    $trail->parent('/');
+    $trail->push('Finance', route('finance.index'));
+});
+
 // Home > Booking 
 Breadcrumbs::for('booking', function (BreadcrumbTrail $trail) {
     $trail->parent('/');

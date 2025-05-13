@@ -201,7 +201,7 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->package_type }}<br>
+                        {{ $allContainers->count() }}<br>
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
