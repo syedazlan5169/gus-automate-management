@@ -25,8 +25,8 @@ class SendSailingDocReminder extends Command
         $bookings = Booking::where('status', '>=', 4) // BL_CONFIRMED or higher
             ->where('ets', '>=', $now)
             ->where('ets', '<=', $tomorrow)
-            ->whereDoesntHave('relatedDocuments', function ($query) {
-                $query->where('document_name', 'BL with Telex Release');
+            ->whereHas('shippingInstructions', function ($query) {
+                $query->where('telex_bl_released', 0);
             })
             ->get();
 
