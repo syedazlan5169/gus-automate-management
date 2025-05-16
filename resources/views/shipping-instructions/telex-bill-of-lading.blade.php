@@ -161,7 +161,6 @@
                     @endforeach
                     CONTAINER/S STC:<br>
                     {{ $shippingInstruction->cargo_description}}<br>
-                    H456JY<br>
                     HS CODE : {{ $shippingInstruction->hs_code }}<br>
                     BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
                     </span>
