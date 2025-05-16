@@ -14,7 +14,7 @@
             $allContainers->push($container);
         }
     }
-    $containerChunks = $allContainers->chunk(44); // split into groups of 30
+    $containerChunks = $allContainers->chunk(44); // split into groups of 44
 @endphp
 
 @foreach ($containerChunks as $chunkIndex => $chunk)
@@ -197,6 +197,9 @@
                         @foreach ($chunk as $container)
                             {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                         @endforeach
+                        @for ($i = count($chunk); $i < 44; $i++)
+                            <br>
+                        @endfor
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
