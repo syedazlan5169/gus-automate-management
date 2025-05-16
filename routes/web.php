@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\RelatedDocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FinanceController;
 
 Route::redirect('/', '/login');
 
@@ -65,13 +66,16 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'destroy'])->name('shipping-instructions.destroy');
         Route::put('shipping-instructions/{shippingInstruction}', [ShippingInstructionController::class, 'update'])->name('shipping-instructions.update');
         Route::get('shipping-instructions/{shippingInstruction}/generate-bl', [ShippingInstructionController::class, 'generateBL'])->name('shipping-instructions.generate-bl');
+        Route::get('shipping-instructions/{shippingInstruction}/generate-telex-bl', [ShippingInstructionController::class, 'generateTelexBL'])->name('shipping-instructions.generate-telex-bl');
         Route::get('shipping-instructions/{shippingInstruction}/generate-manifest', [ShippingInstructionController::class, 'generateManifest'])->name('shipping-instructions.generate-manifest');
+        Route::get('shipping-instructions/{shippingInstruction}/release-telex-bl', [ShippingInstructionController::class, 'releaseTelexBL'])->name('shipping-instructions.release-telex-bl');
         Route::get('shipping-instructions/{shippingInstruction}/edit', [ShippingInstructionController::class, 'edit'])
             ->name('shipping-instructions.edit');
 
         // Admin middleware Group - moved outside of verified middleware
         Route::middleware(['staff.access'])->group(function () {
             Route::get('dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+            Route::get('export-bookings', [DashboardController::class, 'exportBookings'])->name('export-bookings');
 
             // Shipping Routes
             Route::get('shipping-routes/create', [ShippingRouteController::class, 'create'])->name('shipping-routes.create');
@@ -88,6 +92,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
             Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+            // Finance routes
+            Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
         });
 
     });

@@ -53,7 +53,7 @@
 
     @switch($booking->status)
         @case($CANCELLED)
-            <p>Booking has been cancelled.</p>
+            <p>Booking {{ $booking->booking_number }} has been cancelled.</p>
             @break
 
         @case($NEW)

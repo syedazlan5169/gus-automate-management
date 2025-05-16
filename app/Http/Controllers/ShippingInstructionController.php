@@ -159,6 +159,58 @@ class ShippingInstructionController extends Controller
         }
     }
 
+    // Generate Telex Bill of Lading for a shipping instruction
+    public function generateTelexBL(ShippingInstruction $shippingInstruction)
+    {
+        try {
+            // Load necessary relationships
+            $shippingInstruction->load([
+                'booking',
+                'containers', // Load containers
+                'cargos' // Load cargos to get container types
+            ]);
+
+            // Group containers by type for the BL
+            $containersByType = $shippingInstruction->containers
+                ->groupBy('cargo.container_type') // Group by the cargo's container type
+                ->map(function ($containers) use ($shippingInstruction) {
+                    return [
+                        'count' => $containers->count(),
+                        'total_weight' => $shippingInstruction->cargos->first()->total_weight,
+                        'containers' => $containers->map(function ($container) {
+                            return [
+                                'container_number' => $container->container_number,
+                                'seal_number' => $container->seal_number,
+                            ];
+                        })->values()
+                    ];
+                });
+            
+            // Generate PDF
+            $pdf = PDF::loadView('shipping-instructions.telex-bill-of-lading', compact(
+                'shippingInstruction',
+                'containersByType'
+            ));
+
+            // Generate filename using booking number and SI number
+            // Replace / and \ with -
+            $blNumberSafe = str_replace(['/', '\\'], '-', $shippingInstruction->bl_number);
+
+            // Now use the safe version
+            $filename = "BL_{$blNumberSafe}.pdf";
+
+
+            // Return the PDF for download
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            \Log::error('BL Generation failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate Bill of Lading. Please try again.');
+        }
+    }
+
+
+
     // Generate Bill of Lading for a shipping instruction
     public function generateBL(ShippingInstruction $shippingInstruction)
     {
@@ -241,6 +293,9 @@ class ShippingInstructionController extends Controller
                 'shippingInstruction',
                 'containersByType'
             ));
+
+            // Set PDF page size to A4 landscape
+            $pdf->setPaper('a4', 'landscape');
 
             // Generate filename using bl number
             // Replace / and \ with -
@@ -683,5 +738,12 @@ class ShippingInstructionController extends Controller
     public function downloadTemplate()
     {
         return response()->download(public_path('template/container_list_template.xlsx'));
+    }
+
+    public function releaseTelexBL(ShippingInstruction $shippingInstruction)
+    {
+        $shippingInstruction->update(['telex_bl_released' => true]);
+        ActivityLog::logTelexBLReleased(auth()->user(), $shippingInstruction);
+        return redirect()->route('booking.show', $shippingInstruction->booking)->with('success', 'Telex BL released successfully for shipping instruction ' . $shippingInstruction->sub_booking_number . '.');
     }
 }

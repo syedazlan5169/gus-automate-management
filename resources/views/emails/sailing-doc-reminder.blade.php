@@ -49,7 +49,7 @@
 
     <p>Dear Admin,</p>
 
-    <p>The following booking will be sailing less than 24 hours from now. Please upload the BL with Telex Release document as soon as possible.</p>
+    <p>The following booking will be sailing less than 24 hours from now. Please release all the Telex BLs for this booking.</p>
 
     <div class="booking-details">
         <h3>Booking Details:</h3>
@@ -58,7 +58,7 @@
         <p><strong>Estimated Time of Sailing:</strong> {{ $booking->ets->format('F d, Y H:i') }}</p>
     </div>
 
-    <p>The BL with Telex Release document must be uploaded before the vessel sails. Please ensure this document is uploaded as soon as possible.</p>
+    <p>The BL with Telex Release document must be released before the vessel sails. Please ensure this document is released as soon as possible.</p>
 
     <a href="{{ route('booking.show', $booking->id) }}" class="action-button">View Booking Details</a>
 
