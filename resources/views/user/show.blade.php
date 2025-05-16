@@ -48,8 +48,8 @@
                                             <x-input-label for="role" value="Role" />
                                             <x-select-input id="role" name="role" class="mt-1 block w-full" required>
                                                 <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                <option value="finance" {{ $user->role === 'finance' ? 'selected' : '' }}>Finance</option>
                                                 <option value="manager" {{ $user->role === 'manager' ? 'selected' : '' }}>Manager</option>
-                                                <option value="staff" {{ $user->role === 'staff' ? 'selected' : '' }}>Staff</option>
                                                 <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
                                             </x-select-input>
                                             @error('role')
