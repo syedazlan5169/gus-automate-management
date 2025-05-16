@@ -59,8 +59,8 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="verified" value="Verified" />
                                             <x-select-input id="verified" name="verified" class="mt-1 block w-full" required>
-                                                <option value="1" {{ $user->verified ? 'selected' : '' }}>Yes</option>
-                                                <option value="0" {{ !$user->verified ? 'selected' : '' }}>No</option>
+                                                <option value="1" {{ $user->email_verified_at ? 'selected' : '' }}>Yes</option>
+                                                <option value="0" {{ !$user->email_verified_at ? 'selected' : '' }}>No</option>
                                             </x-select-input>
                                             @error('verified')
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
