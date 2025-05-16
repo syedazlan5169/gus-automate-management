@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Booking;
+use App\Models\BookingStatus;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -66,7 +67,7 @@ class BookingsExport implements FromCollection, WithHeadings, WithMapping
             $booking->place_of_delivery,
             $booking->ets?->format('Y-m-d H:i'),
             $booking->eta?->format('Y-m-d H:i'),
-            $booking->status,
+            BookingStatus::labels($booking->status)[$booking->status] ?? '',
         ];
 
         // Add invoice data
