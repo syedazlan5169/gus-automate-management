@@ -246,7 +246,7 @@
                     <span style="font-weight: normal;">
                         GU SHIPPING SDN BHD <br>
                         <div style="position: relative;">
-                            <img src="{{ public_path('images/signature.png') }}" alt="Signature" style="position: absolute; right: 30px; top: -20px; width: 100px; height: 100px; z-index: 1;">
+                            <img src="{{ public_path('images/signature-gus.png') }}" alt="Signature" style="position: absolute; right: 30px; top: 10px; width: 110px; height: 40px; z-index: 1;">
                         </div>
                     </span>
                 </th>
