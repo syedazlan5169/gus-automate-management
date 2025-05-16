@@ -317,26 +317,6 @@ function showError(message) {
     errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function removeContainer(button) {
-    const containerItem = button.closest('.flex');
-    if (containerItem) {
-        const containerType = containerItem.querySelector('input[type="hidden"]').value;
-        containerItem.remove();
-        
-        // Update counts
-        updateContainerCounts(containerType, -1);
-        updateContainerCount(containerType);
-        
-        // Check if the container group is empty
-        const containerSection = document.querySelector(`div[data-container-type="${containerType}"]`);
-        const containerGroup = containerSection.querySelector(`#container-group-${containerType}`);
-        
-        if (containerGroup && containerGroup.children.length === 0) {
-            containerSection.remove();
-        }
-    }
-}
-
 function updateContainerCounts(containerType, change) {
     // Update dropdown option
     const option = document.querySelector(`option[value="${containerType}"]`);
@@ -345,21 +325,9 @@ function updateContainerCounts(containerType, change) {
         option.dataset.available = available;
         option.textContent = `${option.textContent.split('(')[0].trim()} (${available} available)`;
         
-        // If containers become available again, make sure the option is in the dropdown
-        if (available > 0 && !option.parentElement) {
-            const containerTypeSelect = document.getElementById('container_type');
-            let added = false;
-            // Add option in the correct position (maintain alphabetical order)
-            for (let i = 0; i < containerTypeSelect.options.length; i++) {
-                if (containerTypeSelect.options[i].text > option.text) {
-                    containerTypeSelect.add(option, i);
-                    added = true;
-                    break;
-                }
-            }
-            if (!added) {
-                containerTypeSelect.add(option);
-            }
+        // Remove option if no more containers available
+        if (available <= 0) {
+            option.remove();
         }
     }
 
@@ -367,25 +335,76 @@ function updateContainerCounts(containerType, change) {
     const allocationInfo = document.querySelector(`p[data-container-type="${containerType}"]`);
     if (allocationInfo) {
         const strong = allocationInfo.querySelector('strong');
-        const total = allocationInfo.dataset.total;
-        const available = parseInt(strong.dataset.available) - change;
-        strong.dataset.available = available;
-        strong.textContent = `${available} of ${total} available`;
+        const total = parseInt(allocationInfo.dataset.total);
+        const initialAvailable = parseInt(strong.dataset.available); // Get the initial available count
+        const currentCount = document.querySelector(`#container-group-${containerType}`).children.length;
         
-        // Update color based on availability
-        allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
-    } else {
-        // If the allocation info doesn't exist for this container type, we need to create it
-        // This happens when we're adding a container type that wasn't in the original booking
-        const allocationInfoContainer = document.getElementById('allocation-info');
-        if (allocationInfoContainer) {
-            const newAllocationInfo = document.createElement('p');
-            newAllocationInfo.setAttribute('data-container-type', containerType);
-            newAllocationInfo.setAttribute('data-total', '0'); // We don't know the total for this type
-            newAllocationInfo.className = 'text-sm text-blue-700';
-            newAllocationInfo.innerHTML = `${containerType}: <strong data-available="0">0 of 0 available</strong>`;
-            allocationInfoContainer.appendChild(newAllocationInfo);
+        // Calculate available slots and extra containers
+        const available = Math.max(0, initialAvailable - currentCount);
+        const extra = Math.max(0, currentCount - initialAvailable);
+        
+        // Update the text based on whether we have extra containers
+        if (extra > 0) {
+            strong.textContent = `0 of ${total} available (${extra} extra in list)`;
+            allocationInfo.className = 'text-sm text-red-700';
+        } else {
+            strong.textContent = `${available} of ${total} available`;
+            allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
         }
+    }
+}
+
+function removeContainer(button) {
+    const containerItem = button.closest('.flex');
+    if (containerItem) {
+        const containerType = containerItem.querySelector('input[type="hidden"]').value;
+        const cargoId = containerItem.querySelector('input[type="hidden"]').name.match(/containers\[(\d+)\]/)[1];
+        containerItem.remove();
+        
+        // Update the visual count
+        updateContainerCount(containerType);
+        
+        // Update the allocation info counter
+        const allocationInfo = document.querySelector(`p[data-container-type="${containerType}"]`);
+        if (allocationInfo) {
+            const strong = allocationInfo.querySelector('strong');
+            const total = parseInt(allocationInfo.dataset.total);
+            const initialAvailable = parseInt(strong.dataset.available); // Get the initial available count
+            const currentCount = document.querySelector(`#container-group-${containerType}`).children.length;
+            
+            // Calculate available slots and extra containers
+            const available = Math.max(0, initialAvailable - currentCount);
+            const extra = Math.max(0, currentCount - initialAvailable);
+            
+            // Update the text based on whether we have extra containers
+            if (extra > 0) {
+                strong.textContent = `0 of ${total} available (${extra} extra in list)`;
+                allocationInfo.className = 'text-sm text-red-700';
+            } else {
+                strong.textContent = `${available} of ${total} available`;
+                allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
+            }
+        }
+        
+        // Check if the container group is empty
+        const containerSection = document.querySelector(`div[data-container-type="${containerType}"]`);
+        const containerGroup = containerSection.querySelector(`#container-group-${containerType}`);
+        
+        if (containerGroup && containerGroup.children.length === 0) {
+            containerSection.remove();
+        }
+
+        // Reindex the remaining containers for this cargo type
+        const remainingContainers = containerGroup.querySelectorAll('.flex');
+        remainingContainers.forEach((container, index) => {
+            const inputs = container.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.name;
+                if (name.includes('containers[')) {
+                    input.name = name.replace(/containers\[\d+\]\[\d+\]/, `containers[${cargoId}][${index}]`);
+                }
+            });
+        });
     }
 }
 
@@ -746,6 +765,14 @@ document.querySelector('form').addEventListener('submit', function(e) {
     } else {
         showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
     }
+});
+
+// Add this at the end of your script section
+// Check for error message in session on page load
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('error'))
+        showError('{{ session('error') }}');
+    @endif
 });
 </script>
 

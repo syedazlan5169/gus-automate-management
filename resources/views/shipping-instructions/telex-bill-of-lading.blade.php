@@ -150,6 +150,9 @@
                     @foreach ($chunk as $container)
                         {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
+                    @for ($i = count($chunk); $i < 30; $i++)
+                        <br>
+                    @endfor
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
                     <span style="font-weight: normal;">
@@ -162,7 +165,7 @@
                     HS CODE : {{ $shippingInstruction->hs_code }}<br>
                     BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
                     </span>
-                    <img src="{{ public_path('images/telex-released-stamp.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 200px;">
+                    <img src="{{ public_path('images/telex-release.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 70px; padding-top: 80px;">
                 </td>
                 <td style="border: 1px solid #000; vertical-align: top; padding: 8px; text-align: center; width: 15%;">
                     <span style="font-weight: normal;">

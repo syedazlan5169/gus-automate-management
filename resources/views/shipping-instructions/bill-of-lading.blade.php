@@ -150,6 +150,9 @@
                     @foreach ($chunk as $container)
                         {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
+                    @for ($i = count($chunk); $i < 30; $i++)
+                        <br>
+                    @endfor
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
                     <span style="font-weight: normal;">

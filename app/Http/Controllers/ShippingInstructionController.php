@@ -118,6 +118,10 @@ class ShippingInstructionController extends Controller
                     ->take(count($containers))
                     ->get();
 
+                if ($availableContainers->count() < count($containers)) {
+                    throw new \Exception('Insufficient available containers for the cargo.');
+                }
+
                 foreach ($containers as $index => $container) {
                     if (isset($availableContainers[$index])) {
                         // Update existing container
@@ -150,7 +154,7 @@ class ShippingInstructionController extends Controller
             DB::rollBack();
             \Log::error('Shipping Instruction creation failed: ' . $e->getMessage());
             return back()
-                ->with('error', 'Error creating shipping instruction. Please try again.')
+                ->with('error', 'Error creating shipping instruction: ' . $e->getMessage())
                 ->withInput();
         }
     }
