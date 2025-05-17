@@ -152,11 +152,8 @@
                                                             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                                                                 <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300">
                                                                     <option value="">Select container type</option>
-                                                                    <option value="20GP" {{ $cargo->container_type === '20GP' ? 'selected' : '' }}>20' General Purpose</option>
-                                                                    <option value="40GP" {{ $cargo->container_type === '40GP' ? 'selected' : '' }}>40' General Purpose</option>
                                                                     <option value="40HC" {{ $cargo->container_type === '40HC' ? 'selected' : '' }}>40' High Cube</option>
-                                                                    <option value="20RF" {{ $cargo->container_type === '20RF' ? 'selected' : '' }}>20' Reefer</option>
-                                                                    <option value="40RF" {{ $cargo->container_type === '40RF' ? 'selected' : '' }}>40' Reefer</option>
+                                                                    <option value="20DC" {{ $cargo->container_type === '20DC' ? 'selected' : '' }}>20' Dry Cargo</option>
                                                                 </select>
                                                             </td>
                                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
