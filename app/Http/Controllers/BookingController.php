@@ -164,42 +164,110 @@ class BookingController extends Controller
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {
-        $validated = $request->validate([
-            'vessel' => 'sometimes|required|string|max:255',
-            'voyage' => 'sometimes|required|string|max:255',
-            'place_of_receipt' => 'sometimes|required|string|max:255',
-            'pol' => 'sometimes|required|string|max:255',
-            'pod' => 'sometimes|required|string|max:255',
-            'place_of_delivery' => 'sometimes|required|string|max:255',
-            'ets' => 'sometimes|required|date',
-            'eta' => 'sometimes|required|date|after:ets',
-            'delivery_terms' => 'sometimes|required|string|max:255',
-            'tug' => 'sometimes|required|string|max:255',
+        // Log the incoming request data
+        \Log::info('Booking Update Request Data:', [
+            'all_data' => $request->all(),
+            'booking_id' => $booking->id
         ]);
 
         try {
+            // Separate booking and cargo validation
+            $bookingValidated = $request->validate([
+                'vessel' => 'sometimes|required|string|max:255',
+                'voyage' => 'sometimes|required|string|max:255',
+                'place_of_receipt' => 'sometimes|required|string|max:255',
+                'pol' => 'sometimes|required|string|max:255',
+                'pod' => 'sometimes|required|string|max:255',
+                'place_of_delivery' => 'sometimes|required|string|max:255',
+                'ets' => 'sometimes|required|date',
+                'eta' => 'sometimes|required|date|after:ets',
+                'delivery_terms' => 'sometimes|required|string|max:255',
+                'tug' => 'sometimes|required|string|max:255',
+            ]);
+
+            $cargoValidated = $request->validate([
+                'container_type' => 'sometimes|required|array',
+                'container_type.*' => 'required|string',
+                'container_count' => 'sometimes|required|array',
+                'container_count.*' => 'required|integer|min:1',
+                'total_weight' => 'sometimes|required|array',
+                'total_weight.*' => 'required|numeric|min:0',
+            ]);
+
+            \Log::info('Validated Data:', [
+                'booking' => $bookingValidated,
+                'cargo' => $cargoValidated
+            ]);
+
+            \DB::beginTransaction();
+
             // Check if voyage number is being updated
-            if (isset($validated['voyage']) && $validated['voyage'] !== $booking->voyage) {
+            if (isset($bookingValidated['voyage']) && $bookingValidated['voyage'] !== $booking->voyage) {
                 // Check if the voyage number exists in any other booking
-                $duplicateVoyage = \App\Models\Booking::where('voyage', $validated['voyage'])
+                $duplicateVoyage = \App\Models\Booking::where('voyage', $bookingValidated['voyage'])
                     ->where('id', '!=', $booking->id)
                     ->exists();
                 
                 if ($duplicateVoyage) {
                     // Add a warning message but still proceed with the update
-                    $booking->update($validated);
+                    $booking->update($bookingValidated);
                     return redirect()->route('booking.show', $booking)
                         ->with('warning', 'This voyage number has been used in another booking.')
                         ->with('success', 'Booking updated successfully.');
                 }
             }
-            
-            $booking->update($validated);
+
+            // Update the booking with only booking fields
+            $booking->update($bookingValidated);
+
+            // Update cargo information if provided
+            if (isset($cargoValidated['container_type'])) {
+                \Log::info('Updating cargo information');
+                
+                // Delete existing cargos
+                $booking->cargos()->delete();
+
+                // Create new cargos
+                foreach ($cargoValidated['container_type'] as $index => $containerType) {
+                    $cargo = $booking->cargos()->create([
+                        'container_type' => $containerType,
+                        'container_count' => $cargoValidated['container_count'][$index],
+                        'total_weight' => $cargoValidated['total_weight'][$index],
+                    ]);
+
+                    \Log::info('Created cargo:', [
+                        'cargo_id' => $cargo->id,
+                        'container_type' => $containerType,
+                        'container_count' => $cargoValidated['container_count'][$index],
+                        'total_weight' => $cargoValidated['total_weight'][$index]
+                    ]);
+
+                    // Create placeholder container records
+                    for ($i = 0; $i < $cargoValidated['container_count'][$index]; $i++) {
+                        $container = $cargo->containers()->create([
+                            'container_number' => null,
+                            'seal_number' => null,
+                        ]);
+                        \Log::info('Created container:', ['container_id' => $container->id]);
+                    }
+                }
+            } else {
+                \Log::info('No cargo information provided in request');
+            }
+
             ActivityLog::logBookingEdited(auth()->user(), $booking);
+
+            \DB::commit();
+            \Log::info('Booking update completed successfully');
 
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
         } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error updating booking:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Error updating booking: ' . $e->getMessage());
         }
     }

@@ -249,5 +249,81 @@
 </x-app-layout>
 
 <script>
-// ... same JavaScript functions as in create.blade.php ...
+function addNewRow() {
+    const tbody = document.getElementById('cargo-tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+            <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300">
+                <option value="">Select container type</option>
+                <option value="40HC">40' High Cube</option>
+                <option value="20DC">20' Dry Cargo</option>
+            </select>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+            <input type="number" name="container_count[]" min="1" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+            <input type="number" name="total_weight[]" step="0.01" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+        </td>
+        <td class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+            <button type="button" class="text-red-600 hover:text-red-900 delete-row" onclick="deleteRow(this)">
+                <span class="sr-only">Delete</span>
+                <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </td>
+        <td class="text-center relative whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-0 text-gray-400">
+            <button type="button" class="text-gray-400 hover:text-gray-500" onclick="addNewRow()">
+                <span class="sr-only">Add</span>
+                <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function deleteRow(button) {
+    const row = button.closest('tr');
+    const tbody = document.getElementById('cargo-tbody');
+    
+    // Don't delete if it's the last row
+    if (tbody.children.length > 1) {
+        row.remove();
+    } else {
+        // If it's the last row, just clear the inputs
+        const inputs = row.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.tagName === 'SELECT') {
+                input.selectedIndex = 0;
+            } else {
+                input.value = '';
+            }
+        });
+    }
+}
+
+// Add form submission validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const containerTypes = document.getElementsByName('container_type[]');
+    const containerCounts = document.getElementsByName('container_count[]');
+    const totalWeights = document.getElementsByName('total_weight[]');
+    
+    let isValid = true;
+    
+    for (let i = 0; i < containerTypes.length; i++) {
+        if (!containerTypes[i].value || !containerCounts[i].value || !totalWeights[i].value) {
+            isValid = false;
+            break;
+        }
+    }
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all cargo information fields.');
+    }
+});
 </script>

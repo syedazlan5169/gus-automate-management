@@ -503,7 +503,7 @@
                                                     <tbody class="divide-y divide-gray-200" id="cargo-tbody">
                                                         <tr>
                                                             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                                                <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                                                <select name="container_type[]" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" onchange="updateContainerOptions(this)">
                                                                     <option value="">Select container type</option>
                                                                     <option value="40HC">40' High Cube</option>
                                                                     <option value="20DC">20' Dry Cargo</option>
@@ -572,12 +572,31 @@ function addNewRow() {
         }
     });
     
-    // Update select name attribute
+    // Update select name attribute and reset options
     const select = template.querySelector('select');
     if (select) {
         const index = tbody.querySelectorAll('tr').length;
         select.value = '';
         select.setAttribute('name', select.getAttribute('name').replace(/\[\d*\]/, `[${index}]`));
+        
+        // Reset all options to visible
+        Array.from(select.options).forEach(option => {
+            if (option.value !== '') {
+                option.style.display = '';
+            }
+        });
+        
+        // Hide already selected options
+        const selectedValues = Array.from(tbody.querySelectorAll('select[name^="container_type"]'))
+            .map(select => select.value)
+            .filter(value => value !== '');
+            
+        selectedValues.forEach(value => {
+            const option = select.querySelector(`option[value="${value}"]`);
+            if (option) {
+                option.style.display = 'none';
+            }
+        });
     }
     
     tbody.appendChild(template);
@@ -586,13 +605,42 @@ function addNewRow() {
 function deleteRow(button) {
     const tbody = document.getElementById('cargo-tbody');
     if (tbody.querySelectorAll('tr').length > 1) {
+        const deletedValue = button.closest('tr').querySelector('select').value;
         button.closest('tr').remove();
+        
         // Reindex remaining rows
         tbody.querySelectorAll('tr').forEach((row, index) => {
             row.querySelectorAll('[name]').forEach(input => {
                 const name = input.getAttribute('name');
                 input.setAttribute('name', name.replace(/\[\d*\]/, `[${index}]`));
             });
+        });
+        
+        // Show the deleted option in all other selects
+        if (deletedValue) {
+            tbody.querySelectorAll('select[name^="container_type"]').forEach(select => {
+                const option = select.querySelector(`option[value="${deletedValue}"]`);
+                if (option) {
+                    option.style.display = '';
+                }
+            });
+        }
+    }
+}
+
+function updateContainerOptions(changedSelect) {
+    const tbody = document.getElementById('cargo-tbody');
+    const selectedValue = changedSelect.value;
+    
+    // If a value was selected, hide it in other selects
+    if (selectedValue) {
+        tbody.querySelectorAll('select[name^="container_type"]').forEach(select => {
+            if (select !== changedSelect) {
+                const option = select.querySelector(`option[value="${selectedValue}"]`);
+                if (option) {
+                    option.style.display = 'none';
+                }
+            }
         });
     }
 }
