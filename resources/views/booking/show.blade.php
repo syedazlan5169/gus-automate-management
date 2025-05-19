@@ -501,18 +501,19 @@
                                                     Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
                                                 </span>
                                             </p>
-
-                                            @if($booking->status < 5 && $remainingFreeRevisions > 0)
-                                            <a href="{{ route('shipping-instructions.show', $si) }}"
-                                                class="text-indigo-600 hover:text-indigo-900">
-                                                Edit
-                                            </a>
-                                            @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
-                                            <a href="#"
-                                                onclick="showRevisionWarning(event, '{{ $si->id }}')"
-                                                class="text-indigo-600 hover:text-indigo-900">
-                                                Edit
-                                            </a>
+                                            @if(!$si->telex_bl_released)
+                                                @if($booking->status < 5 && $remainingFreeRevisions > 0)
+                                                <a href="{{ route('shipping-instructions.show', $si) }}"
+                                                    class="text-indigo-600 hover:text-indigo-900">
+                                                    Edit
+                                                </a>
+                                                @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
+                                                <a href="#"
+                                                    onclick="showRevisionWarning(event, '{{ $si->id }}')"
+                                                    class="text-indigo-600 hover:text-indigo-900">
+                                                    Edit
+                                                </a>
+                                                @endif
                                             @endif
                                             @if($booking->status == 3)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
