@@ -69,7 +69,14 @@
 
             <div>
                 <!-- This should be the current status of the booking -->
-                @if ($booking->status == $status::NEW)
+                @if ($booking->status == $status::NEW && $booking->sub_status == 0)
+                    @if(auth()->user()->role == 'customer')
+                    <x-alert-instruction 
+                        message="Please confirm the booking details and submit the booking"
+                        color="green"
+                    />
+                    @endif
+                @elseif ($booking->status == $status::NEW && $booking->sub_status == 1)
                     @if(auth()->user()->role == 'customer')
                     <x-alert-instruction 
                         message="A booking has been created, please wait for the Liner to confirm the booking"
@@ -82,7 +89,6 @@
                         action_text="Update Booking"
                     />
                     @endif
-
                 @elseif ($booking->status == $status::BOOKING_CONFIRMED)
                     @if(auth()->user()->role == 'customer')
                     <x-alert-instruction 
@@ -216,12 +222,16 @@
                         <div class="sm:flex-auto">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-2xl font-semibold">Booking Details</h2>
-                                <x-status-badge text="{{ $statusLabel }}" color="{{ $booking->status == $status::CANCELLED ? 'red' : 'green' }}"/>
+                                @if ($booking->status == $status::NEW && $booking->sub_status == 0)
+                                    <x-status-badge text="Draft" color="yellow"/>
+                                @else
+                                    <x-status-badge text="{{ $statusLabel }}" color="{{ $booking->status == $status::CANCELLED ? 'red' : 'green' }}"/>
+                                @endif
                             </div>
                             <p class="text-gray-600">{{ $booking->booking_number }}</p>
                         </div>
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                            @if($booking->status < 2 && $booking->status > 0 && auth()->user()->role != 'customer')
+                            @if($booking->status < 2 && $booking->status > 0)
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -941,7 +951,25 @@
                                 Back
                             </button>
 
-                            @if($booking->status == $status::NEW && auth()->user()->role != 'customer')
+                            @if($booking->status == $status::NEW && $booking->sub_status == 0 && auth()->user()->role == 'customer')
+                            <!-- Submit Booking Button -->
+                            <div class="relative" x-data="{ showTooltip: false }">
+                                <button type="button"
+                                    @mouseover="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    onclick="document.getElementById('booking-submission-modal').classList.remove('hidden')"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700">
+                                    Submit Booking
+                                </button>
+                                <!-- Tooltip -->
+                                <div x-show="showTooltip" 
+                                    x-transition
+                                    class="absolute bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg"
+                                    style="left: 10%; transform: translateX(-50%)">
+                                    Please make sure all the information is correct before submitting the booking.
+                                </div>
+                            </div>
+                            @elseif($booking->status == $status::NEW && $booking->sub_status == 1 && auth()->user()->role != 'customer')
                             <!-- Confirm Booking Button -->
                             <div class="relative" x-data="{ showTooltip: false }">
                                 <button type="button"
@@ -1298,6 +1326,36 @@
                                                 <div class="flex gap-3">
                                                     <button type="button" onclick="window.location.href='{{ route('booking.cancel', $booking) }}'"
                                                         class="inline-flex justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Booking Submission Modal -->
+                            <div id="booking-submission-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Booking Submission</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before submitting the booking.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('booking-submission-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.submit', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
                                                 </div>
                                             </div>
                                         </div>

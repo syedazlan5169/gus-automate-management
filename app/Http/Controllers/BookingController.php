@@ -127,9 +127,6 @@ class BookingController extends Controller
 
             \DB::commit();
 
-            // Send email notification to customer and admin
-            Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
-            Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
 
             ActivityLog::logBookingCreated(auth()->user(), $booking);
 
@@ -200,25 +197,27 @@ class BookingController extends Controller
             ]);
 
             \DB::beginTransaction();
+            \Log::info('Transaction started');
 
+            $hasDuplicateVoyage = false;
             // Check if voyage number is being updated
             if (isset($bookingValidated['voyage']) && $bookingValidated['voyage'] !== $booking->voyage) {
+                \Log::info('Checking for duplicate voyage number');
                 // Check if the voyage number exists in any other booking
                 $duplicateVoyage = \App\Models\Booking::where('voyage', $bookingValidated['voyage'])
                     ->where('id', '!=', $booking->id)
                     ->exists();
                 
                 if ($duplicateVoyage) {
-                    // Add a warning message but still proceed with the update
-                    $booking->update($bookingValidated);
-                    return redirect()->route('booking.show', $booking)
-                        ->with('warning', 'This voyage number has been used in another booking.')
-                        ->with('success', 'Booking updated successfully.');
+                    \Log::info('Duplicate voyage number found');
+                    $hasDuplicateVoyage = true;
                 }
             }
 
+            \Log::info('Updating booking with validated data');
             // Update the booking with only booking fields
             $booking->update($bookingValidated);
+            \Log::info('Booking updated successfully');
 
             // Update cargo information if provided
             if (isset($cargoValidated['container_type'])) {
@@ -226,6 +225,7 @@ class BookingController extends Controller
                 
                 // Delete existing cargos
                 $booking->cargos()->delete();
+                \Log::info('Existing cargos deleted');
 
                 // Create new cargos
                 foreach ($cargoValidated['container_type'] as $index => $containerType) {
@@ -256,9 +256,16 @@ class BookingController extends Controller
             }
 
             ActivityLog::logBookingEdited(auth()->user(), $booking);
+            \Log::info('Activity log created');
 
             \DB::commit();
-            \Log::info('Booking update completed successfully');
+            \Log::info('Transaction committed successfully');
+
+            if ($hasDuplicateVoyage) {
+                return redirect()->route('booking.show', $booking)
+                    ->with('warning', 'This voyage number has been used in another booking.')
+                    ->with('success', 'Booking updated successfully.');
+            }
 
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
@@ -266,7 +273,9 @@ class BookingController extends Controller
             \DB::rollBack();
             \Log::error('Error updating booking:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
             return back()->with('error', 'Error updating booking: ' . $e->getMessage());
         }
@@ -336,9 +345,18 @@ class BookingController extends Controller
         return response()->json($availableContainers);
     }
 
+    public function submitBooking(Booking $booking)
+    {
+        $booking->update(['sub_status' => 1]);
+        Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
+        Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
+        ActivityLog::logBookingSubmitted(auth()->user(), $booking);
+        return redirect()->route('booking.show', $booking)->with('success', 'Booking submitted successfully.');
+    }
+
     public function confirmBooking(Booking $booking)
     {
-        $booking->update(['status' => 2]);
+        $booking->update(['status' => 2, 'sub_status' => 0]);
         Mail::to($booking->user->email)->send(new BookingStatusUpdated($booking, 'customer'));
         Mail::to(env('MAIL_TO_ADDRESS'))->send(new BookingStatusUpdated($booking, 'admin'));
         ActivityLog::logBookingConfirmed(auth()->user(), $booking);

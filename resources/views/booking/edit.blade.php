@@ -21,6 +21,7 @@
                             <div class="space-y-12">
 
                                 <!-- Shipping Details -->
+                                @if (auth()->user()->role != 'customer')
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
                                     <h2 class="text-base/7 font-semibold text-gray-900">Shipping Details</h2>
                                     
@@ -61,6 +62,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 <!-- Route Information -->
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
@@ -117,6 +119,7 @@
                                             @enderror
                                         </div>
 
+                                        @if (auth()->user()->role != 'customer')
                                         <div class="sm:col-span-3">
                                             <x-input-label for="eta" value="Estimated Time of Arrival (ETA)" />
                                             <x-text-input id="eta" name="eta" type="datetime-local" class="mt-1 block w-full"
@@ -125,6 +128,7 @@
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
 
