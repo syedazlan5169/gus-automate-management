@@ -374,15 +374,33 @@
                                 <h3 class="text-lg font-medium">Shipping Instructions</h3>
                                 <p class="text-sm text-red-600">
                                     @php
-                                     $totalUnallocated = $booking->cargos->sum(function($cargo) {
-                                        return $cargo->containers->filter(function($container) {
-                                            return $container->shipping_instruction_id == null;
-                                        })->count();
-                                    });
+                                        // Group unallocated containers by cargo container_type
+                                        $unallocatedByType = [];
+                                        $totalUnallocated = 0;
+
+                                        foreach ($booking->cargos as $cargo) {
+                                            $unallocatedCount = $cargo->containers->filter(function ($container) {
+                                                return is_null($container->shipping_instruction_id);
+                                            })->count();
+
+                                            if ($unallocatedCount > 0) {
+                                                $type = $cargo->container_type ?? 'Unknown Type';
+                                                if (!isset($unallocatedByType[$type])) {
+                                                    $unallocatedByType[$type] = 0;
+                                                }
+                                                $unallocatedByType[$type] += $unallocatedCount;
+                                                $totalUnallocated += $unallocatedCount;
+                                            }
+                                        }
                                     @endphp
-                                    @if($totalUnallocated > 0)
-                                        <strong>Total Unallocated Containers:</strong>
-                                        {{ $totalUnallocated }}
+
+                                    @if (count($unallocatedByType) > 0)
+                                        <strong>Total Unallocated Containers (by Type):</strong><br>
+                                        <ul class="list-disc ml-4">
+                                            @foreach ($unallocatedByType as $type => $count)
+                                                <li class="text-sm text-red-600"><strong>{{ $type }}: {{ $count }}</strong></li>
+                                            @endforeach
+                                        </ul>
                                     @else
                                         <strong>All Containers Allocated</strong>
                                     @endif
