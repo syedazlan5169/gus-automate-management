@@ -91,7 +91,7 @@
                   <div class="sm:col-span-3">
                     <x-input-label for="shipper_contact">Shipper Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="shipper_contact" id="shipper_contact" required/>
+                      <x-text-input type="number" name="shipper_contact" id="shipper_contact" required/>
                     </div>
                   </div>
                 </div>
@@ -121,7 +121,7 @@
                   <div class="sm:col-span-3">
                     <x-input-label for="consignee_contact">Consignee Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="consignee_contact" id="consignee_contact" required/>
+                      <x-text-input type="number" name="consignee_contact" id="consignee_contact" required/>
                     </div>
                   </div>
                 </div>
@@ -151,7 +151,7 @@
                   <div class="sm:col-span-3">
                     <x-input-label for="notify_party_contact">Notify Party Contact</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="notify_party_contact" id="notify_party_contact" required/>
+                      <x-text-input type="number" name="notify_party_contact" id="notify_party_contact" required/>
                     </div>
                   </div>
 
@@ -195,7 +195,7 @@
                   <div class="sm:col-span-1">
                     <x-input-label for="volume">Volume</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="number" step="0.01" name="volume" id="volume"/>
+                      <x-text-input type="number" step="0.01" name="volume" id="volume" required/>
                     </div>
                   </div>
                 </div>
