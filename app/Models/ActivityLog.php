@@ -20,6 +20,16 @@ class ActivityLog extends Model
         ]);
     }
 
+    public static function logBookingSubmitted($user, $booking)
+    {
+        self::create([
+            'user_id' => $user->id,
+            'booking_id' => $booking->id,
+            'action' => 'Booking Submitted',
+            'description' => $user->name . ' has submitted booking ' . $booking->booking_number,
+        ]);
+    }
+
     public static function logBookingCancelled($user, $booking)
     {
         self::create([

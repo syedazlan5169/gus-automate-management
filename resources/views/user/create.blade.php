@@ -47,8 +47,8 @@
                                             <x-input-label for="role" value="Role" />
                                             <x-select-input id="role" name="role" class="mt-1 block w-full" required>
                                                 <option value="admin">Admin</option>
+                                                <option value="finance">Finance</option>
                                                 <option value="manager">Manager</option>
-                                                <option value="staff">Staff</option>
                                                 <option value="customer">Customer</option>
                                             </x-select-input>
                                             @error('role')

@@ -48,8 +48,8 @@
                                             <x-input-label for="role" value="Role" />
                                             <x-select-input id="role" name="role" class="mt-1 block w-full" required>
                                                 <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                <option value="finance" {{ $user->role === 'finance' ? 'selected' : '' }}>Finance</option>
                                                 <option value="manager" {{ $user->role === 'manager' ? 'selected' : '' }}>Manager</option>
-                                                <option value="staff" {{ $user->role === 'staff' ? 'selected' : '' }}>Staff</option>
                                                 <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
                                             </x-select-input>
                                             @error('role')
@@ -59,8 +59,8 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="verified" value="Verified" />
                                             <x-select-input id="verified" name="verified" class="mt-1 block w-full" required>
-                                                <option value="1" {{ $user->verified ? 'selected' : '' }}>Yes</option>
-                                                <option value="0" {{ !$user->verified ? 'selected' : '' }}>No</option>
+                                                <option value="1" {{ $user->email_verified_at ? 'selected' : '' }}>Yes</option>
+                                                <option value="0" {{ !$user->email_verified_at ? 'selected' : '' }}>No</option>
                                             </x-select-input>
                                             @error('verified')
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
