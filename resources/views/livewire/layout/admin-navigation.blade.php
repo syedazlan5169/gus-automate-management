@@ -111,6 +111,7 @@ new class extends Component {
                                             {{ __('Users') }}
                                         </x-responsive-nav-link>
                                     </li>
+                                    @if (auth()->user()->role === 'finance')
                                     <li>
                                         <x-responsive-nav-link :href="route('users.index')"
                                             :active="request()->routeIs('users.index')" wire:navigate>
@@ -123,6 +124,7 @@ new class extends Component {
                                             {{ __('Finance') }}
                                         </x-responsive-nav-link>
                                     </li>
+                                    @endif
                                 </ul>
                             </li>
                             <li class="mt-auto">
@@ -231,6 +233,7 @@ new class extends Component {
                                     {{ __('Users') }}
                                 </x-nav-link>
                             </li>
+                            @if (auth()->user()->role === 'finance')
                             <li>
                                 <x-nav-link href="{{ route('finance.index') }}"
                                     :active="request()->routeIs('finance.index')" wire:navigate>
@@ -243,6 +246,7 @@ new class extends Component {
                                     {{ __('Finance') }}
                                 </x-nav-link>
                             </li>
+                            @endif
                         </ul>
                     </li>
                     <li class="mt-auto">
