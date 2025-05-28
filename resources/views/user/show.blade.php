@@ -47,10 +47,18 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="role" value="Role" />
                                             <x-select-input id="role" name="role" class="mt-1 block w-full" required>
-                                                <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
-                                                <option value="finance" {{ $user->role === 'finance' ? 'selected' : '' }}>Finance</option>
-                                                <option value="manager" {{ $user->role === 'manager' ? 'selected' : '' }}>Manager</option>
-                                                <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
+                                                @if(auth()->user()->role === 'admin')
+                                                    <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                    <option value="finance" {{ $user->role === 'finance' ? 'selected' : '' }}>Finance</option>
+                                                    <option value="manager" {{ $user->role === 'manager' ? 'selected' : '' }}>Manager</option>
+                                                    <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
+                                                @elseif(auth()->user()->role === 'finance')
+                                                    <option value="finance" {{ $user->role === 'finance' ? 'selected' : '' }}>Finance</option>
+                                                    <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
+                                                @elseif(auth()->user()->role === 'manager')
+                                                    <option value="manager" {{ $user->role === 'manager' ? 'selected' : '' }}>Manager</option>
+                                                    <option value="customer" {{ $user->role === 'customer' ? 'selected' : '' }}>Customer</option>
+                                                @endif
                                             </x-select-input>
                                             @error('role')
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
