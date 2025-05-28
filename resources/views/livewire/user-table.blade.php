@@ -78,10 +78,19 @@
                           </div>
                         </td>
                       <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <a href="{{ route('users.show', $user) }}" 
-                               class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                                View
-                            </a>
+                            @if($this->canViewUser($user->role))
+                                <a href="{{ route('users.show', $user) }}" 
+                                   class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
+                                    View
+                                </a>
+                            @else
+                                <button type="button" 
+                                        x-data=""
+                                        x-on:click="$dispatch('open-modal', 'permission-denied')"
+                                        class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
+                                    View
+                                </button>
+                            @endif
                       </td>
                     </tr>
                     @endforeach
@@ -120,4 +129,23 @@
         </form>
     </x-modal>
 @endforeach
+
+<!-- Permission Denied Modal -->
+<x-modal name="permission-denied" :show="false" focusable>
+    <div class="p-6">
+        <h2 class="text-lg font-medium text-gray-900">
+            {{ __('Permission Denied') }}
+        </h2>
+
+        <p class="mt-1 text-sm text-gray-600">
+            {{ __("You don't have permission to edit user's detail with role that higher than yours. Log in with admin credential to edit this user") }}
+        </p>
+
+        <div class="mt-6 flex justify-end">
+            <x-secondary-button x-on:click="$dispatch('close')">
+                {{ __('Close') }}
+            </x-secondary-button>
+        </div>
+    </div>
+</x-modal>
 </div>

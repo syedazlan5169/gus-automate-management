@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'staff.access' => \App\Http\Middleware\StaffAccessOnly::class,
+            'check.user.view' => \App\Http\Middleware\CheckUserViewPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

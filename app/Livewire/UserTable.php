@@ -43,4 +43,31 @@ class UserTable extends Component
             'users' => $users
         ]);
     }
+
+    public function canViewUser($userRole)
+    {
+        $currentUserRole = auth()->user()->role;
+        
+        // Admin can view all roles
+        if ($currentUserRole === 'admin') {
+            return true;
+        }
+        
+        // Manager can only view customer and manager roles
+        if ($currentUserRole === 'manager') {
+            return in_array($userRole, ['customer', 'manager']);
+        }
+        
+        // Finance can only view customer and finance roles
+        if ($currentUserRole === 'finance') {
+            return in_array($userRole, ['customer', 'finance']);
+        }
+        
+        // Customer can only view their own profile
+        if ($currentUserRole === 'customer') {
+            return false;
+        }
+        
+        return false;
+    }
 }

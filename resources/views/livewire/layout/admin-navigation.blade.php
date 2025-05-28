@@ -233,7 +233,7 @@ new class extends Component {
                                     {{ __('Users') }}
                                 </x-nav-link>
                             </li>
-                            @if (auth()->user()->role === 'finance')
+                            @if (auth()->user()->role === 'finance' || auth()->user()->role === 'admin')
                             <li>
                                 <x-nav-link href="{{ route('finance.index') }}"
                                     :active="request()->routeIs('finance.index')" wire:navigate>
