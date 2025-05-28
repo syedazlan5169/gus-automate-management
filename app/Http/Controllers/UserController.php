@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewUser;
 
 class UserController extends Controller
 {
@@ -48,6 +50,8 @@ class UserController extends Controller
             'industries' => $request->industries,
         ]);
         
+        Mail::to(env('MAIL_TO_ADDRESS'))->send(new NewUser($user));
+
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
@@ -93,7 +97,8 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        return view('user.destroy', compact('user'));
+        $user->delete();
+        return redirect()->route('users.index')->with('success', 'User deleted successfully');
     }
     
 }
