@@ -91,7 +91,24 @@ class BookingController extends Controller
             \DB::beginTransaction();
 
             // Generate a unique booking number
-            $bookingNumber = 'GUS' . date('Ymd') . str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $yearMonth = now()->format('ym'); // YYMM format like '2505'
+            $prefix = 'G' . $yearMonth;
+            
+            // Lock the table while checking latest booking number
+            $latestBooking = Booking::where('booking_number', 'like', $prefix . '%')
+                ->orderByDesc('booking_number')
+                ->lockForUpdate()
+                ->first();
+            
+            if ($latestBooking) {
+                $lastRunningNumber = (int) substr($latestBooking->booking_number, -4);
+                $newRunningNumber = str_pad($lastRunningNumber + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $newRunningNumber = '0001';
+            }
+            
+            $bookingNumber = $prefix . $newRunningNumber;
+            
 
             // Create the booking
             $booking = Booking::create([

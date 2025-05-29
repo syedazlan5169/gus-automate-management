@@ -56,7 +56,7 @@
                         <div>
                             <div class="font-medium text-gray-900">{{ $booking->booking_number }}</div>
                             <div class="text-gray-500">
-                                <span>{{ $booking->user->company_name }}</span>
+                                <span>{{ $booking->user->company_name ?? 'N/A' }}</span>
                             </div>
                         </div>
 
