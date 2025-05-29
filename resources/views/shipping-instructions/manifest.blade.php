@@ -50,7 +50,7 @@
         <tbody>
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
-                    <strong>CARRIER: </strong><br>
+                    <strong>SHIPPER: </strong><br>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
