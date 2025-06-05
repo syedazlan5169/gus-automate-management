@@ -26,7 +26,6 @@
                     <img src="{{ public_path('images/logo-header.webp') }}" alt="Logo" style="max-width: 150px; max-height: 60px;">
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 90%;">
-                    <strong>Shipper</strong><br>
                     <span style="font-weight: normal;"><strong>GU SHIPPING SDN BHD (1051565-U)</strong><br>
                     5-01 (FIRST FLOOR), JALAN PONDEROSA 2/2 <br>
                     TAMAN PONDEROSA, 81100 JOHOR BAHRU<br>

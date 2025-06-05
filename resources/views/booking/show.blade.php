@@ -287,7 +287,7 @@
                                     @if (!empty($booking->vessel))
                                         {{ $booking->vessel }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -300,7 +300,7 @@
                                             <p class="text-xs font-medium text-amber-800">{{ session('warning') }}</p>
                                         @endif
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -310,7 +310,7 @@
                                     @if (!empty($booking->tug))
                                         {{ $booking->tug }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -320,7 +320,7 @@
                                     @if (!empty($booking->delivery_terms))
                                         {{ $booking->delivery_terms }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -360,7 +360,7 @@
                                     @if (!empty($booking->ets))
                                         {{ $booking->ets->format('Y-m-d H:i') }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -491,15 +491,16 @@
                                         <div class="text-right mt-4">
 
                                             <p class="text-left italic text-red-500 text-sm">
-                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 @php
                                                     $freeRevisionsLimit = 3;
                                                     $remainingFreeRevisions = max(0, $freeRevisionsLimit - $si->post_bl_edit_count);
                                                 @endphp
-                                                <br>
                                                 <span class="{{ $remainingFreeRevisions > 0 ? 'text-green-500' : 'text-red-500' }}">
                                                     Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
                                                 </span>
+                                                <br>
+                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
+                                                
                                             </p>
                                             @if(!$si->telex_bl_released)
                                                 @if($booking->status < 5 && $remainingFreeRevisions > 0)
