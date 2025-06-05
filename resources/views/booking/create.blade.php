@@ -491,7 +491,7 @@
                                                                 Type</th>
                                                             <th scope="col"
                                                                 class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                                Number of Cargo</th>
+                                                                Number of Containers</th>
                                                             <th scope="col"
                                                                 class="w-1/3 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                                                 Total Weight (kg)</th>

@@ -287,7 +287,7 @@
                                     @if (!empty($booking->vessel))
                                         {{ $booking->vessel }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -300,7 +300,7 @@
                                             <p class="text-xs font-medium text-amber-800">{{ session('warning') }}</p>
                                         @endif
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -310,7 +310,7 @@
                                     @if (!empty($booking->tug))
                                         {{ $booking->tug }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -320,7 +320,7 @@
                                     @if (!empty($booking->delivery_terms))
                                         {{ $booking->delivery_terms }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -360,7 +360,7 @@
                                     @if (!empty($booking->ets))
                                         {{ $booking->ets->format('Y-m-d H:i') }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
