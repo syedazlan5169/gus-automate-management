@@ -491,15 +491,16 @@
                                         <div class="text-right mt-4">
 
                                             <p class="text-left italic text-red-500 text-sm">
-                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 @php
                                                     $freeRevisionsLimit = 3;
                                                     $remainingFreeRevisions = max(0, $freeRevisionsLimit - $si->post_bl_edit_count);
                                                 @endphp
-                                                <br>
                                                 <span class="{{ $remainingFreeRevisions > 0 ? 'text-green-500' : 'text-red-500' }}">
                                                     Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
                                                 </span>
+                                                <br>
+                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
+                                                
                                             </p>
                                             @if(!$si->telex_bl_released)
                                                 @if($booking->status < 5 && $remainingFreeRevisions > 0)
