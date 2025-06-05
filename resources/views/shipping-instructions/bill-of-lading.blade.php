@@ -14,7 +14,30 @@
             $allContainers->push($container);
         }
     }
-    $containerChunks = $allContainers->chunk(30); // split into groups of 30
+    $containerChunks = $allContainers->chunk(29); // split into groups of 30
+
+    function numberToWords($number) {
+        $ones = array(
+            0 => "", 1 => "ONE", 2 => "TWO", 3 => "THREE", 4 => "FOUR",
+            5 => "FIVE", 6 => "SIX", 7 => "SEVEN", 8 => "EIGHT", 9 => "NINE",
+            10 => "TEN", 11 => "ELEVEN", 12 => "TWELVE", 13 => "THIRTEEN",
+            14 => "FOURTEEN", 15 => "FIFTEEN", 16 => "SIXTEEN", 17 => "SEVENTEEN",
+            18 => "EIGHTEEN", 19 => "NINETEEN"
+        );
+        $tens = array(
+            2 => "TWENTY", 3 => "THIRTY", 4 => "FORTY", 5 => "FIFTY",
+            6 => "SIXTY", 7 => "SEVENTY", 8 => "EIGHTY", 9 => "NINETY"
+        );
+        
+        if ($number < 20) {
+            return $ones[$number];
+        }
+        
+        $digit = $number % 10;
+        $tens_digit = floor($number / 10);
+        
+        return $tens[$tens_digit] . ($digit > 0 ? " " . $ones[$digit] : "");
+    }
 @endphp
 
 @foreach ($containerChunks as $chunkIndex => $chunk)
@@ -150,7 +173,7 @@
                     @foreach ($chunk as $container)
                         {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
-                    @for ($i = count($chunk); $i < 30; $i++)
+                    @for ($i = count($chunk); $i < 29; $i++)
                         <br>
                     @endfor
                 </td>
@@ -183,7 +206,13 @@
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100%;">
                     <span style="font-weight: normal;">
-                        CONTINUED ON NEXT PAGE
+                        @if($loop->last)
+                            SHIPPED ON BOARD {{ $shippingInstruction->booking->eta->format('d/m/Y') }}<br>
+                            TOTAL {{ strtoupper(numberToWords($allContainers->count())) }} ( {{ $allContainers->count() }} )  CONTAINER(S) ONLY
+                        @else
+                            CONTINUED ON NEXT PAGE<br>
+                            <br>
+                        @endif
                     </span>
                 </th>
             </tr>
