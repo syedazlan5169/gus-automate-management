@@ -466,11 +466,11 @@
 
                                         <div class="mt-4">
                                             <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                @foreach($si->containers->groupBy('container_type') as $type => $containers)
+                                            <div class="space-y-2">
+                                                @foreach($si->containers->groupBy('cargo.container_type') as $type => $containers)
                                                     <div class="text-sm">
                                                         <span class="font-medium">{{ $type }}:</span> 
-                                                        {{ $containers->count() }} containers
+                                                        {{ $containers->count() }} container{{ $containers->count() > 1 ? 's' : '' }}
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -1017,7 +1017,7 @@
                                         @else
                                             bg-gray-300 text-gray-500 cursor-not-allowed
                                         @endif"
-                                    @if($booking->shippingInstructions->isEmpty() || $totalUnallocated > 0) disabled @endif>
+                                    @if($booking->shippingInstructions->isEmpty()) disabled @endif>
                                     Submit SI 
                                 </button>
 
