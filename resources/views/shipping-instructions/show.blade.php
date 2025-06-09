@@ -218,7 +218,7 @@
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
                             <h2 class="text-base/7 font-semibold text-gray-900">Container Allocation</h2>
-                            <div class="mt-2 space-y-1" id="allocation-info">
+                            <!-- <div class="mt-2 space-y-1" id="allocation-info">
                                 @foreach($shippingInstruction->booking->cargos as $cargo)
                                     @php
                                         // Count all containers that have been allocated to ANY shipping instruction
@@ -234,7 +234,7 @@
                                         <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
                                     </p>
                                 @endforeach
-                            </div>
+                            </div> -->
                         </div>
                     </div>
 
@@ -252,11 +252,9 @@
                                             ->count();
                                       $availableCount = $cargo->container_count - $allocatedCount;
                                     @endphp
-                                    @if($availableCount > 0)
-                                        <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
-                                            {{ $cargo->container_type }} ({{ $availableCount }} available)
-                                        </option>
-                                    @endif
+                                    <option value="{{ $cargo->id }}" data-available="{{ $availableCount }}">
+                                        {{ $cargo->container_type }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -274,7 +272,7 @@
 
                             <!-- File Upload Section -->
                             <div class="space-y-4">
-                                <div class="flex items-center justify-between">
+                                <!-- <div class="flex items-center justify-between">
                                     <label class="block text-sm font-medium text-gray-700">Or Upload Excel/CSV File</label>
                                     <a href="{{ route('shipping-instructions.download-template') }}" 
                                        class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center">
@@ -284,9 +282,9 @@
                                         </svg>
                                         Download Template
                                     </a>
-                                </div>
+                                </div> -->
                                 <div class="flex items-center space-x-4">
-                                    <div class="flex-1">
+                                    <!-- <div class="flex-1">
                                         <input type="file" id="container_file" name="container_file" 
                                             accept=".xlsx,.xls,.csv"
                                             class="mt-2 block w-full text-sm text-gray-500
@@ -298,7 +296,7 @@
                                         <p class="mt-1 text-sm text-gray-500">
                                             Upload Excel/CSV file with container numbers and seal numbers
                                         </p>
-                                    </div>
+                                    </div> -->
                                     <div class="flex-none pt-6">
                                         <button type="button" onclick="addContainers()"
                                             class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -316,7 +314,7 @@
                                     <h3 class="text-base font-semibold text-gray-900">
                                         {{ $type }}
                                         <span class="ml-2 text-sm font-normal text-gray-600" id="count-{{ $containers->first()->cargo_id }}">
-                                            Total: {{ $containers->count() }}
+                                            Total: <span class="container-count">{{ $containers->count() }}</span>
                                         </span>
                                     </h3>
                                 </div>
@@ -400,6 +398,16 @@ function updateContainerCounts(containerType, change) {
         // Update color based on availability
         allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
     }
+
+    // Update the container count display
+    const containerGroup = document.querySelector(`#container-group-${containerType}`);
+    if (containerGroup) {
+        const countElement = document.querySelector(`#count-${containerType} .container-count`);
+        if (countElement) {
+            const currentCount = containerGroup.children.length;
+            countElement.textContent = currentCount;
+        }
+    }
 }
 
 function addContainers() {
@@ -433,14 +441,6 @@ function addContainers() {
         return;
     }
 
-    // Check available count
-    const option = containerTypeSelect.selectedOptions[0];
-    const availableCount = parseInt(option.dataset.available);
-    if (containers.length > availableCount) {
-        alert(`Only ${availableCount} containers available for this type`);
-        return;
-    }
-
     // Check if a section for the selected container type already exists
     let existingSection = document.querySelector(`div[data-container-type="${containerType}"]`);
     let containerGroup;
@@ -454,11 +454,18 @@ function addContainers() {
         // Create container group div first
         containerGroup = document.createElement("div");
         containerGroup.id = `container-group-${containerType}`;
-        containerGroup.classList.add("space-y-3");
+        containerGroup.classList.add("space-y-3", "max-h-[400px]", "overflow-y-auto");
         
         // Set up the section HTML structure
         existingSection.innerHTML = `
-            <h3 class="font-medium mb-3">${containerTypeText.split('(')[0].trim()}</h3>
+            <div class="px-4 py-3 border-b">
+                <h3 class="text-base font-semibold text-gray-900">
+                    ${containerTypeText.split('(')[0].trim()}
+                    <span class="ml-2 text-sm font-normal text-gray-600" id="count-${containerType}">
+                        Total: <span class="container-count">0</span>
+                    </span>
+                </h3>
+            </div>
         `;
         
         // Append the container group to the section
