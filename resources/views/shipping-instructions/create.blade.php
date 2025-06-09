@@ -410,9 +410,22 @@ function removeContainer(button) {
 
 function addShippingInstruction() {
     let fileInput = document.getElementById("shipping_instruction_file");
-    
+
     // Check if we have a file to process
     if (fileInput.files.length > 0) {
+        // Clear all the input fields and container sections
+        document.querySelectorAll('input').forEach(input => {
+            if (input !== fileInput) { // Don't clear the file input
+                input.value = '';
+            }
+        });
+        
+        // Clear container sections properly
+        const containerSections = document.getElementById('container-sections');
+        if (containerSections) {
+            containerSections.innerHTML = ''; // Clear all container sections
+        }
+        
         // Process file upload
         handleFileUpload();
     } else {
