@@ -294,8 +294,8 @@
                             <div>
                                 <p class="text-sm text-gray-600">Voyage Number</p>
                                 <p class="font-medium">
-                                    @if (!empty($booking->voyage))
-                                        {{ $booking->voyage }}
+                                    @if (!empty($booking->voyage->voyage_number))
+                                        {{ $booking->voyage->voyage_number }}
                                         @if (session('warning'))
                                             <p class="text-xs font-medium text-amber-800">{{ session('warning') }}</p>
                                         @endif
@@ -370,7 +370,7 @@
                                     @if (!empty($booking->eta))
                                         {{ $booking->eta->format('Y-m-d H:i') }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -416,7 +416,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($totalUnallocated > 0 && $booking->status > 1 && $booking->status < 4)
+                            @if($booking->status > 1 && $booking->status < 4)
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -466,11 +466,11 @@
 
                                         <div class="mt-4">
                                             <p class="text-sm text-gray-600 mb-2">Allocated Containers</p>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                @foreach($si->containers->groupBy('container_type') as $type => $containers)
+                                            <div class="space-y-2">
+                                                @foreach($si->containers->groupBy('cargo.container_type') as $type => $containers)
                                                     <div class="text-sm">
                                                         <span class="font-medium">{{ $type }}:</span> 
-                                                        {{ $containers->count() }} containers
+                                                        {{ $containers->count() }} container{{ $containers->count() > 1 ? 's' : '' }}
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -800,6 +800,8 @@
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" x-model="documentType">
                                         <option value="">Select Document Type</option>
                                         <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
+                                        <option value="K4" {{ old('document_type') == 'k4' ? 'selected' : '' }}>K4</option>
+                                        <option value="K5" {{ old('document_type') == 'k5' ? 'selected' : '' }}>K5</option>
                                         <option value="Container Load List" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
                                         <option value="Towing Certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
                                         <option value="Notice of Arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
@@ -906,7 +908,7 @@
                                                     // For customers, only show specific document types
                                                     $showDocument = true;
                                                     if (auth()->user()->role == 'customer') {
-                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival', 'BL with Telex Release'];
+                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival', 'K4', 'K5'];
                                                         $showDocument = in_array($document->document_name, $allowedTypes);
                                                     }
                                                 @endphp
@@ -1012,12 +1014,12 @@
                                     @mouseleave="showTooltip = false"
                                     onclick="document.getElementById('si-submission-modal').classList.remove('hidden')"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        @if($booking->shippingInstructions->isNotEmpty() && $totalUnallocated === 0)
+                                        @if($booking->shippingInstructions->isNotEmpty())
                                             bg-blue-600 text-white hover:bg-blue-700
                                         @else
                                             bg-gray-300 text-gray-500 cursor-not-allowed
                                         @endif"
-                                    @if($booking->shippingInstructions->isEmpty() || $totalUnallocated > 0) disabled @endif>
+                                    @if($booking->shippingInstructions->isEmpty()) disabled @endif>
                                     Submit SI 
                                 </button>
 
@@ -1028,10 +1030,8 @@
                                     style="left: 10%; transform: translateX(-50%)">
                                     @if($booking->shippingInstructions->isEmpty())
                                         Please add at least one shipping instruction.
-                                    @elseif($totalUnallocated > 0)
-                                        Please allocate all containers to shipping instructions before submitting.
                                     @else
-                                        Ready to submit shipping instructions.
+                                        Submit shipping instructions.
                                     @endif
                                 </div>
                             </div>
@@ -1391,7 +1391,7 @@
                                                 <div class="mt-3 text-center sm:mt-5">
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">Booking Confirmation</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking.</p>
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking. This action is irreversible.</p>
                                                     </div>
                                                 </div>
                                             </div>

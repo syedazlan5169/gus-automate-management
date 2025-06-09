@@ -15,6 +15,7 @@ use App\Mail\InvoiceUploaded;
 use App\Mail\PaymentVerification;
 use App\Models\ShippingInstruction;
 use App\Models\ActivityLog;
+use App\Models\Voyage;
 
 class BookingController extends Controller
 {
@@ -185,10 +186,20 @@ class BookingController extends Controller
         ]);
 
         try {
+
+            // Create a new voyage
+            $voyageNumber = strtoupper(trim($request->voyage));
+            $voyageExists = false;
+            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
+            $voyage = Voyage::firstOrCreate(
+                ['voyage_number' => $voyageNumber],
+                ['last_bl_suffix' => 400]
+            );
+            $booking->update(['voyage_id' => $voyage->id]);
+
             // Separate booking and cargo validation
             $bookingValidated = $request->validate([
                 'vessel' => 'sometimes|required|string|max:255',
-                'voyage' => 'sometimes|required|string|max:255',
                 'place_of_receipt' => 'sometimes|required|string|max:255',
                 'pol' => 'sometimes|required|string|max:255',
                 'pod' => 'sometimes|required|string|max:255',
@@ -215,21 +226,6 @@ class BookingController extends Controller
 
             \DB::beginTransaction();
             \Log::info('Transaction started');
-
-            $hasDuplicateVoyage = false;
-            // Check if voyage number is being updated
-            if (isset($bookingValidated['voyage']) && $bookingValidated['voyage'] !== $booking->voyage) {
-                \Log::info('Checking for duplicate voyage number');
-                // Check if the voyage number exists in any other booking
-                $duplicateVoyage = \App\Models\Booking::where('voyage', $bookingValidated['voyage'])
-                    ->where('id', '!=', $booking->id)
-                    ->exists();
-                
-                if ($duplicateVoyage) {
-                    \Log::info('Duplicate voyage number found');
-                    $hasDuplicateVoyage = true;
-                }
-            }
 
             \Log::info('Updating booking with validated data');
             // Update the booking with only booking fields
@@ -278,7 +274,7 @@ class BookingController extends Controller
             \DB::commit();
             \Log::info('Transaction committed successfully');
 
-            if ($hasDuplicateVoyage) {
+            if ($voyageExists) {
                 return redirect()->route('booking.show', $booking)
                     ->with('warning', 'This voyage number has been used in another booking.')
                     ->with('success', 'Booking updated successfully.');

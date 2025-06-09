@@ -65,14 +65,14 @@
                             <span>ETS : {{ $booking->booking_date ? $booking->booking_date->format('d-m-Y | g:i A') : 'Not set' }}</span>
                         </div>
                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                            <span>{{ $booking->vessel }} | {{ $booking->voyage }}</span>
+                            <span>{{ $booking->vessel ?? 'N/A' }} | {{ $booking->voyage->voyage_number ?? 'N/A' }}</span>
                           <span class="hidden sm:inline">·</span>
                             <span>{{ $booking->pol }} → {{ $booking->pod }}</span>
                         </div>
                         </td>
 
                         <!-- Desktop View -->
-                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->vessel }} | {{ $booking->voyage }}</td>
+                        <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->vessel ?? 'N/A' }} | {{ $booking->voyage->voyage_number ?? 'N/A' }}</td>
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">{{ $booking->pol }} → {{ $booking->pod }}</td>
                         <td class="text-center hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
                             @php

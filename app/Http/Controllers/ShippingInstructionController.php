@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UpdateSI;
 use App\Models\ActivityLog;
+use App\Models\Voyage;
 
 class ShippingInstructionController extends Controller
 {
@@ -53,45 +54,57 @@ class ShippingInstructionController extends Controller
     public function store(Request $request, Booking $booking)
     {
         try {
-            $validated = $request->validate([
-                'box_operator' => 'required|string|max:255',
-                'shipper' => 'required|string|max:255',
-                'shipper_contact' => 'required|string|max:255',
-                'shipper_address.line1' => 'required|string|max:255',
-                'shipper_address.line2' => 'nullable|string|max:255',
-                'shipper_address.line3' => 'nullable|string|max:255',
-                'shipper_address.line4' => 'nullable|string|max:255',
-                'consignee' => 'required|string|max:255',
-                'consignee_contact' => 'required|string|max:255',
-                'consignee_address.line1' => 'required|string|max:255',
-                'consignee_address.line2' => 'nullable|string|max:255',
-                'consignee_address.line3' => 'nullable|string|max:255',
-                'consignee_address.line4' => 'nullable|string|max:255',
-                'notify_party' => 'required|string|max:255',
-                'notify_party_contact' => 'required|string|max:255',
-                'notify_party_address.line1' => 'required|string|max:255',
-                'notify_party_address.line2' => 'nullable|string|max:255',
-                'notify_party_address.line3' => 'nullable|string|max:255',
-                'notify_party_address.line4' => 'nullable|string|max:255',
-                'cargo_description' => 'required|string|max:255',
-                'hs_code' => 'required|string|max:255',
-                'gross_weight' => 'required|numeric|min:0',
-                'volume' => 'nullable|numeric|min:0',
-                'containers' => 'required|array',
-                'containers.*' => 'array',
-                'containers.*.*' => 'array',
-                'containers.*.*.*' => 'required|string',
-            ]);
-
             DB::beginTransaction();
+
+            $validated = $request->validate([
+                'box_operator' => 'required|string',
+                'shipper' => 'required|string',
+                'shipper_contact' => 'required|string',
+                'shipper_address' => 'required|array',
+                'shipper_address.line1' => 'required|string',
+                'shipper_address.line2' => 'nullable|string',
+                'shipper_address.line3' => 'nullable|string',
+                'shipper_address.line4' => 'nullable|string',
+                'consignee' => 'required|string',
+                'consignee_contact' => 'required|string',
+                'consignee_address' => 'required|array',
+                'consignee_address.line1' => 'required|string',
+                'consignee_address.line2' => 'nullable|string',
+                'consignee_address.line3' => 'nullable|string',
+                'consignee_address.line4' => 'nullable|string',
+                'notify_party' => 'required|string',
+                'notify_party_contact' => 'required|string',
+                'notify_party_address' => 'required|array',
+                'notify_party_address.line1' => 'required|string',
+                'notify_party_address.line2' => 'nullable|string',
+                'notify_party_address.line3' => 'nullable|string',
+                'notify_party_address.line4' => 'nullable|string',
+                'cargo_description' => 'required|string',
+                'hs_code' => 'required|string',
+                'gross_weight' => 'required|numeric',
+                'volume' => 'required|numeric',
+                'containers' => 'required|array',
+                'containers.*' => 'required|array',
+                'containers.*.*.container_number' => 'required|string',
+                'containers.*.*.seal_number' => 'required|string',
+                'exceeding_containers' => 'nullable|string',
+            ]);
 
             // Generate sub booking number and bl number
             $siCount = $booking->shippingInstructions()->count() + 1;
-            $subBookingNumber = $booking->booking_number . '-A' . str_pad($siCount, 3, '0', STR_PAD_LEFT);
-            $blNumber = $booking->voyage . '/4' . str_pad($siCount, 2, '0', STR_PAD_LEFT);
+            $letter = chr(64 + $siCount); // Convert number to letter (65 is ASCII for 'A')
+            $subBookingNumber = $booking->booking_number . $letter;
+
+            // generate bl number
+            $voyage = Voyage::find($booking->voyage_id);
+            $voyage->last_bl_suffix += 1;
+            $voyage->save();
+            
+            $blNumber = $voyage->voyage_number . '/' . $voyage->last_bl_suffix;
 
             // Create shipping instruction
-            $shippingInstruction = $booking->shippingInstructions()->create([
+            $shippingInstruction = ShippingInstruction::create([
+                'booking_id' => $booking->id,
                 'sub_booking_number' => $subBookingNumber,
                 'bl_number' => $blNumber,
                 'box_operator' => $validated['box_operator'],
@@ -110,6 +123,19 @@ class ShippingInstructionController extends Controller
                 'volume' => $validated['volume'],
             ]);
 
+            // Handle exceeding containers if any
+            if ($request->has('exceeding_containers')) {
+                $exceedingContainers = json_decode($request->exceeding_containers, true);
+                foreach ($exceedingContainers as $container) {
+                    // Update cargo allocation
+                    $cargo = Cargo::find($container['cargoId']);
+                    if ($cargo) {
+                        $cargo->container_count += $container['exceeding'];
+                        $cargo->save();
+                    }
+                }
+            }
+
             // Process containers
             foreach ($validated['containers'] as $cargoId => $containers) {
                 // Get available empty containers for this cargo
@@ -119,7 +145,18 @@ class ShippingInstructionController extends Controller
                     ->get();
 
                 if ($availableContainers->count() < count($containers)) {
-                    throw new \Exception('Insufficient available containers for the cargo.');
+                    // Create new containers for the exceeding count
+                    $neededCount = count($containers) - $availableContainers->count();
+                    $cargo = Cargo::find($cargoId);
+                    
+                    for ($i = 0; $i < $neededCount; $i++) {
+                        CargoContainer::create([
+                            'cargo_id' => $cargoId,
+                            'shipping_instruction_id' => $shippingInstruction->id,
+                            'container_number' => $containers[$availableContainers->count() + $i]['container_number'],
+                            'seal_number' => $containers[$availableContainers->count() + $i]['seal_number'],
+                        ]);
+                    }
                 }
 
                 foreach ($containers as $index => $container) {
@@ -130,32 +167,19 @@ class ShippingInstructionController extends Controller
                             'container_number' => $container['container_number'],
                             'seal_number' => $container['seal_number'],
                         ]);
-                    } else {
-                        // Log error if we run out of available containers
-                        \Log::error("No available container found for cargo ID: {$cargoId}");
-                        throw new \Exception('Insufficient available containers for the cargo.');
                     }
                 }
             }
 
             DB::commit();
-
-            ActivityLog::logShippingInstructionCreated(auth()->user(), $shippingInstruction);
-
             return redirect()->route('booking.show', $booking)
-                ->with('success', 'Shipping Instruction created successfully.');
+                ->with('success', 'Shipping instruction created successfully.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return back()
-                ->withErrors($e->validator)
-                ->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Shipping Instruction creation failed: ' . $e->getMessage());
-            return back()
-                ->with('error', 'Error creating shipping instruction: ' . $e->getMessage())
-                ->withInput();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error creating shipping instruction: ' . $e->getMessage());
         }
     }
 

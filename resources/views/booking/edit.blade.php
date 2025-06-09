@@ -37,7 +37,7 @@
                                         <div class="sm:col-span-3">
                                             <x-input-label for="voyage" value="Voyage Number" />
                                             <x-text-input id="voyage" name="voyage" type="text" class="mt-1 block w-full"
-                                                value="{{ old('voyage', $booking->voyage) }}" required />
+                                                value="{{ old('voyage', $booking->voyage->voyage_number ?? '') }}" required />
                                             @error('voyage')
                                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
