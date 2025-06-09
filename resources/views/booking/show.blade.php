@@ -370,7 +370,7 @@
                                     @if (!empty($booking->eta))
                                         {{ $booking->eta->format('Y-m-d H:i') }}
                                     @else
-                                        <span class="text-sm italic text-red-500">Set by admin</span>
+                                        <span class="text-sm italic text-red-500">Assigned by GUS</span>
                                     @endif
                                 </p>
                             </div>
@@ -416,7 +416,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($totalUnallocated > 0 && $booking->status > 1 && $booking->status < 4)
+                            @if($booking->status > 1 && $booking->status < 4)
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -1012,7 +1012,7 @@
                                     @mouseleave="showTooltip = false"
                                     onclick="document.getElementById('si-submission-modal').classList.remove('hidden')"
                                     class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                        @if($booking->shippingInstructions->isNotEmpty() && $totalUnallocated === 0)
+                                        @if($booking->shippingInstructions->isNotEmpty())
                                             bg-blue-600 text-white hover:bg-blue-700
                                         @else
                                             bg-gray-300 text-gray-500 cursor-not-allowed
@@ -1028,10 +1028,8 @@
                                     style="left: 10%; transform: translateX(-50%)">
                                     @if($booking->shippingInstructions->isEmpty())
                                         Please add at least one shipping instruction.
-                                    @elseif($totalUnallocated > 0)
-                                        Please allocate all containers to shipping instructions before submitting.
                                     @else
-                                        Ready to submit shipping instructions.
+                                        Submit shipping instructions.
                                     @endif
                                 </div>
                             </div>
