@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UpdateSI;
 use App\Models\ActivityLog;
+use App\Models\Voyage;
 
 class ShippingInstructionController extends Controller
 {
@@ -93,7 +94,13 @@ class ShippingInstructionController extends Controller
             $siCount = $booking->shippingInstructions()->count() + 1;
             $letter = chr(64 + $siCount); // Convert number to letter (65 is ASCII for 'A')
             $subBookingNumber = $booking->booking_number . $letter;
-            $blNumber = $booking->voyage . '/4' . str_pad($siCount, 2, '0', STR_PAD_LEFT);
+
+            // generate bl number
+            $voyage = Voyage::find($booking->voyage_id);
+            $voyage->last_bl_suffix += 1;
+            $voyage->save();
+            
+            $blNumber = $voyage->voyage_number . '/' . $voyage->last_bl_suffix;
 
             // Create shipping instruction
             $shippingInstruction = ShippingInstruction::create([

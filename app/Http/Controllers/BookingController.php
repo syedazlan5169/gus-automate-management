@@ -188,8 +188,9 @@ class BookingController extends Controller
         try {
 
             // Create a new voyage
+            $voyageNumber = strtoupper(trim($request->voyage));
             $voyage = Voyage::firstOrCreate(
-                ['voyage_number' => $request->voyage],
+                ['voyage_number' => $voyageNumber],
                 ['last_bl_suffix' => 400]
             );
             $booking->update(['voyage_id' => $voyage->id]);
