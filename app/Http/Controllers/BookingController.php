@@ -15,6 +15,7 @@ use App\Mail\InvoiceUploaded;
 use App\Mail\PaymentVerification;
 use App\Models\ShippingInstruction;
 use App\Models\ActivityLog;
+use App\Models\Voyage;
 
 class BookingController extends Controller
 {
@@ -185,10 +186,17 @@ class BookingController extends Controller
         ]);
 
         try {
+
+            // Create a new voyage
+            $voyage = Voyage::firstOrCreate(
+                ['voyage_number' => $request->voyage],
+                ['last_bl_suffix' => 400]
+            );
+            $booking->update(['voyage_id' => $voyage->id]);
+
             // Separate booking and cargo validation
             $bookingValidated = $request->validate([
                 'vessel' => 'sometimes|required|string|max:255',
-                'voyage' => 'sometimes|required|string|max:255',
                 'place_of_receipt' => 'sometimes|required|string|max:255',
                 'pol' => 'sometimes|required|string|max:255',
                 'pod' => 'sometimes|required|string|max:255',
@@ -217,18 +225,9 @@ class BookingController extends Controller
             \Log::info('Transaction started');
 
             $hasDuplicateVoyage = false;
-            // Check if voyage number is being updated
-            if (isset($bookingValidated['voyage']) && $bookingValidated['voyage'] !== $booking->voyage) {
-                \Log::info('Checking for duplicate voyage number');
-                // Check if the voyage number exists in any other booking
-                $duplicateVoyage = \App\Models\Booking::where('voyage', $bookingValidated['voyage'])
-                    ->where('id', '!=', $booking->id)
-                    ->exists();
-                
-                if ($duplicateVoyage) {
-                    \Log::info('Duplicate voyage number found');
-                    $hasDuplicateVoyage = true;
-                }
+            // Check if voyage number already exists in voyages table
+            if ($voyage->exists()) {
+                $hasDuplicateVoyage = true;
             }
 
             \Log::info('Updating booking with validated data');

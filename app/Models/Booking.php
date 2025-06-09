@@ -8,6 +8,7 @@ use App\Models\ShippingInstruction;
 use App\Models\Cargo;
 use App\Models\User;
 use App\Models\Invoice;
+use App\Models\Voyage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Booking extends Model
@@ -33,6 +34,11 @@ class Booking extends Model
                 ->orWhere('pod', 'like', '%'.$term.'%');
         }
         return $query;
+    }
+
+    public function voyage()
+    {
+        return $this->belongsTo(Voyage::class);
     }
 
     public function user()

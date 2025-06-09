@@ -294,8 +294,8 @@
                             <div>
                                 <p class="text-sm text-gray-600">Voyage Number</p>
                                 <p class="font-medium">
-                                    @if (!empty($booking->voyage))
-                                        {{ $booking->voyage }}
+                                    @if (!empty($booking->voyage->voyage_number))
+                                        {{ $booking->voyage->voyage_number }}
                                         @if (session('warning'))
                                             <p class="text-xs font-medium text-amber-800">{{ session('warning') }}</p>
                                         @endif
