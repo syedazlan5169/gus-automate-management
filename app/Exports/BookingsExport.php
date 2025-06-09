@@ -63,7 +63,7 @@ class BookingsExport implements FromCollection, WithHeadings, WithMapping
             $booking->place_of_receipt,
             $booking->pol,
             $booking->pod,
-            $booking->voyage,
+            $booking->voyage->voyage_number,
             $booking->place_of_delivery,
             $booking->ets?->format('Y-m-d H:i'),
             $booking->eta?->format('Y-m-d H:i'),

@@ -189,6 +189,8 @@ class BookingController extends Controller
 
             // Create a new voyage
             $voyageNumber = strtoupper(trim($request->voyage));
+            $voyageExists = false;
+            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
             $voyage = Voyage::firstOrCreate(
                 ['voyage_number' => $voyageNumber],
                 ['last_bl_suffix' => 400]
@@ -224,12 +226,6 @@ class BookingController extends Controller
 
             \DB::beginTransaction();
             \Log::info('Transaction started');
-
-            $hasDuplicateVoyage = false;
-            // Check if voyage number already exists in voyages table
-            if ($voyage->exists()) {
-                $hasDuplicateVoyage = true;
-            }
 
             \Log::info('Updating booking with validated data');
             // Update the booking with only booking fields
@@ -278,7 +274,7 @@ class BookingController extends Controller
             \DB::commit();
             \Log::info('Transaction committed successfully');
 
-            if ($hasDuplicateVoyage) {
+            if ($voyageExists) {
                 return redirect()->route('booking.show', $booking)
                     ->with('warning', 'This voyage number has been used in another booking.')
                     ->with('success', 'Booking updated successfully.');

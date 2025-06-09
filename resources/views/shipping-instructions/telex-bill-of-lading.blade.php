@@ -100,7 +100,7 @@
                     <strong>Voyage</strong>
                     <br>
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->booking->voyage }}<br>
+                        {{ $shippingInstruction->booking->voyage->voyage_number }}<br>
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">

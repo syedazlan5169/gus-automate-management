@@ -800,6 +800,8 @@
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" x-model="documentType">
                                         <option value="">Select Document Type</option>
                                         <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
+                                        <option value="K4" {{ old('document_type') == 'k4' ? 'selected' : '' }}>K4</option>
+                                        <option value="K5" {{ old('document_type') == 'k5' ? 'selected' : '' }}>K5</option>
                                         <option value="Container Load List" {{ old('document_type') == 'container_load_list' ? 'selected' : '' }}>Container Load List</option>
                                         <option value="Towing Certificate" {{ old('document_type') == 'towing_certificate' ? 'selected' : '' }}>Towing Certificate</option>
                                         <option value="Notice of Arrival" {{ old('document_type') == 'notice_of_arrival' ? 'selected' : '' }}>Notice of Arrival</option>
@@ -906,7 +908,7 @@
                                                     // For customers, only show specific document types
                                                     $showDocument = true;
                                                     if (auth()->user()->role == 'customer') {
-                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival', 'BL with Telex Release'];
+                                                        $allowedTypes = ['Manifest', 'Container Load List', 'Notice of Arrival', 'K4', 'K5'];
                                                         $showDocument = in_array($document->document_name, $allowedTypes);
                                                     }
                                                 @endphp
@@ -1389,7 +1391,7 @@
                                                 <div class="mt-3 text-center sm:mt-5">
                                                     <h3 class="text-base font-semibold text-gray-900" id="modal-title">Booking Confirmation</h3>
                                                     <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking.</p>
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before confirming the booking. This action is irreversible.</p>
                                                     </div>
                                                 </div>
                                             </div>
