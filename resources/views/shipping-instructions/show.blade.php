@@ -383,7 +383,7 @@ function updateContainerCounts(containerType, change) {
     if (option) {
         const available = parseInt(option.dataset.available) - change;
         option.dataset.available = available;
-        option.textContent = `${option.textContent.split('(')[0].trim()} (${available} available)`;
+        option.textContent = `${option.textContent.split('(')[0].trim()}`;
     }
 
     // Update allocation info
