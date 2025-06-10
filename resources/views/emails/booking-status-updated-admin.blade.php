@@ -10,30 +10,6 @@
             margin: 0 auto;
             padding: 20px;
         }
-        .header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 4px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .booking-details {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-        .booking-details p {
-            margin: 5px 0;
-        }
         .btn {
             display: inline-block;
             padding: 10px 20px;
@@ -49,37 +25,225 @@
     </style>
 </head>
 <body>
-
-
     @switch($booking->status)
         @case($CANCELLED)
-            <p>Booking {{ $booking->booking_number }} has been cancelled.</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #ef4444;">Booking Cancelled</h2>
+                <p style="margin-top: 10px;">Booking {{ $booking->booking_number }} has been cancelled.</p>
+            </div>
+            <a href="{{ route('booking.show', $booking->id) }}" style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">View Booking</a>
             @break
 
         @case($NEW)
-            <div class="header">
-                <h2>New Booking</h2>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">New Booking</h2>
+                <p style="margin-top: 10px;">New booking has been created. Please review and confirm the booking.</p>
             </div>
-            <p>New booking has been created. Please review and confirm the booking.</p>
-            <div class="booking-details">
-                <p><strong>Booking Number:</strong> #{{ $booking->booking_number }}</p>
-                <p><strong>Customer:</strong> {{ $booking->user->name }}</p>
-                <p><strong>Booking Details:</strong></p>
-                <p>Place of Receipt: {{ $booking->place_of_receipt }}</p>
-                <p>POL: {{ $booking->pol }}</p>
-                <p>POD: {{ $booking->pod }}</p>
-                <p>Place of Delivery: {{ $booking->place_of_delivery }}</p>
-                <p>ETS: {{ $booking->ets }}</p>
+
+            <!-- Shipping Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Shipping Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Vessel Name</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->vessel))
+                                {{ $booking->vessel }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Voyage Number</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->voyage->voyage_number))
+                                {{ $booking->voyage->voyage_number }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Tug</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->tug))
+                                {{ $booking->tug }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Delivery Terms</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->delivery_terms))
+                                {{ $booking->delivery_terms }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
             </div>
-            <a href="{{ route('booking.show', $booking->id) }}" class="btn">View Booking</a>
+
+            <!-- Route Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Route Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Place of Receipt</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->place_of_receipt }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Port of Loading</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->pol }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Port of Discharge</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->pod }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Place of Delivery</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->place_of_delivery }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Schedule</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Estimated Time of Sailing</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->ets))
+                                {{ $booking->ets->format('Y-m-d H:i') }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Estimated Time of Arrival</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->eta))
+                                {{ $booking->eta->format('Y-m-d H:i') }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ route('booking.show', $booking->id) }}" style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">View Booking</a>
             @break
 
         @case($BOOKING_CONFIRMED)
-            <div class="header">
-                <h2>Booking Confirmed</h2>
+           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Booking Confirmed</h2>
+                <p style="margin-top: 10px;">Booking {{ $booking->booking_number }} has been confirmed. Waiting for customer to upload shipping instruction.</p>
             </div>
-            <p>Booking {{ $booking->booking_number }} has been confirmed. Waiting for customer to upload shipping instruction.</p>
-            <a href="{{ route('booking.show', $booking->id) }}" class="btn">View Booking</a>
+
+            <!-- Shipping Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Shipping Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Vessel Name</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->vessel))
+                                {{ $booking->vessel }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Voyage Number</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->voyage->voyage_number))
+                                {{ $booking->voyage->voyage_number }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Tug</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->tug))
+                                {{ $booking->tug }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Delivery Terms</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->delivery_terms))
+                                {{ $booking->delivery_terms }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Route Information</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Place of Receipt</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->place_of_receipt }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Port of Loading</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->pol }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Port of Discharge</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->pod }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Place of Delivery</p>
+                        <p style="font-weight: 500; margin-top: 0;">{{ $booking->place_of_delivery }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Information -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Schedule</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Estimated Time of Sailing</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->ets))
+                                {{ $booking->ets->format('Y-m-d H:i') }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Estimated Time of Arrival</p>
+                        <p style="font-weight: 500; margin-top: 0;">
+                            @if (!empty($booking->eta))
+                                {{ $booking->eta->format('Y-m-d H:i') }}
+                            @else
+                                <span style="font-size: 14px; font-style: italic; color: #ef4444;">Assigned by GUS</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ route('booking.show', $booking->id) }}" style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">View Booking</a>
             @break
 
         @case($BL_VERIFICATION)
