@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\UpdateSI;
 use App\Models\ActivityLog;
 use App\Models\Voyage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ShippingInstructionController extends Controller
 {
@@ -411,6 +413,9 @@ class ShippingInstructionController extends Controller
 
             // Handle containers
             if ($request->has('containers')) {
+                // Track new container counts per cargo
+                $cargoContainerCounts = [];
+
                 // Get all container numbers from the request
                 $requestContainers = collect($request->containers)
                     ->flatMap(function ($containerGroup) {
@@ -450,6 +455,11 @@ class ShippingInstructionController extends Controller
 
                 // Update or create containers
                 foreach ($request->containers as $cargoId => $containerGroup) {
+                    // Initialize counter for this cargo if not exists
+                    if (!isset($cargoContainerCounts[$cargoId])) {
+                        $cargoContainerCounts[$cargoId] = 0;
+                    }
+
                     foreach ($containerGroup as $container) {
                         if (!isset($container['container_number']) || !isset($container['seal_number'])) {
                             continue;
@@ -479,14 +489,26 @@ class ShippingInstructionController extends Controller
                                     'seal_number' => $container['seal_number'],
                                 ]);
                             } else {
-                                // Only create a new container if no existing container can be reused
+                                // Create a new container and increment the counter
                                 CargoContainer::create([
                                     'cargo_id' => $cargoId,
                                     'shipping_instruction_id' => $shippingInstruction->id,
                                     'container_number' => $containerNumber,
                                     'seal_number' => $container['seal_number'],
                                 ]);
+                                $cargoContainerCounts[$cargoId]++;
                             }
+                        }
+                    }
+                }
+
+                // Update cargo container_count for any cargo that had new containers added
+                foreach ($cargoContainerCounts as $cargoId => $addedCount) {
+                    if ($addedCount > 0) {
+                        $cargo = Cargo::find($cargoId);
+                        if ($cargo) {
+                            $cargo->container_count += $addedCount;
+                            $cargo->save();
                         }
                     }
                 }
@@ -494,7 +516,7 @@ class ShippingInstructionController extends Controller
 
             DB::commit();
 
-            ActivityLog::logShippingInstructionEdited(auth()->user(), $shippingInstruction);
+            ActivityLog::logShippingInstructionEdited(Auth::user(), $shippingInstruction);
 
             return redirect()
                 ->route('shipping-instructions.show', $shippingInstruction)
@@ -528,7 +550,7 @@ class ShippingInstructionController extends Controller
 
             DB::commit();
 
-            ActivityLog::logShippingInstructionDeleted(auth()->user(), $shippingInstruction);
+            ActivityLog::logShippingInstructionDeleted(Auth::user(), $shippingInstruction);
 
             return redirect()->route('booking.show', $shippingInstruction->booking)
                 ->with('success', 'Shipping instruction deleted successfully.');
@@ -767,7 +789,7 @@ class ShippingInstructionController extends Controller
     public function releaseTelexBL(ShippingInstruction $shippingInstruction)
     {
         $shippingInstruction->update(['telex_bl_released' => true]);
-        ActivityLog::logTelexBLReleased(auth()->user(), $shippingInstruction);
+        ActivityLog::logTelexBLReleased(Auth::user(), $shippingInstruction);
         return redirect()->route('booking.show', $shippingInstruction->booking)->with('success', 'Telex BL released successfully for shipping instruction ' . $shippingInstruction->sub_booking_number . '.');
     }
 }

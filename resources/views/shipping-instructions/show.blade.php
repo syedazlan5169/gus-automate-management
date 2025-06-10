@@ -218,23 +218,28 @@
                     <div class="sm:flex sm:items-center">
                         <div class="sm:flex-auto">
                             <h2 class="text-base/7 font-semibold text-gray-900">Container Allocation</h2>
-                            <!-- <div class="mt-2 space-y-1" id="allocation-info">
+                            <div class="mt-2 space-y-1" id="allocation-info">
                                 @foreach($shippingInstruction->booking->cargos as $cargo)
                                     @php
                                         // Count all containers that have been allocated to ANY shipping instruction
                                         $allocatedCount = $cargo->containers()
                                             ->whereNotNull('shipping_instruction_id')
                                             ->count();
-                                        $availableCount = $cargo->container_count - $allocatedCount;
+                                        $availableCount = max(0, $cargo->container_count - $allocatedCount);
+                                        $extraContainers = max(0, $allocatedCount - $cargo->container_count);
                                     @endphp
                                     <p class="text-sm {{ $availableCount > 0 ? 'text-blue-700' : 'text-red-700' }}" 
                                        data-container-type="{{ $cargo->id }}" 
                                        data-total="{{ $cargo->container_count }}">
                                         {{ $cargo->container_type }}: 
-                                        <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
+                                        @if ($extraContainers > 0)
+                                            <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available ({{ $extraContainers }} extra in list)</strong>
+                                        @else
+                                            <strong data-available="{{ $availableCount }}">{{ $availableCount }} of {{ $cargo->container_count }} available</strong>
+                                        @endif
                                     </p>
                                 @endforeach
-                            </div> -->
+                            </div>
                         </div>
                     </div>
 
@@ -378,24 +383,33 @@ function updateContainerCounts(containerType, change) {
     if (option) {
         const available = parseInt(option.dataset.available) - change;
         option.dataset.available = available;
-        option.textContent = `${option.textContent.split('(')[0].trim()} (${available} available)`;
-        
-        // Remove option if no more containers available
-        if (available <= 0) {
-            option.remove();
-        }
+        option.textContent = `${option.textContent.split('(')[0].trim()}`;
     }
 
     // Update allocation info
     const allocationInfo = document.querySelector(`p[data-container-type="${containerType}"]`);
     if (allocationInfo) {
         const strong = allocationInfo.querySelector('strong');
-        const total = allocationInfo.dataset.total;
-        const available = parseInt(strong.dataset.available) - change;
+        const total  = allocationInfo.dataset.total;
+
+        // work out the new available count
+        let available = parseInt(strong.dataset.available) - change;
+        let extra     = 0;
+
+        if (available < 0) {          // we’ve over-allocated
+            extra     = -available;   // convert to positive “extra”
+            available = 0;            // don’t display a negative number
+        }
+
+        // persist the baseline for the next call
         strong.dataset.available = available;
-        strong.textContent = `${available} of ${total} available`;
-        
-        // Update color based on availability
+
+        // visible text
+        strong.textContent = extra
+            ? `${available} of ${total} available (${extra} extra in list)`
+            : `${available} of ${total} available`;
+
+        // colour
         allocationInfo.className = `text-sm ${available > 0 ? 'text-blue-700' : 'text-red-700'}`;
     }
 
