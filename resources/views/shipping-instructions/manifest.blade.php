@@ -49,11 +49,11 @@
         <tbody>
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
-                    <strong>SHIPPER: </strong><br>
+                    <strong>CARRIER: </strong><br>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 20%;">
                     <span style="font-weight: normal;">
-                        {{ $shippingInstruction->shipper }}<br>
+                        GU SHIPPING<br>
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 10%;">
