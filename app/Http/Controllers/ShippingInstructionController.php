@@ -660,7 +660,7 @@ class ShippingInstructionController extends Controller
             
             while (true) {
                 $containerNumber = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
-                $sealNumber = trim($worksheet->getCell('C' . $row)->getValue() ?? '');
+                $sealNumber = trim($worksheet->getCell('C' . $row)->getValue() ?? 'NIL');
                 $containerType = trim($worksheet->getCell('D' . $row)->getValue() ?? '');
                 
                 // Break if we find an empty container number
