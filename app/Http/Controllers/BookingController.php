@@ -16,6 +16,9 @@ use App\Mail\PaymentVerification;
 use App\Models\ShippingInstruction;
 use App\Models\ActivityLog;
 use App\Models\Voyage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -282,6 +285,14 @@ class BookingController extends Controller
 
             return redirect()->route('booking.show', $booking)
                 ->with('success', 'Booking updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \DB::rollBack();
+            \Log::warning('Booking validation failed', [
+                'booking_id' => $booking->id,
+                'errors' => $e->errors()
+            ]);
+            return back()->withErrors($e->errors())
+                        ->withInput();
         } catch (\Exception $e) {
             \DB::rollBack();
             \Log::error('Error updating booking:', [
