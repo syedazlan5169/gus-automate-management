@@ -121,6 +121,19 @@
                     <x-alert-instruction 
                         message="BL has been confirmed, please prepare all the documents required for the shipment"
                     />
+                        @if($booking->editAfterTelex->count() > 0 && !$booking->enable_edit)
+                        @php
+                            $editCount = $booking->editAfterTelex->count();
+                            $latestEdit = $booking->editAfterTelex->sortByDesc('created_at')->first();
+                        @endphp
+                        <div class="mt-2" onclick="document.getElementById('show-edit-history-modal').classList.remove('hidden')">
+                            <x-alert-instruction
+                                message="This booking has been edited {{ $editCount }} times after BL confirmed. The latest edit was on {{ $latestEdit->created_at->format('d-m-Y') }} by {{ $latestEdit->edited_by }}"
+                                action_text="View Edit History"
+                                action_url="#"
+                            />
+                        </div>
+                        @endif
                     @endif
                 @elseif ($booking->status == $status::SAILING)
                     @if(auth()->user()->role == 'customer')
@@ -1306,6 +1319,69 @@
                                 </div>
                             </div>
 
+                            <!-- Show Edit History Modal -->
+                            <div id="show-edit-history-modal"
+                                class="hidden relative z-10"
+                                aria-labelledby="modal-title"
+                                role="dialog"
+                                aria-modal="true">
+                                <!-- dark overlay -->
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl
+                                                transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+
+                                            <!-- heading -->
+                                            <h3 id="modal-title" class="mb-4 text-lg font-semibold text-gray-900 text-center">
+                                                Edit History
+                                            </h3>
+
+                                            <!-- table wrapper -->
+                                            <div class="max-h-80 overflow-y-auto overflow-x-auto border rounded-lg">
+                                                <table class="min-w-full text-sm divide-y divide-gray-200">
+                                                    <thead class="bg-gray-50 sticky top-0">
+                                                        <tr>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;By</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;Date</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Created&nbsp;At</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-100">
+                                                        @foreach($booking->editAfterTelex as $edit)
+                                                            <tr class="hover:bg-gray-50">
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_date }}</td>
+                                                                <td class="px-4 py-2 whitespace-normal break-words">{{ $edit->request_reason }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->edited_by }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">
+                                                                    {{ $edit->created_at->format('d-m-Y H:i:s') }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- footer -->
+                                            <div class="mt-6 flex justify-center">
+                                                <button
+                                                    type="button"
+                                                    onclick="document.getElementById('show-edit-history-modal').classList.add('hidden')"
+                                                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
+                                                        shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
+                                                        focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Enable Edit Confirmation Modal -->
                             <div id="enable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
