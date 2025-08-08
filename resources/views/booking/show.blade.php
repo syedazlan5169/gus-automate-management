@@ -502,20 +502,25 @@
                                                 Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 
                                             </p>
-                                            @if($booking->enable_edit)
-                                                @if($booking->status < 5 && $remainingFreeRevisions > 0)
-                                                <a href="{{ route('shipping-instructions.show', $si) }}"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
-                                                @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
-                                                <a href="#"
-                                                    onclick="showRevisionWarning(event, '{{ $si->id }}')"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
+                                            @if ($booking->enable_edit)
+                                                @php $isCustomer = auth()->user()->role === 'customer'; @endphp
+
+                                                @if (!$si->telex_bl_released || ($si->telex_bl_released && !$isCustomer))
+                                                    @if ($booking->status < 5 && $remainingFreeRevisions > 0)
+                                                        <a href="{{ route('shipping-instructions.show', $si) }}"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @elseif ($booking->status < 5 && $remainingFreeRevisions <= 0)
+                                                        <a href="#"
+                                                            onclick="showRevisionWarning(event, '{{ $si->id }}')"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             @endif
+
                                             @if($booking->status == 3)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
@@ -1311,22 +1316,40 @@
                                         class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                                         <div
                                             class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                                            <div>
-                                                <div class="mt-3 text-center sm:mt-5">
-                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Enable Edit Confirmation</h3>
-                                                    <div class="mt-2">
-                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before enabling edit.</p>
+                                            <form action="{{ route('booking.enable-edit', $booking) }}" method="POST">
+                                                @csrf
+                                                <div class="mt-3 sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900 text-center" id="modal-title">Enable Edit After BL</h3>
+                                                    <div class="mt-4 space-y-4">
+                                                        <div>
+                                                            <label for="request_by" class="block text-sm font-medium text-gray-700">Requested By</label>
+                                                            <input type="text" name="request_by" id="request_by" value="{{ $booking->user->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_date" class="block text-sm font-medium text-gray-700">Request Date</label>
+                                                            <input type="date" name="request_date" id="request_date" value="{{ now()->format('Y-m-d') }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_reason" class="block text-sm font-medium text-gray-700">Request Reason</label>
+                                                            <textarea name="request_reason" id="request_reason" rows="3" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                                        </div>
+                                                        <div>
+                                                            <label for="edited_by" class="block text-sm font-medium text-gray-700">Edited By</label>
+                                                            <input type="text" name="edited_by" id="edited_by" value="{{ auth()->user()->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
-                                                <button type="button" onclick="document.getElementById('enable-edit-confirmation-modal').classList.add('hidden')"
-                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
-                                                <div class="flex gap-3">
-                                                    <button type="button" onclick="window.location.href='{{ route('booking.enable-edit', $booking) }}'"
-                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                    <button type="button" onclick="document.getElementById('enable-edit-confirmation-modal').classList.add('hidden')"
+                                                        class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                    <button type="submit"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Enable Edit</button>
                                                 </div>
-                                            </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>

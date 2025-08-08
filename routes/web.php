@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\RelatedDocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\EditAfterTelexController;
 
 Route::redirect('/', '/login');
 
@@ -41,7 +42,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/booking/{booking}/completed', [BookingController::class, 'completed'])->name('booking.completed');
         Route::get('/booking/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
         Route::delete('/booking/{booking}/delete', [BookingController::class, 'destroy'])->name('booking.delete');
-        Route::get('/booking/{booking}/enable-edit', [BookingController::class, 'enableEdit'])->name('booking.enable-edit');
+        Route::post('/booking/{booking}/enable-edit', [BookingController::class, 'enableEdit'])->name('booking.enable-edit');
         Route::get('/booking/{booking}/disable-edit', [BookingController::class, 'disableEdit'])->name('booking.disable-edit');
 
         // Related Document routes
