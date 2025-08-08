@@ -121,6 +121,19 @@
                     <x-alert-instruction 
                         message="BL has been confirmed, please prepare all the documents required for the shipment"
                     />
+                        @if($booking->editAfterTelex->count() > 0 && !$booking->enable_edit)
+                        @php
+                            $editCount = $booking->editAfterTelex->count();
+                            $latestEdit = $booking->editAfterTelex->sortByDesc('created_at')->first();
+                        @endphp
+                        <div class="mt-2" onclick="document.getElementById('show-edit-history-modal').classList.remove('hidden')">
+                            <x-alert-instruction
+                                message="This booking has been edited {{ $editCount }} times after BL confirmed. The latest edit was on {{ $latestEdit->created_at->format('d-m-Y') }} by {{ $latestEdit->edited_by }}"
+                                action_text="View Edit History"
+                                action_url="#"
+                            />
+                        </div>
+                        @endif
                     @endif
                 @elseif ($booking->status == $status::SAILING)
                     @if(auth()->user()->role == 'customer')
@@ -502,20 +515,25 @@
                                                 Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 
                                             </p>
-                                            @if(!$si->telex_bl_released)
-                                                @if($booking->status < 5 && $remainingFreeRevisions > 0)
-                                                <a href="{{ route('shipping-instructions.show', $si) }}"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
-                                                @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
-                                                <a href="#"
-                                                    onclick="showRevisionWarning(event, '{{ $si->id }}')"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
+                                            @if ($booking->enable_edit)
+                                                @php $isCustomer = auth()->user()->role === 'customer'; @endphp
+
+                                                @if (!$si->telex_bl_released || ($si->telex_bl_released && !$isCustomer))
+                                                    @if ($booking->status < 5 && $remainingFreeRevisions > 0)
+                                                        <a href="{{ route('shipping-instructions.show', $si) }}"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @elseif ($booking->status < 5 && $remainingFreeRevisions <= 0)
+                                                        <a href="#"
+                                                            onclick="showRevisionWarning(event, '{{ $si->id }}')"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             @endif
+
                                             @if($booking->status == 3)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
@@ -1060,14 +1078,41 @@
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
                                 @if($booking->shippingInstructions->every(function($si) { return $si->telex_bl_released; }))
-                                <div class="relative">
-                                    <button type="button"
-                                        onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                            bg-blue-600 text-white hover:bg-blue-700">
+
+                                    @if(!$booking->enable_edit)
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('enable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-red-600 text-white hover:bg-red-700">
+                                            Enable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-blue-600 text-white hover:bg-blue-700">
+                                            Sailing
+                                        </button>
+                                    </div>
+                                    @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('disable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-green-600 text-white hover:bg-green-700">
+                                            Disable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
                                         Sailing
                                     </button>
-                                </div>
+                                    @endif
+
                                 @else
                                     <div class="relative">
                                         <button type="button"
@@ -1243,6 +1288,148 @@
                                     modal.classList.remove('hidden');
                                 }
                             </script>
+
+                            <!-- Disable Edit Confirmation Modal -->
+                            <div id="disable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Disable Edit Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before disabling edit.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('disable-edit-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.disable-edit', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Show Edit History Modal -->
+                            <div id="show-edit-history-modal"
+                                class="hidden relative z-10"
+                                aria-labelledby="modal-title"
+                                role="dialog"
+                                aria-modal="true">
+                                <!-- dark overlay -->
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl
+                                                transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+
+                                            <!-- heading -->
+                                            <h3 id="modal-title" class="mb-4 text-lg font-semibold text-gray-900 text-center">
+                                                Edit History
+                                            </h3>
+
+                                            <!-- table wrapper -->
+                                            <div class="max-h-80 overflow-y-auto overflow-x-auto border rounded-lg">
+                                                <table class="min-w-full text-sm divide-y divide-gray-200">
+                                                    <thead class="bg-gray-50 sticky top-0">
+                                                        <tr>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;By</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;Date</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Created&nbsp;At</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-100">
+                                                        @foreach($booking->editAfterTelex as $edit)
+                                                            <tr class="hover:bg-gray-50">
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_date }}</td>
+                                                                <td class="px-4 py-2 whitespace-normal break-words">{{ $edit->request_reason }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->edited_by }}</td>
+                                                                <td class="px-4 py-2 whitespace-nowrap">
+                                                                    {{ $edit->created_at->format('d-m-Y H:i:s') }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- footer -->
+                                            <div class="mt-6 flex justify-center">
+                                                <button
+                                                    type="button"
+                                                    onclick="document.getElementById('show-edit-history-modal').classList.add('hidden')"
+                                                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
+                                                        shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
+                                                        focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enable Edit Confirmation Modal -->
+                            <div id="enable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <form action="{{ route('booking.enable-edit', $booking) }}" method="POST">
+                                                @csrf
+                                                <div class="mt-3 sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900 text-center" id="modal-title">Enable Edit After BL</h3>
+                                                    <div class="mt-4 space-y-4">
+                                                        <div>
+                                                            <label for="request_by" class="block text-sm font-medium text-gray-700">Requested By</label>
+                                                            <input type="text" name="request_by" id="request_by" value="{{ $booking->user->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_date" class="block text-sm font-medium text-gray-700">Request Date</label>
+                                                            <input type="date" name="request_date" id="request_date" value="{{ now()->format('Y-m-d') }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_reason" class="block text-sm font-medium text-gray-700">Request Reason</label>
+                                                            <textarea name="request_reason" id="request_reason" rows="3" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                                        </div>
+                                                        <div>
+                                                            <label for="edited_by" class="block text-sm font-medium text-gray-700">Edited By</label>
+                                                            <input type="text" name="edited_by" id="edited_by" value="{{ auth()->user()->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                    <button type="button" onclick="document.getElementById('enable-edit-confirmation-modal').classList.add('hidden')"
+                                                        class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                    <button type="submit"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Enable Edit</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Sailing Confirmation Modal -->
                             <div id="sailing-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"

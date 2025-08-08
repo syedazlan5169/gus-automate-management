@@ -70,5 +70,10 @@ class Booking extends Model
     {
         return $this->hasMany(RelatedDocument::class);
     }
+
+    public function editAfterTelex()
+    {
+        return $this->hasMany(EditAfterTelex::class);
+    }
    
 }

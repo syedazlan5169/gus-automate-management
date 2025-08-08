@@ -78,7 +78,7 @@
                   <div class="mt-2">
                     <select id="box_operator" name="box_operator" 
                       class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                      <option value="OOCL" {{ $shippingInstruction->box_operator === 'OOCL' ? 'selected' : '' }}>OOCL</option>
+                      <option value="Titanium OOCL" {{ $shippingInstruction->box_operator === 'Titanium OOCL' ? 'selected' : '' }}>Titanium OOCL</option>
                       <option value="EVERGREEN" {{ $shippingInstruction->box_operator === 'EVERGREEN' ? 'selected' : '' }}>EVERGREEN</option>
                       <option value="NAVEGACION" {{ $shippingInstruction->box_operator === 'NAVEGACION' ? 'selected' : '' }}>NAVEGACION</option>
                     </select>

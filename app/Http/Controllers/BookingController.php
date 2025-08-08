@@ -19,6 +19,7 @@ use App\Models\Voyage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use App\Models\EditAfterTelex;
 
 class BookingController extends Controller
 {
@@ -178,6 +179,35 @@ class BookingController extends Controller
 
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
+
+    // Make changes after telex bl released
+    public function enableEdit(Booking $booking, Request $request)
+    {
+        $booking->update([
+            'enable_edit' => true,
+        ]);
+
+        EditAfterTelex::create([
+            'booking_id' => $booking->id,
+            'request_by' => $request->request_by,
+            'request_date' => $request->request_date,
+            'request_reason' => $request->request_reason,
+            'edited_by' => $request->edited_by,
+        ]);
+
+        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is enabled.');
+    }
+
+    // Stop editing
+    public function disableEdit(Booking $booking)
+    {
+        $booking->update([
+            'enable_edit' => false,
+        ]);
+
+        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is disabled.');
+    }
+
 
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
