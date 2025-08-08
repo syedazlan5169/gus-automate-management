@@ -502,7 +502,7 @@
                                                 Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 
                                             </p>
-                                            @if(!$si->telex_bl_released)
+                                            @if($booking->enable_edit)
                                                 @if($booking->status < 5 && $remainingFreeRevisions > 0)
                                                 <a href="{{ route('shipping-instructions.show', $si) }}"
                                                     class="text-indigo-600 hover:text-indigo-900">
@@ -1060,14 +1060,41 @@
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
                                 @if($booking->shippingInstructions->every(function($si) { return $si->telex_bl_released; }))
-                                <div class="relative">
-                                    <button type="button"
-                                        onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                            bg-blue-600 text-white hover:bg-blue-700">
+
+                                    @if(!$booking->enable_edit)
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('enable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-red-600 text-white hover:bg-red-700">
+                                            Enable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-blue-600 text-white hover:bg-blue-700">
+                                            Sailing
+                                        </button>
+                                    </div>
+                                    @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('disable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-green-600 text-white hover:bg-green-700">
+                                            Disable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
                                         Sailing
                                     </button>
-                                </div>
+                                    @endif
+
                                 @else
                                     <div class="relative">
                                         <button type="button"
@@ -1243,6 +1270,67 @@
                                     modal.classList.remove('hidden');
                                 }
                             </script>
+
+                            <!-- Disable Edit Confirmation Modal -->
+                            <div id="disable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Disable Edit Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before disabling edit.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('disable-edit-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.disable-edit', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Enable Edit Confirmation Modal -->
+                            <div id="enable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Enable Edit Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before enabling edit.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('enable-edit-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.enable-edit', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Sailing Confirmation Modal -->
                             <div id="sailing-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"

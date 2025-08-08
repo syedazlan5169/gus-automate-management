@@ -41,6 +41,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/booking/{booking}/completed', [BookingController::class, 'completed'])->name('booking.completed');
         Route::get('/booking/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
         Route::delete('/booking/{booking}/delete', [BookingController::class, 'destroy'])->name('booking.delete');
+        Route::get('/booking/{booking}/enable-edit', [BookingController::class, 'enableEdit'])->name('booking.enable-edit');
+        Route::get('/booking/{booking}/disable-edit', [BookingController::class, 'disableEdit'])->name('booking.disable-edit');
 
         // Related Document routes
         Route::post('/booking/{booking}/related-document/upload', [RelatedDocumentController::class, 'store'])->name('related-document.upload');

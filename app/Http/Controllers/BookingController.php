@@ -179,6 +179,27 @@ class BookingController extends Controller
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
+    // Make changes after telex bl released
+    public function enableEdit(Booking $booking)
+    {
+        $booking->update([
+            'enable_edit' => true,
+        ]);
+
+        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is enabled.');
+    }
+
+    // Stop editing
+    public function disableEdit(Booking $booking)
+    {
+        $booking->update([
+            'enable_edit' => false,
+        ]);
+
+        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is disabled.');
+    }
+
+
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)
     {
