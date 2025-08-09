@@ -441,6 +441,18 @@
                                     Add Shipping Instruction
                                 </a>
                             </div>
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                                <a href="{{ route('shipping-instructions.create', $booking) }}"
+                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                    </svg>
+                                    Add Shipping Instruction
+                                </a>
+                            </div>
                             @endif
                         </div>
 
@@ -560,6 +572,16 @@
                                                 @endif
                                             @endif
                                             @if($booking->status < 4)
+                                            <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                    class="ml-4 text-red-600 hover:text-red-900"
+                                                    onclick="return confirm('Are you sure you want to delete this shipping instruction?')">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
