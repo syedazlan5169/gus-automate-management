@@ -257,6 +257,19 @@
                                 </svg>
                                 Edit
                             </button>
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            <button type="button"
+                                onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
+                                class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                                    data-slot="icon">
+                                    <path
+                                        d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                    <path
+                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                </svg>
+                                Edit
+                            </button>
                             @endif
                             @if($booking->status < 5 && $booking->status > 0)
                             <a href="#"
@@ -1370,11 +1383,11 @@
                                                             <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;Date</th>
                                                             <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
                                                             <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Created&nbsp;At</th>
+                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;At</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-100">
-                                                        @foreach($booking->editAfterTelex as $edit)
+                                                        @foreach($booking->editAfterTelex->sortByDesc('created_at') as $edit)
                                                             <tr class="hover:bg-gray-50">
                                                                 <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
                                                                 <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_date }}</td>
