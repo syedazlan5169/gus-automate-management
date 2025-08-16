@@ -180,12 +180,60 @@ class BookingController extends Controller
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
 
+    // Static class to store the snapshot of the booking before and after the edit
+    public static function bookingFields(): array {
+        return [
+            'voyage_id','ets','eta',
+        ];
+    }
+
+    // Static class to store the snapshot of the shipping instruction before and after the edit
+    public static function siFields(): array {
+        return [
+            'bl_number',
+            'box_operator',
+            'shipper',
+            'shipper_contact',
+            'shipper_address',
+            'consignee',
+            'consignee_contact',
+            'consignee_address',
+            'notify_party',
+            'notify_party_contact',
+            'notify_party_address',
+            'cargo_description',
+            'hs_code',
+            'gross_weight',
+            'volume',
+        ];
+    }
+
+    // Static class to compute the diff between the snapshot before and after the edit
+    public static function diff(array $before, array $after, array $fields): array {
+        $out = [];
+        foreach ($fields as $f) {
+            $old = $before[$f] ?? null;
+            $new = $after[$f] ?? null;
+            if ($old !== $new) $out[$f] = ['from'=>$old, 'to'=>$new];
+        }
+        return $out;
+    }
+
     // Make changes after telex bl released
     public function enableEdit(Booking $booking, Request $request)
     {
-        $booking->update([
-            'enable_edit' => true,
-        ]);
+        $booking->update(['enable_edit' => true]);
+        $booking->load('shippingInstructions');
+
+        $bookingBefore = $booking->only($this->bookingFields());
+
+        $siBefore = [];
+        foreach ($booking->shippingInstructions as $si) {
+            $siBefore[(string)$si->id] = [
+                'before' => $si->only($this->siFields()),
+                'change_type' => 'updated',
+            ];
+        }
 
         EditAfterTelex::create([
             'booking_id' => $booking->id,
@@ -193,6 +241,13 @@ class BookingController extends Controller
             'request_date' => $request->request_date,
             'request_reason' => $request->request_reason,
             'edited_by' => $request->edited_by,
+            'snapshot_before' => [
+                'booking' => [
+                    'id' => $booking->id,
+                    'before' => $bookingBefore,
+                ],
+                'shipping_instructions' => $siBefore,
+            ],
         ]);
 
         return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is enabled.');
@@ -201,11 +256,81 @@ class BookingController extends Controller
     // Stop editing
     public function disableEdit(Booking $booking)
     {
-        $booking->update([
-            'enable_edit' => false,
+        $booking->update(['enable_edit' => false]);
+
+        // grab the latest open session for this booking
+        $log = EditAfterTelex::where('booking_id', $booking->id)
+            ->whereNull('finalized_at')
+            ->latest('id')
+            ->first();
+
+        if (!$log) {
+            return back()->with('error', 'No open edit session found.');
+        }
+
+        $booking->load('shippingInstructions');
+
+        // Booking diff
+        $bookingFields = $this->bookingFields();
+        $beforeBooking = data_get($log->snapshot_before, 'booking.before', []);
+        $afterBooking = $booking->only($bookingFields);
+        $bookingChanges = self::diff($beforeBooking, $afterBooking, $bookingFields);
+
+        // SI diffs (created/updated/deleted)
+        $beforeSis = (array) data_get($log->snapshot_before, 'shipping_instructions', []);
+        $afterSis = [];
+        foreach ($booking->shippingInstructions as $si) {
+            $afterSis[(string)$si->id] = $si->only($this->siFields());
+        }
+        $siChanges = [];
+
+        // updated/created
+        foreach ($afterSis as $id => $afterData) {
+            $beforeData = data_get($beforeSis, "$id.before");
+            if ($beforeData === null) {
+                // created during edit window
+                $siChanges[$id] = [
+                    'before' => null,
+                    'after' => $afterData,
+                    'changes' => self::diff([], $afterData, $this->siField()),
+                    'change_type' => 'created',
+                ];
+            } else {
+                $diff = self::diff($beforeData, $afterData, $this->siFields());
+                $siChanges[$id] = [
+                    'before' => $beforeData,
+                    'after' => $afterData,
+                    'changes' => $diff,
+                    'change_type' => 'updated',
+                ];
+            }
+        }
+
+        // deleted
+        foreach ($beforeSis as $id => $wrapped) {
+            if (!array_key_exists($id, $afterSis)) {
+                $siChanges[$id] = [
+                    'before' => data_get($wrapped, 'before', []),
+                    'after' => null,
+                    'changes' => ['deleted' => true],
+                    'change_type' => 'deleted',
+                ];
+            }
+        }
+
+        $log->update([
+            'snapshot_after' => [
+                'booking' => ['id' => $booking->id, 'after' => $afterBooking],
+                'shipping_instructions' => collect($afterSis)->map(fn($v) => ['after' => $v])->all(),
+            ],
+            'changes' => [
+                'booking' => $bookingChanges,
+                'shipping_instructions' => $siChanges,
+            ],
+            'finalized_at' => now(),
         ]);
 
-        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is disabled.');
+        return back()->with('success', 'Edit after BL confirmed is disabled and logged.');
     }
 
 
