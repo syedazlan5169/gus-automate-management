@@ -257,6 +257,19 @@
                                 </svg>
                                 Edit
                             </button>
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            <button type="button"
+                                onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
+                                class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                                    data-slot="icon">
+                                    <path
+                                        d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                    <path
+                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                </svg>
+                                Edit
+                            </button>
                             @endif
                             @if($booking->status < 5 && $booking->status > 0)
                             <a href="#"
@@ -1341,69 +1354,202 @@
                                 </div>
                             </div>
 
+
                             <!-- Show Edit History Modal -->
+                            @php
+                            $fmtVal = function ($v) {
+                                if (is_null($v) || $v === '') return '—';
+                                if (is_bool($v)) return $v ? 'true' : 'false';
+                                if (is_array($v) || is_object($v)) return json_encode($v, JSON_UNESCAPED_UNICODE);
+                                return $v;
+                            };
+                            @endphp
+
                             <div id="show-edit-history-modal"
                                 class="hidden relative z-10"
                                 aria-labelledby="modal-title"
                                 role="dialog"
                                 aria-modal="true">
-                                <!-- dark overlay -->
-                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
 
-                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-                                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                                        <div
-                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl
-                                                transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                            <!-- dark overlay -->
+                            <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
 
-                                            <!-- heading -->
-                                            <h3 id="modal-title" class="mb-4 text-lg font-semibold text-gray-900 text-center">
-                                                Edit History
-                                            </h3>
+                            <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                <div
+                                    class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl
+                                        transition-all sm:my-8 sm:w-full sm:max-w-4xl md:max-w-5xl sm:p-8">
 
-                                            <!-- table wrapper -->
-                                            <div class="max-h-80 overflow-y-auto overflow-x-auto border rounded-lg">
-                                                <table class="min-w-full text-sm divide-y divide-gray-200">
-                                                    <thead class="bg-gray-50 sticky top-0">
-                                                        <tr>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;By</th>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;Date</th>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
-                                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Created&nbsp;At</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="divide-y divide-gray-100">
-                                                        @foreach($booking->editAfterTelex as $edit)
-                                                            <tr class="hover:bg-gray-50">
-                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
-                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_date }}</td>
-                                                                <td class="px-4 py-2 whitespace-normal break-words">{{ $edit->request_reason }}</td>
-                                                                <td class="px-4 py-2 whitespace-nowrap">{{ $edit->edited_by }}</td>
-                                                                <td class="px-4 py-2 whitespace-nowrap">
-                                                                    {{ $edit->created_at->format('d-m-Y H:i:s') }}
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                    <!-- heading -->
+                                    <h3 id="modal-title" class="mb-4 text-lg font-semibold text-gray-900 text-center">
+                                    Edit History
+                                    </h3>
 
-                                            <!-- footer -->
-                                            <div class="mt-6 flex justify-center">
-                                                <button
-                                                    type="button"
-                                                    onclick="document.getElementById('show-edit-history-modal').classList.add('hidden')"
-                                                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
-                                                        shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
-                                                        focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                                    Close
+                                    <!-- table wrapper -->
+                                    <div class="max-h-[65vh] overflow-y-auto overflow-x-auto border rounded-lg">
+                                    <table class="min-w-full text-sm divide-y divide-gray-200">
+                                        <thead class="bg-gray-50 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;By</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;At</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Changes</th>
+                                        </tr>
+                                        </thead>
+
+                                        {{-- One <tbody> per log row so Alpine can scope "open" to both <tr>s --}}
+                                        @foreach($booking->editAfterTelex->sortByDesc('created_at') as $edit)
+                                        @php
+                                            $bkChanges = data_get($edit->changes, 'booking', []);
+                                            $siChanges = data_get($edit->changes, 'shipping_instructions', []);
+                                            $hasAnyChanges = (!empty($bkChanges)) || (!empty($siChanges));
+                                        @endphp
+
+                                        <tbody x-data="{ open: false }" class="divide-y divide-gray-100">
+                                            <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
+                                            <td class="px-4 py-2 whitespace-normal break-words">{{ $edit->request_reason }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->edited_by }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->created_at->format('d-m-Y H:i:s') }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">
+                                                @if($hasAnyChanges)
+                                                <button type="button"
+                                                        @click="open = !open"
+                                                        class="inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+                                                    <span x-show="!open">View changes</span>
+                                                    <span x-show="open">Hide</span>
                                                 </button>
-                                            </div>
-                                        </div>
+                                                @else
+                                                <span class="text-xs text-gray-400">No changes</span>
+                                                @endif
+                                            </td>
+                                            </tr>
+
+                                            {{-- Expanded diff row (shares the same Alpine scope via the <tbody>) --}}
+                                            @if($hasAnyChanges)
+                                            <tr x-cloak :class="open ? '' : 'hidden'">
+                                                <td colspan="6" class="px-4 py-3 bg-gray-50">
+                                                {{-- Booking changes --}}
+                                                <div class="mb-4">
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                    <h4 class="font-semibold">Booking</h4>
+                                                    @if(empty($bkChanges))
+                                                        <span class="text-xs text-gray-500">(no changes)</span>
+                                                    @endif
+                                                    </div>
+                                                    @if(!empty($bkChanges))
+                                                    <div class="overflow-x-auto">
+                                                        <table class="w-full text-xs border rounded">
+                                                        <thead class="bg-white">
+                                                            <tr>
+                                                            <th class="text-left p-2">Field</th>
+                                                            <th class="text-left p-2">From</th>
+                                                            <th class="text-left p-2">To</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($bkChanges as $field => $diff)
+                                                            <tr class="border-t">
+                                                                <td class="p-2">{{ str($field)->replace('.', ' → ')->headline() }}</td>
+                                                                <td class="bg-red-50 text-red-700 p-2">{{ is_array($diff['from'] ?? null) ? json_encode($diff['from']) : ($diff['from'] ?? '') }}</td>
+                                                                <td class="bg-green-50 text-green-700 p-2">{{ is_array($diff['to'] ?? null) ? json_encode($diff['to']) : ($diff['to'] ?? '') }}</td>
+                                                            </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                        </table>
+                                                    </div>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Shipping Instruction changes --}}
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                    <h4 class="font-semibold">Shipping Instructions</h4>
+                                                    @if(empty($siChanges))
+                                                        <span class="text-xs text-gray-500">(no changes)</span>
+                                                    @endif
+                                                    </div>
+
+                                                    @foreach($siChanges as $siId => $row)
+                                                    @php
+                                                        $type  = data_get($row, 'change_type', 'updated');
+                                                        $diffs = data_get($row, 'changes', data_get($row, 'diff', []));
+                                                        $isDeleted = isset($diffs['deleted']) || $type === 'deleted';
+                                                    @endphp
+
+                                                    <div class="mb-3 rounded border bg-white">
+                                                        <div class="flex items-center justify-between p-2">
+                                                        <div class="text-xs">
+                                                            <span class="font-medium">SI #{{ $booking->shippingInstructions->find($siId)->sub_booking_number ?? $siId }}</span>
+                                                        </div>
+                                                        <span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] uppercase tracking-wide
+                                                                    {{ $type === 'created' ? 'bg-green-100 text-green-800' :
+                                                                        ($type === 'deleted' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-slate-100 text-slate-800') }}">
+                                                            {{ $type }}
+                                                        </span>
+                                                        </div>
+
+                                                        <div class="p-2 border-t">
+                                                        @if($isDeleted)
+                                                            <p class="text-xs text-red-700">This Shipping Instruction was deleted during the edit window.</p>
+                                                        @else
+                                                            @if(!empty($diffs))
+                                                            <div class="overflow-x-auto">
+                                                                <table class="w-full text-xs">
+                                                                <thead>
+                                                                    <tr>
+                                                                    <th class="text-left p-2">Field</th>
+                                                                    <th class="text-left p-2">From</th>
+                                                                    <th class="text-left p-2">To</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach($diffs as $field => $diff)
+                                                                    @if(is_array($diff) && array_key_exists('from', $diff))
+                                                                        <tr class="border-t">
+                                                                        <td class="p-2">{{ str($field)->replace('.', ' → ')->headline() }}</td>
+                                                                        <td class="bg-red-50 text-red-700 p-2">{{ is_array($diff['from'] ?? null) ? json_encode($diff['from']) : ($diff['from'] ?? '') }}</td>
+                                                                        <td class="bg-green-50 text-green-700 p-2">{{ is_array($diff['to'] ?? null) ? json_encode($diff['to']) : ($diff['to'] ?? '') }}</td>
+                                                                        </tr>
+                                                                    @endif
+                                                                    @endforeach
+                                                                </tbody>
+                                                                </table>
+                                                            </div>
+                                                            @else
+                                                            <p class="text-xs text-gray-600">No field changes.</p>
+                                                            @endif
+                                                        @endif
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                </td>
+                                            </tr>
+                                            @endif
+                                        </tbody>
+                                        @endforeach
+                                    </table>
+                                    </div>
+
+                                    <!-- footer -->
+                                    <div class="mt-6 flex justify-center">
+                                    <button
+                                        type="button"
+                                        onclick="document.getElementById('show-edit-history-modal').classList.add('hidden')"
+                                        class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
+                                            shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
+                                            focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                        Close
+                                    </button>
                                     </div>
                                 </div>
+                                </div>
                             </div>
+                            </div>
+
 
                             <!-- Enable Edit Confirmation Modal -->
                             <div id="enable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
