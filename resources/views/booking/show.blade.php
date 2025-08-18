@@ -1481,7 +1481,7 @@
                                                     <div class="mb-3 rounded border bg-white">
                                                         <div class="flex items-center justify-between p-2">
                                                         <div class="text-xs">
-                                                            <span class="font-medium">SI #{{ $siId }}</span>
+                                                            <span class="font-medium">SI #{{ $booking->shippingInstructions->find($siId)->sub_booking_number ?? $siId }}</span>
                                                         </div>
                                                         <span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] uppercase tracking-wide
                                                                     {{ $type === 'created' ? 'bg-green-100 text-green-800' :

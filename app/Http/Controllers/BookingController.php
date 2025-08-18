@@ -208,13 +208,68 @@ class BookingController extends Controller
         ];
     }
 
+    // Static class to identify datetime fields
+    public static function datetimeFields(): array {
+        return [
+            'ets', 'eta', 'booking_date', 'created_at', 'updated_at'
+        ];
+    }
+
+    // Static class to format datetime values for display
+    public static function formatDateTimeValue($value, $field) {
+        if (empty($value)) {
+            return '';
+        }
+
+        // Check if this is a datetime field
+        if (in_array($field, self::datetimeFields())) {
+            try {
+                // Handle Carbon instances or datetime strings
+                if ($value instanceof \Carbon\Carbon) {
+                    // Format date fields without time
+                    if ($field === 'booking_date') {
+                        return $value->format('d-m-Y');
+                    }
+                    // Format datetime fields with time
+                    return $value->format('d-m-Y H:i:s');
+                }
+                
+                // Handle datetime strings
+                if (is_string($value)) {
+                    $carbon = \Carbon\Carbon::parse($value);
+                    // Format date fields without time
+                    if ($field === 'booking_date') {
+                        return $carbon->format('d-m-Y');
+                    }
+                    // Format datetime fields with time
+                    return $carbon->format('d-m-Y H:i:s');
+                }
+            } catch (\Exception $e) {
+                // If parsing fails, return the original value
+                return $value;
+            }
+        }
+
+        return $value;
+    }
+
     // Static class to compute the diff between the snapshot before and after the edit
     public static function diff(array $before, array $after, array $fields): array {
         $out = [];
         foreach ($fields as $f) {
             $old = $before[$f] ?? null;
             $new = $after[$f] ?? null;
-            if ($old !== $new) $out[$f] = ['from'=>$old, 'to'=>$new];
+            if ($old !== $new) {
+                // If the before value is already formatted (string), use it as is
+                // Otherwise, format it
+                $formattedOld = is_string($old) && !empty($old) ? $old : self::formatDateTimeValue($old, $f);
+                $formattedNew = is_string($new) && !empty($new) ? $new : self::formatDateTimeValue($new, $f);
+                
+                $out[$f] = [
+                    'from' => $formattedOld,
+                    'to' => $formattedNew
+                ];
+            }
         }
         return $out;
     }
@@ -225,12 +280,23 @@ class BookingController extends Controller
         $booking->update(['enable_edit' => true]);
         $booking->load('shippingInstructions');
 
+        // Format booking data before storing
         $bookingBefore = $booking->only($this->bookingFields());
+        $formattedBookingBefore = [];
+        foreach ($bookingBefore as $field => $value) {
+            $formattedBookingBefore[$field] = self::formatDateTimeValue($value, $field);
+        }
 
         $siBefore = [];
         foreach ($booking->shippingInstructions as $si) {
+            $siData = $si->only($this->siFields());
+            $formattedSiData = [];
+            foreach ($siData as $field => $value) {
+                $formattedSiData[$field] = self::formatDateTimeValue($value, $field);
+            }
+            
             $siBefore[(string)$si->id] = [
-                'before' => $si->only($this->siFields()),
+                'before' => $formattedSiData,
                 'change_type' => 'updated',
             ];
         }
@@ -244,7 +310,7 @@ class BookingController extends Controller
             'snapshot_before' => [
                 'booking' => [
                     'id' => $booking->id,
-                    'before' => $bookingBefore,
+                    'before' => $formattedBookingBefore,
                 ],
                 'shipping_instructions' => $siBefore,
             ],
@@ -274,13 +340,25 @@ class BookingController extends Controller
         $bookingFields = $this->bookingFields();
         $beforeBooking = data_get($log->snapshot_before, 'booking.before', []);
         $afterBooking = $booking->only($bookingFields);
-        $bookingChanges = self::diff($beforeBooking, $afterBooking, $bookingFields);
+        
+        // Format after booking data for comparison
+        $formattedAfterBooking = [];
+        foreach ($afterBooking as $field => $value) {
+            $formattedAfterBooking[$field] = self::formatDateTimeValue($value, $field);
+        }
+        
+        $bookingChanges = self::diff($beforeBooking, $formattedAfterBooking, $bookingFields);
 
         // SI diffs (created/updated/deleted)
         $beforeSis = (array) data_get($log->snapshot_before, 'shipping_instructions', []);
         $afterSis = [];
         foreach ($booking->shippingInstructions as $si) {
-            $afterSis[(string)$si->id] = $si->only($this->siFields());
+            $siData = $si->only($this->siFields());
+            $formattedSiData = [];
+            foreach ($siData as $field => $value) {
+                $formattedSiData[$field] = self::formatDateTimeValue($value, $field);
+            }
+            $afterSis[(string)$si->id] = $formattedSiData;
         }
         $siChanges = [];
 
@@ -292,7 +370,7 @@ class BookingController extends Controller
                 $siChanges[$id] = [
                     'before' => null,
                     'after' => $afterData,
-                    'changes' => self::diff([], $afterData, $this->siField()),
+                    'changes' => self::diff([], $afterData, $this->siFields()),
                     'change_type' => 'created',
                 ];
             } else {
@@ -320,7 +398,7 @@ class BookingController extends Controller
 
         $log->update([
             'snapshot_after' => [
-                'booking' => ['id' => $booking->id, 'after' => $afterBooking],
+                'booking' => ['id' => $booking->id, 'after' => $formattedAfterBooking],
                 'shipping_instructions' => collect($afterSis)->map(fn($v) => ['after' => $v])->all(),
             ],
             'changes' => [
