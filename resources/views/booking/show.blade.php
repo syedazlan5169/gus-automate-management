@@ -11,38 +11,82 @@
                         <div class="mt-6" aria-hidden="true">
                             <div class="overflow-hidden rounded-full bg-gray-200">
                                 @php
-                                    // Calculate progress percentage based on status
-                                    $totalSteps = 7; // Total number of steps (excluding CANCELLED)
-                                    $currentStep = 0;
+                                    // Check if user is customer
+                                    $isCustomer = auth()->user()->role == 'customer';
                                     
-                                    // Map status to step number
-                                    switch($booking->status) {
-                                        case $status::NEW:
-                                            $currentStep = 1;
-                                            break;
-                                        case $status::BOOKING_CONFIRMED:
-                                            $currentStep = 2;
-                                            break;
-                                        case $status::BL_VERIFICATION:
-                                            $currentStep = 3;
-                                            break;
-                                        case $status::BL_CONFIRMED:
-                                            $currentStep = 4;
-                                            break;
-                                        case $status::SAILING:
-                                            $currentStep = 5;
-                                            break;
-                                        case $status::ARRIVED:
-                                            $currentStep = 6;
-                                            break;
-                                        case $status::COMPLETED:
-                                            $currentStep = 7;
-                                            break;
-                                        case $status::CANCELLED:
-                                            $currentStep = 0; // Cancelled is not part of the progress
-                                            break;
-                                        default:
-                                            $currentStep = 0;
+                                    // For customers, skip Sailing & Arrived statuses
+                                    if ($isCustomer) {
+                                        $totalSteps = 5; // Total steps for customers (excluding SAILING and ARRIVED)
+                                        
+                                        // Check if required documents are uploaded for direct completion
+                                        $hasInvoice = $booking->invoices()->exists();
+                                        $hasCLL = $booking->relatedDocuments()->where('document_name', 'Container Load List')->exists();
+                                        $hasK4OrK5 = $booking->relatedDocuments()->whereIn('document_name', ['K4', 'K5'])->exists();
+                                        
+                                        // If all required documents are uploaded, mark as completed
+                                        if ($hasInvoice && $hasCLL && $hasK4OrK5 && $booking->status >= $status::BL_CONFIRMED) {
+                                            $currentStep = 5; // Completed
+                                        } else {
+                                            // Map status to step number for customers
+                                            switch($booking->status) {
+                                                case $status::NEW:
+                                                    $currentStep = 1;
+                                                    break;
+                                                case $status::BOOKING_CONFIRMED:
+                                                    $currentStep = 2;
+                                                    break;
+                                                case $status::BL_VERIFICATION:
+                                                    $currentStep = 3;
+                                                    break;
+                                                case $status::BL_CONFIRMED:
+                                                    $currentStep = 4;
+                                                    break;
+                                                case $status::SAILING:
+                                                case $status::ARRIVED:
+                                                    $currentStep = 4; // Stay at BL_CONFIRMED step
+                                                    break;
+                                                case $status::COMPLETED:
+                                                    $currentStep = 5;
+                                                    break;
+                                                case $status::CANCELLED:
+                                                    $currentStep = 0;
+                                                    break;
+                                                default:
+                                                    $currentStep = 0;
+                                            }
+                                        }
+                                    } else {
+                                        // For non-customers, keep original flow
+                                        $totalSteps = 7;
+                                        
+                                        switch($booking->status) {
+                                            case $status::NEW:
+                                                $currentStep = 1;
+                                                break;
+                                            case $status::BOOKING_CONFIRMED:
+                                                $currentStep = 2;
+                                                break;
+                                            case $status::BL_VERIFICATION:
+                                                $currentStep = 3;
+                                                break;
+                                            case $status::BL_CONFIRMED:
+                                                $currentStep = 4;
+                                                break;
+                                            case $status::SAILING:
+                                                $currentStep = 5;
+                                                break;
+                                            case $status::ARRIVED:
+                                                $currentStep = 6;
+                                                break;
+                                            case $status::COMPLETED:
+                                                $currentStep = 7;
+                                                break;
+                                            case $status::CANCELLED:
+                                                $currentStep = 0;
+                                                break;
+                                            default:
+                                                $currentStep = 0;
+                                        }
                                     }
                                     
                                     // Calculate percentage (0% for cancelled, 100% for completed)
@@ -53,15 +97,25 @@
                                 @endphp
                                 <div class="h-2 rounded-full {{ $progressColor }}" style="width: {{ $progressPercentage }}%"></div>
                             </div>
-                            <div class="mt-6 hidden grid-cols-7 gap-4 text-sm font-medium text-gray-600 sm:grid">
-                                <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
-                                <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
-                                <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
-                                <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
-                                <div class="text-center {{ $booking->status >= $status::SAILING ? 'text-indigo-600' : 'text-gray-400' }}">Sailing</div>
-                                <div class="text-center {{ $booking->status >= $status::ARRIVED ? 'text-indigo-600' : 'text-gray-400' }}">Arrived</div>
-                                <div class="text-center {{ $booking->status >= $status::COMPLETED ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
-                            </div>
+                            @if($isCustomer)
+                                <div class="mt-6 hidden grid-cols-5 gap-4 text-sm font-medium text-gray-600 sm:grid">
+                                    <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
+                                    <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
+                                    <div class="text-center {{ ($booking->status >= $status::COMPLETED || ($hasInvoice && $hasCLL && $hasK4OrK5 && $booking->status >= $status::BL_CONFIRMED)) ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
+                                </div>
+                            @else
+                                <div class="mt-6 hidden grid-cols-7 gap-4 text-sm font-medium text-gray-600 sm:grid">
+                                    <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
+                                    <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::SAILING ? 'text-indigo-600' : 'text-gray-400' }}">Sailing</div>
+                                    <div class="text-center {{ $booking->status >= $status::ARRIVED ? 'text-indigo-600' : 'text-gray-400' }}">Arrived</div>
+                                    <div class="text-center {{ $booking->status >= $status::COMPLETED ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -121,6 +175,19 @@
                     <x-alert-instruction 
                         message="BL has been confirmed, please prepare all the documents required for the shipment"
                     />
+                        @if($booking->editAfterTelex->count() > 0 && !$booking->enable_edit)
+                        @php
+                            $editCount = $booking->editAfterTelex->count();
+                            $latestEdit = $booking->editAfterTelex->sortByDesc('created_at')->first();
+                        @endphp
+                        <div class="mt-2" onclick="document.getElementById('show-edit-history-modal').classList.remove('hidden')">
+                            <x-alert-instruction
+                                message="This booking has been edited {{ $editCount }} times after BL confirmed. The latest edit was on {{ $latestEdit->created_at->format('d-m-Y') }} by {{ $latestEdit->edited_by }}"
+                                action_text="View Edit History"
+                                action_url="#"
+                            />
+                        </div>
+                        @endif
                     @endif
                 @elseif ($booking->status == $status::SAILING)
                     @if(auth()->user()->role == 'customer')
@@ -232,6 +299,19 @@
                         </div>
                         <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                             @if($booking->status < 2 && $booking->status > 0)
+                            <button type="button"
+                                onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
+                                class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                <svg class="-ml-0.5 size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                                    data-slot="icon">
+                                    <path
+                                        d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                                    <path
+                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                </svg>
+                                Edit
+                            </button>
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
                             <button type="button"
                                 onclick="window.location.href='{{ route('booking.edit', $booking) }}'"
                                 class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -428,11 +508,24 @@
                                     Add Shipping Instruction
                                 </a>
                             </div>
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                                <a href="{{ route('shipping-instructions.create', $booking) }}"
+                                    class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                    </svg>
+                                    Add Shipping Instruction
+                                </a>
+                            </div>
                             @endif
                         </div>
 
                         @if($booking->shippingInstructions->isEmpty())
-                            <div class="rounded-md bg-yellow-50 p-4">
+                        <!-- Show empty shipping instructions card if no shipping instructions are added. temporary deactivated -->
+                            <!-- <div class="rounded-md bg-yellow-50 p-4">
                                 <div class="flex">
                                     <div class="shrink-0">
                                         <svg class="size-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"
@@ -449,7 +542,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         @else
                             <div class="space-y-4">
                                 @foreach($booking->shippingInstructions as $si)
@@ -502,20 +595,25 @@
                                                 Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
                                                 
                                             </p>
-                                            @if(!$si->telex_bl_released)
-                                                @if($booking->status < 5 && $remainingFreeRevisions > 0)
-                                                <a href="{{ route('shipping-instructions.show', $si) }}"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
-                                                @elseif($booking->status < 5 && $remainingFreeRevisions <= 0)
-                                                <a href="#"
-                                                    onclick="showRevisionWarning(event, '{{ $si->id }}')"
-                                                    class="text-indigo-600 hover:text-indigo-900">
-                                                    Edit
-                                                </a>
+                                            @if ($booking->enable_edit)
+                                                @php $isCustomer = auth()->user()->role === 'customer'; @endphp
+
+                                                @if (!$si->telex_bl_released || ($si->telex_bl_released && !$isCustomer))
+                                                    @if ($booking->status < 5 && $remainingFreeRevisions > 0)
+                                                        <a href="{{ route('shipping-instructions.show', $si) }}"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @elseif ($booking->status < 5 && $remainingFreeRevisions <= 0)
+                                                        <a href="#"
+                                                            onclick="showRevisionWarning(event, '{{ $si->id }}')"
+                                                            class="text-indigo-600 hover:text-indigo-900">
+                                                            Edit
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             @endif
+
                                             @if($booking->status == 3)
                                             <a href="{{ route('shipping-instructions.generate-bl', $si) }}"
                                                 class="ml-4 text-green-600 hover:text-green-900">
@@ -542,6 +640,16 @@
                                                 @endif
                                             @endif
                                             @if($booking->status < 4)
+                                            <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                    class="ml-4 text-red-600 hover:text-red-900"
+                                                    onclick="return confirm('Are you sure you want to delete this shipping instruction?')">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
                                             <form action="{{ route('shipping-instructions.destroy', $si) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -1060,14 +1168,41 @@
                             @elseif($booking->status == $status::BL_CONFIRMED && auth()->user()->role != 'customer')
                             <!-- Sail Away Button -->
                                 @if($booking->shippingInstructions->every(function($si) { return $si->telex_bl_released; }))
-                                <div class="relative">
-                                    <button type="button"
-                                        onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
-                                            bg-blue-600 text-white hover:bg-blue-700">
+
+                                    @if(!$booking->enable_edit)
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('enable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-red-600 text-white hover:bg-red-700">
+                                            Enable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('sailing-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-blue-600 text-white hover:bg-blue-700">
+                                            Sailing
+                                        </button>
+                                    </div>
+                                    @else
+                                    <div class="relative">
+                                        <button type="button"
+                                            onclick="document.getElementById('disable-edit-confirmation-modal').classList.remove('hidden')"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-green-600 text-white hover:bg-green-700">
+                                            Disable Edit
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest 
+                                                bg-gray-300 text-gray-500 cursor-not-allowed">
                                         Sailing
                                     </button>
-                                </div>
+                                    @endif
+
                                 @else
                                     <div class="relative">
                                         <button type="button"
@@ -1243,6 +1378,281 @@
                                     modal.classList.remove('hidden');
                                 }
                             </script>
+
+                            <!-- Disable Edit Confirmation Modal -->
+                            <div id="disable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <div>
+                                                <div class="mt-3 text-center sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900" id="modal-title">Disable Edit Confirmation</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500">Please confirm that all the information are correct before disabling edit.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                <button type="button" onclick="document.getElementById('disable-edit-confirmation-modal').classList.add('hidden')"
+                                                    class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                <div class="flex gap-3">
+                                                    <button type="button" onclick="window.location.href='{{ route('booking.disable-edit', $booking) }}'"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Confirm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Show Edit History Modal -->
+                            @php
+                            $fmtVal = function ($v) {
+                                if (is_null($v) || $v === '') return '—';
+                                if (is_bool($v)) return $v ? 'true' : 'false';
+                                if (is_array($v) || is_object($v)) return json_encode($v, JSON_UNESCAPED_UNICODE);
+                                return $v;
+                            };
+                            @endphp
+
+                            <div id="show-edit-history-modal"
+                                class="hidden relative z-10"
+                                aria-labelledby="modal-title"
+                                role="dialog"
+                                aria-modal="true">
+
+                            <!-- dark overlay -->
+                            <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+
+                            <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                <div
+                                    class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl
+                                        transition-all sm:my-8 sm:w-full sm:max-w-4xl md:max-w-5xl sm:p-8">
+
+                                    <!-- heading -->
+                                    <h3 id="modal-title" class="mb-4 text-lg font-semibold text-gray-900 text-center">
+                                    Edit History
+                                    </h3>
+
+                                    <!-- table wrapper -->
+                                    <div class="max-h-[65vh] overflow-y-auto overflow-x-auto border rounded-lg">
+                                    <table class="min-w-full text-sm divide-y divide-gray-200">
+                                        <thead class="bg-gray-50 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Request&nbsp;By</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700">Request&nbsp;Reason</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;By</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Edited&nbsp;At</th>
+                                            <th class="px-4 py-2 text-left font-medium text-gray-700 whitespace-nowrap">Changes</th>
+                                        </tr>
+                                        </thead>
+
+                                        {{-- One <tbody> per log row so Alpine can scope "open" to both <tr>s --}}
+                                        @foreach($booking->editAfterTelex->sortByDesc('created_at') as $edit)
+                                        @php
+                                            $bkChanges = data_get($edit->changes, 'booking', []);
+                                            $siChanges = data_get($edit->changes, 'shipping_instructions', []);
+                                            $hasAnyChanges = (!empty($bkChanges)) || (!empty($siChanges));
+                                        @endphp
+
+                                        <tbody x-data="{ open: false }" class="divide-y divide-gray-100">
+                                            <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->request_by }}</td>
+                                            <td class="px-4 py-2 whitespace-normal break-words">{{ $edit->request_reason }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->edited_by }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ $edit->created_at->format('d-m-Y H:i:s') }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap">
+                                                @if($hasAnyChanges)
+                                                <button type="button"
+                                                        @click="open = !open"
+                                                        class="inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+                                                    <span x-show="!open">View changes</span>
+                                                    <span x-show="open">Hide</span>
+                                                </button>
+                                                @else
+                                                <span class="text-xs text-gray-400">No changes</span>
+                                                @endif
+                                            </td>
+                                            </tr>
+
+                                            {{-- Expanded diff row (shares the same Alpine scope via the <tbody>) --}}
+                                            @if($hasAnyChanges)
+                                            <tr x-cloak :class="open ? '' : 'hidden'">
+                                                <td colspan="6" class="px-4 py-3 bg-gray-50">
+                                                {{-- Booking changes --}}
+                                                <div class="mb-4">
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                    <h4 class="font-semibold">Booking</h4>
+                                                    @if(empty($bkChanges))
+                                                        <span class="text-xs text-gray-500">(no changes)</span>
+                                                    @endif
+                                                    </div>
+                                                    @if(!empty($bkChanges))
+                                                    <div class="overflow-x-auto">
+                                                        <table class="w-full text-xs border rounded">
+                                                        <thead class="bg-white">
+                                                            <tr>
+                                                            <th class="text-left p-2">Field</th>
+                                                            <th class="text-left p-2">From</th>
+                                                            <th class="text-left p-2">To</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($bkChanges as $field => $diff)
+                                                            <tr class="border-t">
+                                                                <td class="p-2">{{ str($field)->replace('.', ' → ')->headline() }}</td>
+                                                                <td class="bg-red-50 text-red-700 p-2">{{ is_array($diff['from'] ?? null) ? json_encode($diff['from']) : ($diff['from'] ?? '') }}</td>
+                                                                <td class="bg-green-50 text-green-700 p-2">{{ is_array($diff['to'] ?? null) ? json_encode($diff['to']) : ($diff['to'] ?? '') }}</td>
+                                                            </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                        </table>
+                                                    </div>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Shipping Instruction changes --}}
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                    <h4 class="font-semibold">Shipping Instructions</h4>
+                                                    @if(empty($siChanges))
+                                                        <span class="text-xs text-gray-500">(no changes)</span>
+                                                    @endif
+                                                    </div>
+
+                                                    @foreach($siChanges as $siId => $row)
+                                                    @php
+                                                        $type  = data_get($row, 'change_type', 'updated');
+                                                        $diffs = data_get($row, 'changes', data_get($row, 'diff', []));
+                                                        $isDeleted = isset($diffs['deleted']) || $type === 'deleted';
+                                                    @endphp
+
+                                                    <div class="mb-3 rounded border bg-white">
+                                                        <div class="flex items-center justify-between p-2">
+                                                        <div class="text-xs">
+                                                            <span class="font-medium">SI #{{ $booking->shippingInstructions->find($siId)->sub_booking_number ?? $siId }}</span>
+                                                        </div>
+                                                        <span class="inline-flex items-center rounded px-2 py-0.5 text-[10px] uppercase tracking-wide
+                                                                    {{ $type === 'created' ? 'bg-green-100 text-green-800' :
+                                                                        ($type === 'deleted' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-slate-100 text-slate-800') }}">
+                                                            {{ $type }}
+                                                        </span>
+                                                        </div>
+
+                                                        <div class="p-2 border-t">
+                                                        @if($isDeleted)
+                                                            <p class="text-xs text-red-700">This Shipping Instruction was deleted during the edit window.</p>
+                                                        @else
+                                                            @if(!empty($diffs))
+                                                            <div class="overflow-x-auto">
+                                                                <table class="w-full text-xs">
+                                                                <thead>
+                                                                    <tr>
+                                                                    <th class="text-left p-2">Field</th>
+                                                                    <th class="text-left p-2">From</th>
+                                                                    <th class="text-left p-2">To</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach($diffs as $field => $diff)
+                                                                    @if(is_array($diff) && array_key_exists('from', $diff))
+                                                                        <tr class="border-t">
+                                                                        <td class="p-2">{{ str($field)->replace('.', ' → ')->headline() }}</td>
+                                                                        <td class="bg-red-50 text-red-700 p-2">{{ is_array($diff['from'] ?? null) ? json_encode($diff['from']) : ($diff['from'] ?? '') }}</td>
+                                                                        <td class="bg-green-50 text-green-700 p-2">{{ is_array($diff['to'] ?? null) ? json_encode($diff['to']) : ($diff['to'] ?? '') }}</td>
+                                                                        </tr>
+                                                                    @endif
+                                                                    @endforeach
+                                                                </tbody>
+                                                                </table>
+                                                            </div>
+                                                            @else
+                                                            <p class="text-xs text-gray-600">No field changes.</p>
+                                                            @endif
+                                                        @endif
+                                                        </div>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                </td>
+                                            </tr>
+                                            @endif
+                                        </tbody>
+                                        @endforeach
+                                    </table>
+                                    </div>
+
+                                    <!-- footer -->
+                                    <div class="mt-6 flex justify-center">
+                                    <button
+                                        type="button"
+                                        onclick="document.getElementById('show-edit-history-modal').classList.add('hidden')"
+                                        class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
+                                            shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
+                                            focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                        Close
+                                    </button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+
+
+                            <!-- Enable Edit Confirmation Modal -->
+                            <div id="enable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
+                                role="dialog" aria-modal="true">
+                                <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+                                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                                    <div
+                                        class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                        <div
+                                            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                            <form action="{{ route('booking.enable-edit', $booking) }}" method="POST">
+                                                @csrf
+                                                <div class="mt-3 sm:mt-5">
+                                                    <h3 class="text-base font-semibold text-gray-900 text-center" id="modal-title">Enable Edit After BL</h3>
+                                                    <div class="mt-4 space-y-4">
+                                                        <div>
+                                                            <label for="request_by" class="block text-sm font-medium text-gray-700">Requested By</label>
+                                                            <input type="text" name="request_by" id="request_by" value="{{ $booking->user->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_date" class="block text-sm font-medium text-gray-700">Request Date</label>
+                                                            <input type="date" name="request_date" id="request_date" value="{{ now()->format('Y-m-d') }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <label for="request_reason" class="block text-sm font-medium text-gray-700">Request Reason</label>
+                                                            <textarea name="request_reason" id="request_reason" rows="3" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                                        </div>
+                                                        <div>
+                                                            <label for="edited_by" class="block text-sm font-medium text-gray-700">Edited By</label>
+                                                            <input type="text" name="edited_by" id="edited_by" value="{{ auth()->user()->name }}" required
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-5 flex justify-between items-center sm:mt-6">
+                                                    <button type="button" onclick="document.getElementById('enable-edit-confirmation-modal').classList.add('hidden')"
+                                                        class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                                                    <button type="submit"
+                                                        class="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Enable Edit</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Sailing Confirmation Modal -->
                             <div id="sailing-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"

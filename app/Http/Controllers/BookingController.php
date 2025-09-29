@@ -19,6 +19,7 @@ use App\Models\Voyage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use App\Models\EditAfterTelex;
 
 class BookingController extends Controller
 {
@@ -178,6 +179,238 @@ class BookingController extends Controller
 
         return view('booking.show', compact('booking', 'status', 'statusLabel'));
     }
+
+    // Static class to store the snapshot of the booking before and after the edit
+    public static function bookingFields(): array {
+        return [
+            'voyage_id','ets','eta',
+        ];
+    }
+
+    // Static class to store the snapshot of the shipping instruction before and after the edit
+    public static function siFields(): array {
+        return [
+            'bl_number',
+            'box_operator',
+            'shipper',
+            'shipper_contact',
+            'shipper_address',
+            'consignee',
+            'consignee_contact',
+            'consignee_address',
+            'notify_party',
+            'notify_party_contact',
+            'notify_party_address',
+            'cargo_description',
+            'hs_code',
+            'gross_weight',
+            'volume',
+        ];
+    }
+
+    // Static class to identify datetime fields
+    public static function datetimeFields(): array {
+        return [
+            'ets', 'eta', 'booking_date', 'created_at', 'updated_at'
+        ];
+    }
+
+    // Static class to format datetime values for display
+    public static function formatDateTimeValue($value, $field) {
+        if (empty($value)) {
+            return '';
+        }
+
+        // Check if this is a datetime field
+        if (in_array($field, self::datetimeFields())) {
+            try {
+                // Handle Carbon instances or datetime strings
+                if ($value instanceof \Carbon\Carbon) {
+                    // Format date fields without time
+                    if ($field === 'booking_date') {
+                        return $value->format('d-m-Y');
+                    }
+                    // Format datetime fields with time
+                    return $value->format('d-m-Y H:i:s');
+                }
+                
+                // Handle datetime strings
+                if (is_string($value)) {
+                    $carbon = \Carbon\Carbon::parse($value);
+                    // Format date fields without time
+                    if ($field === 'booking_date') {
+                        return $carbon->format('d-m-Y');
+                    }
+                    // Format datetime fields with time
+                    return $carbon->format('d-m-Y H:i:s');
+                }
+            } catch (\Exception $e) {
+                // If parsing fails, return the original value
+                return $value;
+            }
+        }
+
+        return $value;
+    }
+
+    // Static class to compute the diff between the snapshot before and after the edit
+    public static function diff(array $before, array $after, array $fields): array {
+        $out = [];
+        foreach ($fields as $f) {
+            $old = $before[$f] ?? null;
+            $new = $after[$f] ?? null;
+            if ($old !== $new) {
+                // If the before value is already formatted (string), use it as is
+                // Otherwise, format it
+                $formattedOld = is_string($old) && !empty($old) ? $old : self::formatDateTimeValue($old, $f);
+                $formattedNew = is_string($new) && !empty($new) ? $new : self::formatDateTimeValue($new, $f);
+                
+                $out[$f] = [
+                    'from' => $formattedOld,
+                    'to' => $formattedNew
+                ];
+            }
+        }
+        return $out;
+    }
+
+    // Make changes after telex bl released
+    public function enableEdit(Booking $booking, Request $request)
+    {
+        $booking->update(['enable_edit' => true]);
+        $booking->load('shippingInstructions');
+
+        // Format booking data before storing
+        $bookingBefore = $booking->only($this->bookingFields());
+        $formattedBookingBefore = [];
+        foreach ($bookingBefore as $field => $value) {
+            $formattedBookingBefore[$field] = self::formatDateTimeValue($value, $field);
+        }
+
+        $siBefore = [];
+        foreach ($booking->shippingInstructions as $si) {
+            $siData = $si->only($this->siFields());
+            $formattedSiData = [];
+            foreach ($siData as $field => $value) {
+                $formattedSiData[$field] = self::formatDateTimeValue($value, $field);
+            }
+            
+            $siBefore[(string)$si->id] = [
+                'before' => $formattedSiData,
+                'change_type' => 'updated',
+            ];
+        }
+
+        EditAfterTelex::create([
+            'booking_id' => $booking->id,
+            'request_by' => $request->request_by,
+            'request_date' => $request->request_date,
+            'request_reason' => $request->request_reason,
+            'edited_by' => $request->edited_by,
+            'snapshot_before' => [
+                'booking' => [
+                    'id' => $booking->id,
+                    'before' => $formattedBookingBefore,
+                ],
+                'shipping_instructions' => $siBefore,
+            ],
+        ]);
+
+        return redirect()->route('booking.show', $booking)->with('success', 'Edit after BL confirmed is enabled.');
+    }
+
+    // Stop editing
+    public function disableEdit(Booking $booking)
+    {
+        $booking->update(['enable_edit' => false]);
+
+        // grab the latest open session for this booking
+        $log = EditAfterTelex::where('booking_id', $booking->id)
+            ->whereNull('finalized_at')
+            ->latest('id')
+            ->first();
+
+        if (!$log) {
+            return back()->with('error', 'No open edit session found.');
+        }
+
+        $booking->load('shippingInstructions');
+
+        // Booking diff
+        $bookingFields = $this->bookingFields();
+        $beforeBooking = data_get($log->snapshot_before, 'booking.before', []);
+        $afterBooking = $booking->only($bookingFields);
+        
+        // Format after booking data for comparison
+        $formattedAfterBooking = [];
+        foreach ($afterBooking as $field => $value) {
+            $formattedAfterBooking[$field] = self::formatDateTimeValue($value, $field);
+        }
+        
+        $bookingChanges = self::diff($beforeBooking, $formattedAfterBooking, $bookingFields);
+
+        // SI diffs (created/updated/deleted)
+        $beforeSis = (array) data_get($log->snapshot_before, 'shipping_instructions', []);
+        $afterSis = [];
+        foreach ($booking->shippingInstructions as $si) {
+            $siData = $si->only($this->siFields());
+            $formattedSiData = [];
+            foreach ($siData as $field => $value) {
+                $formattedSiData[$field] = self::formatDateTimeValue($value, $field);
+            }
+            $afterSis[(string)$si->id] = $formattedSiData;
+        }
+        $siChanges = [];
+
+        // updated/created
+        foreach ($afterSis as $id => $afterData) {
+            $beforeData = data_get($beforeSis, "$id.before");
+            if ($beforeData === null) {
+                // created during edit window
+                $siChanges[$id] = [
+                    'before' => null,
+                    'after' => $afterData,
+                    'changes' => self::diff([], $afterData, $this->siFields()),
+                    'change_type' => 'created',
+                ];
+            } else {
+                $diff = self::diff($beforeData, $afterData, $this->siFields());
+                $siChanges[$id] = [
+                    'before' => $beforeData,
+                    'after' => $afterData,
+                    'changes' => $diff,
+                    'change_type' => 'updated',
+                ];
+            }
+        }
+
+        // deleted
+        foreach ($beforeSis as $id => $wrapped) {
+            if (!array_key_exists($id, $afterSis)) {
+                $siChanges[$id] = [
+                    'before' => data_get($wrapped, 'before', []),
+                    'after' => null,
+                    'changes' => ['deleted' => true],
+                    'change_type' => 'deleted',
+                ];
+            }
+        }
+
+        $log->update([
+            'snapshot_after' => [
+                'booking' => ['id' => $booking->id, 'after' => $formattedAfterBooking],
+                'shipping_instructions' => collect($afterSis)->map(fn($v) => ['after' => $v])->all(),
+            ],
+            'changes' => [
+                'booking' => $bookingChanges,
+                'shipping_instructions' => $siChanges,
+            ],
+            'finalized_at' => now(),
+        ]);
+
+        return back()->with('success', 'Edit after BL confirmed is disabled and logged.');
+    }
+
 
     // Update the specified booking in storage.
     public function update(Request $request, Booking $booking)

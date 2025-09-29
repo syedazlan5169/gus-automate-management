@@ -789,6 +789,7 @@ class ShippingInstructionController extends Controller
     public function releaseTelexBL(ShippingInstruction $shippingInstruction)
     {
         $shippingInstruction->update(['telex_bl_released' => true]);
+        $shippingInstruction->booking->update(['enable_edit' => false]);
         ActivityLog::logTelexBLReleased(Auth::user(), $shippingInstruction);
         return redirect()->route('booking.show', $shippingInstruction->booking)->with('success', 'Telex BL released successfully for shipping instruction ' . $shippingInstruction->sub_booking_number . '.');
     }
