@@ -11,38 +11,82 @@
                         <div class="mt-6" aria-hidden="true">
                             <div class="overflow-hidden rounded-full bg-gray-200">
                                 @php
-                                    // Calculate progress percentage based on status
-                                    $totalSteps = 7; // Total number of steps (excluding CANCELLED)
-                                    $currentStep = 0;
+                                    // Check if user is customer
+                                    $isCustomer = auth()->user()->role == 'customer';
                                     
-                                    // Map status to step number
-                                    switch($booking->status) {
-                                        case $status::NEW:
-                                            $currentStep = 1;
-                                            break;
-                                        case $status::BOOKING_CONFIRMED:
-                                            $currentStep = 2;
-                                            break;
-                                        case $status::BL_VERIFICATION:
-                                            $currentStep = 3;
-                                            break;
-                                        case $status::BL_CONFIRMED:
-                                            $currentStep = 4;
-                                            break;
-                                        case $status::SAILING:
-                                            $currentStep = 5;
-                                            break;
-                                        case $status::ARRIVED:
-                                            $currentStep = 6;
-                                            break;
-                                        case $status::COMPLETED:
-                                            $currentStep = 7;
-                                            break;
-                                        case $status::CANCELLED:
-                                            $currentStep = 0; // Cancelled is not part of the progress
-                                            break;
-                                        default:
-                                            $currentStep = 0;
+                                    // For customers, skip Sailing & Arrived statuses
+                                    if ($isCustomer) {
+                                        $totalSteps = 5; // Total steps for customers (excluding SAILING and ARRIVED)
+                                        
+                                        // Check if required documents are uploaded for direct completion
+                                        $hasInvoice = $booking->invoices()->exists();
+                                        $hasCLL = $booking->relatedDocuments()->where('document_name', 'Container Load List')->exists();
+                                        $hasK4OrK5 = $booking->relatedDocuments()->whereIn('document_name', ['K4', 'K5'])->exists();
+                                        
+                                        // If all required documents are uploaded, mark as completed
+                                        if ($hasInvoice && $hasCLL && $hasK4OrK5 && $booking->status >= $status::BL_CONFIRMED) {
+                                            $currentStep = 5; // Completed
+                                        } else {
+                                            // Map status to step number for customers
+                                            switch($booking->status) {
+                                                case $status::NEW:
+                                                    $currentStep = 1;
+                                                    break;
+                                                case $status::BOOKING_CONFIRMED:
+                                                    $currentStep = 2;
+                                                    break;
+                                                case $status::BL_VERIFICATION:
+                                                    $currentStep = 3;
+                                                    break;
+                                                case $status::BL_CONFIRMED:
+                                                    $currentStep = 4;
+                                                    break;
+                                                case $status::SAILING:
+                                                case $status::ARRIVED:
+                                                    $currentStep = 4; // Stay at BL_CONFIRMED step
+                                                    break;
+                                                case $status::COMPLETED:
+                                                    $currentStep = 5;
+                                                    break;
+                                                case $status::CANCELLED:
+                                                    $currentStep = 0;
+                                                    break;
+                                                default:
+                                                    $currentStep = 0;
+                                            }
+                                        }
+                                    } else {
+                                        // For non-customers, keep original flow
+                                        $totalSteps = 7;
+                                        
+                                        switch($booking->status) {
+                                            case $status::NEW:
+                                                $currentStep = 1;
+                                                break;
+                                            case $status::BOOKING_CONFIRMED:
+                                                $currentStep = 2;
+                                                break;
+                                            case $status::BL_VERIFICATION:
+                                                $currentStep = 3;
+                                                break;
+                                            case $status::BL_CONFIRMED:
+                                                $currentStep = 4;
+                                                break;
+                                            case $status::SAILING:
+                                                $currentStep = 5;
+                                                break;
+                                            case $status::ARRIVED:
+                                                $currentStep = 6;
+                                                break;
+                                            case $status::COMPLETED:
+                                                $currentStep = 7;
+                                                break;
+                                            case $status::CANCELLED:
+                                                $currentStep = 0;
+                                                break;
+                                            default:
+                                                $currentStep = 0;
+                                        }
                                     }
                                     
                                     // Calculate percentage (0% for cancelled, 100% for completed)
@@ -53,15 +97,25 @@
                                 @endphp
                                 <div class="h-2 rounded-full {{ $progressColor }}" style="width: {{ $progressPercentage }}%"></div>
                             </div>
-                            <div class="mt-6 hidden grid-cols-7 gap-4 text-sm font-medium text-gray-600 sm:grid">
-                                <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
-                                <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
-                                <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
-                                <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
-                                <div class="text-center {{ $booking->status >= $status::SAILING ? 'text-indigo-600' : 'text-gray-400' }}">Sailing</div>
-                                <div class="text-center {{ $booking->status >= $status::ARRIVED ? 'text-indigo-600' : 'text-gray-400' }}">Arrived</div>
-                                <div class="text-center {{ $booking->status >= $status::COMPLETED ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
-                            </div>
+                            @if($isCustomer)
+                                <div class="mt-6 hidden grid-cols-5 gap-4 text-sm font-medium text-gray-600 sm:grid">
+                                    <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
+                                    <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
+                                    <div class="text-center {{ ($booking->status >= $status::COMPLETED || ($hasInvoice && $hasCLL && $hasK4OrK5 && $booking->status >= $status::BL_CONFIRMED)) ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
+                                </div>
+                            @else
+                                <div class="mt-6 hidden grid-cols-7 gap-4 text-sm font-medium text-gray-600 sm:grid">
+                                    <div class="text-center {{ $booking->status >= $status::NEW ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Created</div>
+                                    <div class="text-center {{ $booking->status >= $status::BOOKING_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">Booking<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_VERIFICATION ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Verification</div>
+                                    <div class="text-center {{ $booking->status >= $status::BL_CONFIRMED ? 'text-indigo-600' : 'text-gray-400' }}">BL<br>Confirmed</div>
+                                    <div class="text-center {{ $booking->status >= $status::SAILING ? 'text-indigo-600' : 'text-gray-400' }}">Sailing</div>
+                                    <div class="text-center {{ $booking->status >= $status::ARRIVED ? 'text-indigo-600' : 'text-gray-400' }}">Arrived</div>
+                                    <div class="text-center {{ $booking->status >= $status::COMPLETED ? 'text-indigo-600' : 'text-gray-400' }}">Completed</div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
