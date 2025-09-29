@@ -470,7 +470,8 @@
                         </div>
 
                         @if($booking->shippingInstructions->isEmpty())
-                            <div class="rounded-md bg-yellow-50 p-4">
+                        <!-- Show empty shipping instructions card if no shipping instructions are added. temporary deactivated -->
+                            <!-- <div class="rounded-md bg-yellow-50 p-4">
                                 <div class="flex">
                                     <div class="shrink-0">
                                         <svg class="size-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"
@@ -487,7 +488,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         @else
                             <div class="space-y-4">
                                 @foreach($booking->shippingInstructions as $si)
