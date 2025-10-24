@@ -547,6 +547,321 @@
                             <div class="space-y-4">
                                 @foreach($booking->shippingInstructions as $si)
                                     <div class="border rounded p-4 bg-white">
+
+                                        <!-- Customer change request status badge -->
+                                        @php
+                                            // Fetch the most recent active request for THIS SI
+                                            $activeReq = $si->changeRequests()
+                                                ->whereNotIn('status', [
+                                                    \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
+                                                    \App\Models\SiChangeRequest::STATUS_REJECTED,
+                                                    \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                                                    \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                                                ])
+                                                ->latest()   // created_at desc
+                                                ->first();
+
+                                            // Map status -> label + color style
+                                            $statusMeta = [
+                                                \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW => [
+                                                    'label' => 'Change Request: Under Review',
+                                                    'classes' => 'bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-200',
+                                                ],
+                                                \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT => [
+                                                    'label' => 'Change Request: Approved For Edit',
+                                                    'classes' => 'bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200',
+                                                ],
+                                                \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW => [
+                                                    'label' => 'Change Request: Pending Final Review',
+                                                    'classes' => 'bg-indigo-100 text-indigo-800 ring-1 ring-inset ring-indigo-200',
+                                                ],
+                                            ];
+                                        @endphp
+
+                                        @if($activeReq)
+                                            <div class="my-3 flex items-center justify-between">
+                                                <span class="inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full {{ $statusMeta[$activeReq->status]['classes'] ?? 'bg-slate-100 text-slate-800 ring-1 ring-inset ring-slate-200' }}">
+                                                    {{-- small dot --}}
+                                                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-current opacity-70"></span>
+                                                    {{ $statusMeta[$activeReq->status]['label'] ?? 'Change Request: Active' }}
+                                                </span>
+
+                                                {{-- Optional: tiny “details” link (we’ll wire a modal later) --}}
+                                                <a href="#"
+                                                class="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                                                onclick="event.preventDefault(); /* placeholder for future details modal */">
+                                                    View details
+                                                </a>
+                                            </div>
+                                        @endif
+                                        <!-- End of Customer change request status badge -->
+
+                                        <!-- Customer cancel change request button -->
+                                        @php
+                                            $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+                                            $ownsBooking = $isCustomer && (int)$booking->user_id === (int)auth()->id();
+                                        @endphp
+
+                                        @if($activeReq
+                                            && $activeReq->status === \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT
+                                            && $ownsBooking)
+                                            <div class="mt-3">
+                                                <button type="button"
+                                                    onclick="openSiCancelModal({{ $activeReq->id }})"
+                                                    class="inline-flex items-center gap-2 rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500">
+                                                    Cancel Request
+                                                </button>
+                                            </div>
+
+                                            <!-- Customer Cancel Modal -->
+                                            <div id="si-cancel-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" onclick="closeSiCancelModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-lg rounded-xl bg-white shadow-2xl">
+                                                    <div class="flex items-center justify-between px-5 py-4 border-b">
+                                                        <h3 class="text-base font-semibold">Cancel change request</h3>
+                                                        <button class="text-gray-400 hover:text-gray-600" onclick="closeSiCancelModal({{ $activeReq->id }})">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('si-change-requests.customer-cancel', $activeReq) }}" class="p-5 space-y-4">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div class="rounded-md bg-red-50 p-3 border border-red-200">
+                                                            <p class="text-sm text-red-800">
+                                                                You are about to cancel this change request. You will need to submit a new request if you want to add or modify fields again.
+                                                            </p>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason for cancellation</label>
+                                                            <textarea name="cancel_reason" rows="3"
+                                                                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                                    placeholder="e.g., I need to request additional fields together" required></textarea>
+                                                        </div>
+
+                                                        <div class="flex justify-end gap-2 border-t pt-4">
+                                                            <button type="button"
+                                                                    onclick="closeSiCancelModal({{ $activeReq->id }})"
+                                                                    class="inline-flex items-center rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                                Keep Request
+                                                            </button>
+                                                            <button type="submit"
+                                                                    class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500">
+                                                                Confirm Cancel
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <!-- End of Customer cancel change request button -->
+                                        <!-- Customer Edit Change Request button -->
+                                        @php
+                                            $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+                                            $ownsBooking = $isCustomer && (int)$booking->user_id === (int)auth()->id();
+                                        @endphp
+
+                                        @if($activeReq
+                                            && $activeReq->status === \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT
+                                            && $ownsBooking)
+                                            <div class="mt-3">
+                                                <a href="{{ route('si-change-requests.edit-approved', [$si, $activeReq]) }}"
+                                                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">
+                                                    Edit Approved Fields
+                                                </a>
+                                            </div>
+                                        @endif
+                                        <!-- End of Customer Edit Change Request button -->
+
+                                        <!-- Admin action button for change request -->
+                                        @php
+                                            $isAdmin = auth()->check() && auth()->user()->role !== 'customer';
+                                        @endphp
+
+                                        @if($activeReq && $activeReq->status === \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW && $isAdmin)
+                                            <div class="mt-3">
+                                                <button type="button"
+                                                    onclick="openSiApproveModal({{ $activeReq->id }})"
+                                                    class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-500">
+                                                    Review request
+                                                </button>
+                                            </div>
+
+                                            <!-- Admin Approve Modal -->
+                                            <div id="si-approve-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" onclick="closeSiApproveModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-xl rounded-xl bg-white shadow-2xl">
+                                                    <div class="flex items-center justify-between px-5 py-4 border-b">
+                                                        <h3 class="text-base font-semibold">Approve requested fields</h3>
+                                                        <button class="text-gray-400 hover:text-gray-600" onclick="closeSiApproveModal({{ $activeReq->id }})">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('si-change-requests.approve-fields', $activeReq) }}" class="p-5 space-y-4">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div>
+                                                            <p class="text-sm text-gray-600 mb-2">Customer requested:</p>
+                                                            <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 border rounded-md p-3">
+                                                                @foreach(($activeReq->requested_fields ?? []) as $field)
+                                                                    <label class="inline-flex items-center gap-2 text-sm">
+                                                                        <input type="checkbox" name="approved_fields[]" value="{{ $field }}"
+                                                                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                                            checked>
+                                                                        <span class="capitalize">{{ str_replace('_',' ', $field) }}</span>
+                                                                    </label>
+                                                                @endforeach
+                                                            </div>
+                                                            <p class="mt-2 text-xs text-gray-500">Uncheck any you do not want to allow.</p>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Note to customer (optional)</label>
+                                                            <textarea name="approver_note" rows="3"
+                                                                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                                    placeholder="Explain any restrictions or instructions..."></textarea>
+                                                        </div>
+
+                                                        <div class="flex justify-end gap-2 border-t pt-4">
+                                                            <button type="button"
+                                                                    onclick="closeSiApproveModal({{ $activeReq->id }})"
+                                                                    class="inline-flex items-center rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                                Cancel
+                                                            </button>
+                                                            <button type="submit"
+                                                                    class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                                                                Approve fields
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <!-- End of Admin action button for change request -->
+                                        <!-- Admin final approve button for change request -->
+                                        @if($activeReq && $activeReq->status === \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW && $isAdmin)
+                                            <div class="mt-3">
+                                                <button type="button"
+                                                        onclick="openSiFinalModal({{ $activeReq->id }})"
+                                                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">
+                                                Final Review
+                                                </button>
+                                            </div>
+
+                                            <!-- Final Review Modal -->
+                                            <div id="si-final-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" onclick="closeSiFinalModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-2xl rounded-xl bg-white shadow-2xl">
+                                                <div class="flex items-center justify-between px-5 py-4 border-b">
+                                                    <h3 class="text-base font-semibold">Final Review: Draft vs Original</h3>
+                                                    <button class="text-gray-400 hover:text-gray-600" onclick="closeSiFinalModal({{ $activeReq->id }})">
+                                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                    </button>
+                                                </div>
+
+                                                @php
+                                                    $labels = [
+                                                    'shipper' => 'Shipper', 'shipper_address'=>'Shipper Address',
+                                                    'consignee'=>'Consignee','consignee_address'=>'Consignee Address',
+                                                    'notify_party'=>'Notify Party','notify_party_address'=>'Notify Party Address',
+                                                    'cargo_description'=>'Cargo Description','hs_code'=>'HS Code',
+                                                    'gross_weight'=>'Gross Weight','volume'=>'Volume','box_operator'=>'Box Operator',
+                                                    ];
+                                                    $pre  = collect($activeReq->prechange_snapshot ?? []);
+                                                    $draft= collect($activeReq->draft_changes ?? []);
+                                                    $approved = collect($activeReq->approved_fields ?? []);
+                                                    $keys = $approved->all(); // only approved fields are relevant
+                                                @endphp
+
+                                                <div class="p-5 max-h-[70vh] overflow-y-auto">
+                                                    <div class="space-y-4">
+                                                    @forelse($keys as $field)
+                                                        @php
+                                                        $before = $pre->get($field);
+                                                        $after  = $draft->get($field);
+                                                        // format arrays (addresses) nicely
+                                                        $fmt = fn($v) => is_array($v) ? implode("\n", $v) : (string)($v ?? '');
+                                                        @endphp
+
+                                                        <div class="border rounded-lg overflow-hidden">
+                                                        <div class="bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">
+                                                            {{ $labels[$field] ?? ucfirst(str_replace('_',' ', $field)) }}
+                                                        </div>
+                                                        <div class="grid grid-cols-2 gap-0">
+                                                            <div class="p-3 text-sm">
+                                                            <div class="text-gray-500 text-xs mb-1">Before</div>
+                                                            <pre class="bg-red-50 text-red-800 rounded p-2 whitespace-pre-wrap">{{ $fmt($before) }}</pre>
+                                                            </div>
+                                                            <div class="p-3 text-sm">
+                                                            <div class="text-gray-500 text-xs mb-1">After (Draft)</div>
+                                                            <pre class="bg-green-50 text-green-800 rounded p-2 whitespace-pre-wrap">{{ $fmt($after) }}</pre>
+                                                            </div>
+                                                        </div>
+                                                        </div>
+                                                    @empty
+                                                        <p class="text-sm text-gray-600">No fields to review.</p>
+                                                    @endforelse
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('si-change-requests.final-approve', $activeReq) }}" class="mt-5 space-y-3">
+                                                    @csrf @method('PATCH')
+                                                    <label class="block text-sm font-medium text-gray-700">Final note (optional)</label>
+                                                    <textarea name="final_note" rows="3"
+                                                                class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                                placeholder="Add any note for audit / customer"></textarea>
+
+                                                    <div class="flex justify-between items-center pt-3 border-t">
+                                                        <button type="button"
+                                                                onclick="closeSiFinalModal({{ $activeReq->id }})"
+                                                                class="inline-flex items-center rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                                        Close
+                                                        </button>
+
+                                                        <div class="flex gap-2">
+                                                        <!-- Reject needs its own form (different endpoint) -->
+                                                        <form method="POST" action="{{ route('si-change-requests.final-reject', $activeReq) }}"
+                                                                onsubmit="return confirm('Reject this change request?');">
+                                                            @csrf @method('PATCH')
+                                                            <input type="hidden" name="final_note" value="">
+                                                            <button type="submit"
+                                                                    class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500">
+                                                            Reject
+                                                            </button>
+                                                        </form>
+
+                                                        <button type="submit"
+                                                                class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                                                            Approve & Apply
+                                                        </button>
+                                                        </div>
+                                                    </div>
+                                                    </form>
+
+                                                    <div class="mt-2 text-xs text-gray-500">
+                                                    Tip: If rejecting, you’ll be prompted to provide a reason (final note).
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            <!-- End of Admin final approve button for change request -->
+
+
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <h1 class="text-lg font-medium">{{ $si->shipper }}</h1>
@@ -582,6 +897,162 @@
                                             </div>
                                         </div>
                                         <div class="text-right mt-4">
+
+                                            <!-- New customer change request function -->
+                                            @php
+                                                // Preconditions
+                                                $isCustomer = auth()->user()->role === 'customer';
+                                                $isBlConfirmed = $booking->status == $status::BL_CONFIRMED;
+
+                                                // All SIs telex released?
+                                                $allTelexReleased = $booking->shippingInstructions->every(function($s) {
+                                                    return (bool) $s->telex_bl_released;
+                                                });
+
+                                                // No active request for THIS SI?
+                                                // (active = not in terminal statuses)
+                                                $hasActiveRequest = $si->changeRequests()
+                                                    ->whereNotIn('status', [
+                                                        \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
+                                                        \App\Models\SiChangeRequest::STATUS_REJECTED,
+                                                        \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                                                        \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                                                    ])
+                                                    ->exists();
+
+                                                $canRequestChange = $isCustomer && $isBlConfirmed && $allTelexReleased && !$hasActiveRequest;
+                                            @endphp
+
+                                            @if($canRequestChange)
+                                                <button type="button"
+                                                onclick="openSiChangeModal({{ $si->id }})"
+                                                class="ml-4 inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 uppercase tracking-widest">
+                                                    {{-- icon --}}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                            d="M16.862 4.487l1.687 1.687m-4.373 12.346H6.75a2.25 2.25 0 01-2.25-2.25V8.478a2.25 2.25 0 01.659-1.591l3.283-3.283A2.25 2.25 0 0110 3h3.131M9 13.5h6m-6-3h3" />
+                                                    </svg>
+                                                    Request Change
+                                                </button>
+                                            @endif
+                                            
+                                            <!-- Customer change request form -->
+                                            @php
+                                                // Minimal field options to start (adjust later as needed)
+                                                $siFieldOptions = [
+                                                    'shipper'              => 'Shipper',
+                                                    'shipper_address'      => 'Shipper Address',
+                                                    'consignee'            => 'Consignee',
+                                                    'consignee_address'    => 'Consignee Address',
+                                                    'notify_party'         => 'Notify Party',
+                                                    'notify_party_address' => 'Notify Party Address',
+                                                    'cargo_description'    => 'Cargo Description',
+                                                    'hs_code'              => 'HS Code',
+                                                    'gross_weight'         => 'Gross Weight',
+                                                    'volume'               => 'Volume',
+                                                ];
+                                            @endphp
+
+                                            <div id="si-change-modal-{{ $si->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <!-- backdrop -->
+                                                <div class="absolute inset-0 bg-gradient-to-br from-gray-900/60 to-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeSiChangeModal({{ $si->id }})"></div>
+
+                                                <!-- dialog -->
+                                                <div class="relative w-full max-w-2xl transform transition-all">
+                                                    <div class="relative rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+                                                        <!-- Header -->
+                                                        <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                                                            <div>
+                                                                <h3 class="text-lg font-semibold text-gray-900">Request Shipping Instruction Change</h3>
+                                                                <p class="text-sm text-gray-500 mt-0.5">Submit changes for review and approval</p>
+                                                            </div>
+                                                            <button class="flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeSiChangeModal({{ $si->id }})">
+                                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Warning -->
+                                                        <div class="px-6 pt-5">
+                                                            <div class="relative rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 p-4 border border-amber-200/60 shadow-sm">
+                                                                <div class="flex gap-3">
+                                                                    <div class="flex-shrink-0">
+                                                                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="flex-1">
+                                                                        <h4 class="text-sm font-semibold text-amber-900 mb-1">Important Notice</h4>
+                                                                        <p class="text-sm text-amber-800 leading-relaxed">
+                                                                            Telex BL has been released. Approved changes may incur an additional fee.
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Form (test-mode: previews only) -->
+                                                        <form method="POST" action="{{ route('si-change-requests.store', $si) }}" class="px-6 py-5 space-y-6">
+                                                            @csrf
+                                                            <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                                                            <input type="hidden" name="shipping_instruction_id" value="{{ $si->id }}">
+
+                                                            <!-- Fields checklist -->
+                                                            <div>
+                                                                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                                                                    Select fields to change
+                                                                    <span class="text-gray-400 font-normal ml-1">(check all that apply)</span>
+                                                                </label>
+                                                                <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                                                                    <div class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                                                        @foreach($siFieldOptions as $key => $label)
+                                                                            <label class="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 cursor-pointer transition-all duration-200">
+                                                                                <input type="checkbox"
+                                                                                    name="requested_fields[]"
+                                                                                    value="{{ $key }}"
+                                                                                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 transition-colors cursor-pointer">
+                                                                                <span class="text-sm text-gray-700 group-hover:text-indigo-900 font-medium select-none">{{ $label }}</span>
+                                                                            </label>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Reason -->
+                                                            <div>
+                                                                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                                                                    Reason for change
+                                                                    <span class="text-red-500 ml-0.5">*</span>
+                                                                </label>
+                                                                <textarea name="reason" rows="4"
+                                                                        class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 text-sm placeholder-gray-400 transition-colors resize-none"
+                                                                        placeholder="Please provide a detailed explanation of what needs to be changed and why..." required></textarea>
+                                                                <p class="mt-2 text-xs text-gray-500">Be as specific as possible to help expedite the approval process.</p>
+                                                            </div>
+
+                                                            <div class="flex items-center justify-end gap-3 pt-5 border-t border-gray-100">
+                                                                <button type="button"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 hover:ring-gray-400 transition-all duration-200"
+                                                                        onclick="closeSiChangeModal({{ $si->id }})">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                    </svg>
+                                                                    Cancel
+                                                                </button>
+                                                                <button type="submit"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                    </svg>
+                                                                    Submit Request
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--End of Customer change request form -->
 
                                             <p class="text-left italic text-red-500 text-sm">
                                                 @php
@@ -2209,5 +2680,61 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 });
+
+function openSiChangeModal(siId) {
+    document.getElementById(`si-change-modal-${siId}`)?.classList.remove('hidden');
+}
+
+function closeSiChangeModal(siId) {
+    document.getElementById(`si-change-modal-${siId}`)?.classList.add('hidden');
+}
+
+/**
+ * Test-only: intercept submit and show the payload instead of posting.
+ * Next step we'll wire a real POST route.
+ */
+function previewSiChangeRequest(bookingId, siId) {
+    const modal = document.getElementById(`si-change-modal-${siId}`);
+    if (!modal) return false;
+
+    const form = modal.querySelector('form');
+    const reason = form.querySelector('[name="reason"]').value.trim();
+
+    const fields = Array.from(form.querySelectorAll('input[name="requested_fields[]"]:checked'))
+        .map(el => el.value);
+
+    if (fields.length === 0) {
+        alert('Please select at least one field to change.');
+        return false;
+    }
+    if (!reason) {
+        alert('Please provide a reason for the change.');
+        return false;
+    }
+
+    // Preview payload
+    console.log('Preview SI Change Request', {
+        booking_id: bookingId,
+        shipping_instruction_id: siId,
+        requested_fields: fields,
+        reason: reason
+    });
+
+    alert(
+        'Preview only (no save yet):\n' +
+        JSON.stringify({ booking_id: bookingId, si_id: siId, requested_fields: fields, reason }, null, 2)
+    );
+
+    // keep modal open for now; return false to prevent submit
+    return false;
+}
+
+function openSiApproveModal(id){ document.getElementById(`si-approve-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiApproveModal(id){ document.getElementById(`si-approve-modal-${id}`)?.classList.add('hidden'); }
+function openSiCancelModal(id){ document.getElementById(`si-cancel-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiCancelModal(id){ document.getElementById(`si-cancel-modal-${id}`)?.classList.add('hidden'); }
+function openSiFinalModal(id){ document.getElementById(`si-final-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiFinalModal(id){ document.getElementById(`si-final-modal-${id}`)?.classList.add('hidden'); }
+
 </script>
 

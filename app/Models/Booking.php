@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ShippingInstruction;
 use App\Models\Cargo;
 use App\Models\User;
+use App\Models\SiChangeRequest;
 use App\Models\Invoice;
 use App\Models\Voyage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -74,6 +75,11 @@ class Booking extends Model
     public function editAfterTelex()
     {
         return $this->hasMany(EditAfterTelex::class);
+    }
+
+    public function siChangeRequests(): HasMany
+    {
+        return $this->hasMany(SiChangeRequest::class);
     }
    
 }
