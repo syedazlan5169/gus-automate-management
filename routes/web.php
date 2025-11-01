@@ -12,6 +12,8 @@ use App\Http\Controllers\RelatedDocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\EditAfterTelexController;
+use App\Http\Controllers\SiChangeRequestController;
+use App\Http\Controllers\SiApprovedEditController;
 
 Route::redirect('/', '/login');
 
@@ -49,6 +51,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/booking/{booking}/related-document/upload', [RelatedDocumentController::class, 'store'])->name('related-document.upload');
         Route::delete('/booking/{booking}/related-document/{document}/delete', [RelatedDocumentController::class, 'destroy'])->name('related-document.delete');
         Route::get('/booking/{booking}/related-document/{document}/download', [RelatedDocumentController::class, 'download'])->name('related-document.download');
+
+        // Customer change request routes
+        Route::post('/shipping-instructions/{si}/change-requests',[SiChangeRequestController::class, 'store'])->name('si-change-requests.store');
+        Route::patch('/si-change-requests/{request}/approve-fields',[SiChangeRequestController::class, 'approveFields'])->name('si-change-requests.approve-fields');
+        Route::patch('/si-change-requests/{request}/reject',[SiChangeRequestController::class, 'rejectRequest'])->name('si-change-requests.reject');
+        Route::patch('/si-change-requests/{request}/customer-cancel',[SiChangeRequestController::class, 'customerCancel'])->name('si-change-requests.customer-cancel');
+        Route::get('/shipping-instructions/{si}/change-requests/{request}/edit-approved',[SiApprovedEditController::class, 'edit'])->name('si-change-requests.edit-approved');
+        Route::post('/shipping-instructions/{si}/change-requests/{request}/submit-edits',[SiApprovedEditController::class, 'submit'])->name('si-change-requests.submit-edits');
+        Route::patch('/si-change-requests/{changeRequest}/final-decide',[SiChangeRequestController::class, 'finalDecide'])->name('si-change-requests.final-decide');
+        Route::get('/si-change-requests/{changeRequest}/timeline',[SiChangeRequestController::class, 'timeline'])->name('si-change-requests.timeline');
 
 
         // Invoice routes

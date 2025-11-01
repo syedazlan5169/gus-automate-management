@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Booking;
 use App\Models\Cargo;
 use App\Models\CargoContainer;
+use App\Models\SiChangeRequest;
 
 class ShippingInstruction extends Model
 {
@@ -34,5 +36,14 @@ class ShippingInstruction extends Model
     {
         return $this->belongsToMany(Cargo::class, 'cargo_containers')
                     ->withPivot(['container_number', 'seal_number']);
+    }
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(SiChangeRequest::class, 'shipping_instruction_id');
+    }
+
+    public function latestChangeRequest(): HasOne
+    {
+        return $this->hasOne(SiChangeRequest::class, 'shipping_instruction_id')->latestOfMany();
     }
 }

@@ -546,7 +546,574 @@
                         @else
                             <div class="space-y-4">
                                 @foreach($booking->shippingInstructions as $si)
-                                    <div class="border rounded p-4 bg-white">
+                                    <div class="border rounded p-4 bg-white" data-si-id="{{ $si->id }}" data-request-ids="{{ $si->changeRequests()->orderBy('created_at', 'desc')->pluck('id')->toJson() }}">
+
+                                        <!-- Customer change request status badge -->
+                                        @php
+                                            // Fetch the most recent active request for THIS SI
+                                            $activeReq = $si->changeRequests()
+                                                ->whereNotIn('status', [
+                                                    \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
+                                                    \App\Models\SiChangeRequest::STATUS_REJECTED,
+                                                    \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                                                    \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                                                ])
+                                                ->latest()   // created_at desc
+                                                ->first();
+
+                                            // Get all change requests for this SI (for timeline)
+                                            $allChangeRequests = $si->changeRequests()
+                                                ->orderBy('created_at', 'desc')
+                                                ->get();
+
+                                            // Map status -> label + color style
+                                            $statusMeta = [
+                                                \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW => [
+                                                    'label' => 'Change Request: Under Review',
+                                                    'classes' => 'bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-200',
+                                                ],
+                                                \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT => [
+                                                    'label' => 'Change Request: Approved For Edit',
+                                                    'classes' => 'bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200',
+                                                ],
+                                                \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW => [
+                                                    'label' => 'Change Request: Pending Final Review',
+                                                    'classes' => 'bg-indigo-100 text-indigo-800 ring-1 ring-inset ring-indigo-200',
+                                                ],
+                                            ];
+                                        @endphp
+
+                                        @if($activeReq)
+                                            <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full {{ $statusMeta[$activeReq->status]['classes'] ?? 'bg-slate-100 text-slate-800 ring-1 ring-inset ring-slate-200' }}">
+                                                        <span class="inline-block w-2 h-2 rounded-full bg-current opacity-75 animate-pulse"></span>
+                                                        {{ $statusMeta[$activeReq->status]['label'] ?? 'Change Request: Active' }}
+                                                    </span>
+
+                                                    <button type="button"
+                                                        onclick="openSiTimelineModal({{ $si->id }})"
+                                                        class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        View Timeline
+                                                    </button>
+                                                </div>
+
+                                                {{-- Action Buttons Section --}}
+                                                <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-200">
+                                                    @php
+                                                        $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+                                                        $ownsBooking = $isCustomer && (int)$booking->user_id === (int)auth()->id();
+                                                        $isAdmin = auth()->check() && auth()->user()->role !== 'customer';
+                                                    @endphp
+
+                                                    {{-- Customer Actions --}}
+                                                    @if($isCustomer && $ownsBooking)
+                                                        @if($activeReq->status === \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT)
+                                                            <a href="{{ route('si-change-requests.edit-approved', [$si, $activeReq]) }}"
+                                                                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                                Edit Approved Fields
+                                                            </a>
+                                                            
+                                                            <button type="button"
+                                                                onclick="openSiCancelModal({{ $activeReq->id }})"
+                                                                class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition-colors">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                                Cancel Request
+                                                            </button>
+                                                        @endif
+                                                    @endif
+
+                                                    {{-- Admin Actions --}}
+                                                    @if($isAdmin)
+                                                        @if($activeReq->status === \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW)
+                                                            <button type="button"
+                                                                onclick="openSiApproveModal({{ $activeReq->id }})"
+                                                                class="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-700 transition-colors">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                Review Request
+                                                            </button>
+                                                        @elseif($activeReq->status === \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW)
+                                                            <button type="button"
+                                                                onclick="openSiFinalModal({{ $activeReq->id }})"
+                                                                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                Final Review
+                                                            </button>
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @elseif($allChangeRequests->isNotEmpty())
+                                            <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
+                                                <button type="button"
+                                                    onclick="openSiTimelineModal({{ $si->id }})"
+                                                    class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    View Timeline
+                                                </button>
+                                            </div>
+                                        @endif
+                                        <!-- End of Customer change request status badge -->
+
+                                        <!-- Customer Cancel Modal -->
+                                        @php
+                                            $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+                                            $ownsBooking = $isCustomer && (int)$booking->user_id === (int)auth()->id();
+                                        @endphp
+                                        @if($activeReq
+                                            && $activeReq->status === \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT
+                                            && $ownsBooking)
+                                            <div id="si-cancel-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeSiCancelModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-lg rounded-xl bg-white shadow-2xl">
+                                                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                                                        <h3 class="text-lg font-semibold text-gray-900">Cancel change request</h3>
+                                                        <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeSiCancelModal({{ $activeReq->id }})">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('si-change-requests.customer-cancel', $activeReq) }}" class="p-6 space-y-5">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div class="rounded-lg bg-red-50 p-4 border border-red-200">
+                                                            <div class="flex items-start gap-3">
+                                                                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                </svg>
+                                                                <p class="text-sm text-red-800 leading-relaxed">
+                                                                    You are about to cancel this change request. You will need to submit a new request if you want to add or modify fields again.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Reason for cancellation</label>
+                                                            <textarea name="cancel_reason" rows="4"
+                                                                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-sm transition-colors"
+                                                                    placeholder="e.g., I need to request additional fields together..." required></textarea>
+                                                        </div>
+
+                                                        <div class="flex justify-end gap-3 border-t border-gray-200 pt-5">
+                                                            <button type="button"
+                                                                    onclick="closeSiCancelModal({{ $activeReq->id }})"
+                                                                    class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                                                                Keep Request
+                                                            </button>
+                                                            <button type="submit"
+                                                                    class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors">
+                                                                Confirm Cancel
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <!-- Admin action button for change request -->
+                                        @php
+                                            $isAdmin = auth()->check() && auth()->user()->role !== 'customer';
+                                        @endphp
+                                        
+                                        @if($activeReq && $activeReq->status === \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW && $isAdmin)
+                                            <!-- Admin Approve Modal -->
+                                            <div id="si-approve-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeSiApproveModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-2xl rounded-xl bg-white shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                                                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100/50">
+                                                        <div>
+                                                            <h3 class="text-lg font-semibold text-gray-900">Review Change Request</h3>
+                                                            <p class="text-xs text-gray-600 mt-0.5">Approve fields or reject the request</p>
+                                                        </div>
+                                                        <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeSiApproveModal({{ $activeReq->id }})">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="overflow-y-auto flex-1 p-6 space-y-6">
+                                                        <!-- Customer's Reason -->
+                                                        @if(!empty($activeReq->reason))
+                                                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                                <div class="flex items-center gap-2 mb-2">
+                                                                    <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                                                    </svg>
+                                                                    <p class="text-sm font-semibold text-gray-900">Customer's Reason for Change</p>
+                                                                </div>
+                                                                <p class="text-sm text-gray-700 leading-relaxed mt-2">{{ $activeReq->reason }}</p>
+                                                            </div>
+                                                        @endif
+
+                                                        <!-- Approve Fields Form -->
+                                                        <form method="POST" action="{{ route('si-change-requests.approve-fields', $activeReq) }}" id="approve-form-{{ $activeReq->id }}" class="space-y-5">
+                                                            @csrf
+                                                            @method('PATCH')
+
+                                                            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                                                <div class="flex items-center gap-2 mb-3">
+                                                                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                    <p class="text-sm font-semibold text-blue-900">Customer requested fields</p>
+                                                                </div>
+                                                                <div class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-2 border border-blue-200 rounded-md p-4 bg-white">
+                                                                    @foreach(($activeReq->requested_fields ?? []) as $field)
+                                                                        <label class="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors cursor-pointer">
+                                                                            <input type="checkbox" name="approved_fields[]" value="{{ $field }}"
+                                                                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
+                                                                                checked>
+                                                                            <span class="text-sm text-gray-700 capitalize">{{ str_replace('_',' ', $field) }}</span>
+                                                                        </label>
+                                                                    @endforeach
+                                                                </div>
+                                                                <p class="mt-3 text-xs text-blue-700">Uncheck any fields you do not want to approve.</p>
+                                                            </div>
+
+                                                            <div>
+                                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Note to customer <span class="text-gray-400 font-normal">(optional)</span></label>
+                                                                <textarea name="approver_note" rows="3"
+                                                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-sm transition-colors"
+                                                                        placeholder="Explain any restrictions or instructions..."></textarea>
+                                                            </div>
+
+                                                            <div class="flex justify-end pt-4 border-t border-gray-200">
+                                                                <button type="submit"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    Approve Fields
+                                                                </button>
+                                                            </div>
+                                                        </form>
+
+                                                        <!-- Reject Form -->
+                                                        <div class="border-t-2 border-red-200 pt-6 mt-6">
+                                                            <div class="bg-red-50 rounded-lg p-4 border border-red-200 mb-4">
+                                                                <div class="flex items-center gap-2">
+                                                                    <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                    </svg>
+                                                                    <p class="text-sm font-semibold text-red-900">Reject this request</p>
+                                                                </div>
+                                                            </div>
+                                                            <form method="POST" action="{{ route('si-change-requests.reject', $activeReq) }}" id="reject-form-{{ $activeReq->id }}" class="space-y-4">
+                                                                @csrf
+                                                                @method('PATCH')
+
+                                                                <div>
+                                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                                        Reason for rejection
+                                                                        <span class="text-red-500 ml-1">*</span>
+                                                                    </label>
+                                                                    <textarea name="rejection_note" rows="4" required
+                                                                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 text-sm transition-colors"
+                                                                            placeholder="Please provide a detailed reason for rejecting this change request..."></textarea>
+                                                                    <p class="mt-2 text-xs text-gray-600">This reason will be shared with the customer.</p>
+                                                                </div>
+
+                                                                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                                                                    <button type="button"
+                                                                            onclick="closeSiApproveModal({{ $activeReq->id }})"
+                                                                            class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                                                                        Close
+                                                                    </button>
+                                                                    <button type="submit"
+                                                                            onclick="return confirm('Are you sure you want to reject this change request? This action cannot be undone.');"
+                                                                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors">
+                                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                        </svg>
+                                                                        Reject Request
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <!-- End of Admin action button for change request -->
+
+                                        <!-- Admin final approve button for change request -->
+                                        @if($activeReq && $activeReq->status === \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW && $isAdmin)
+                                            <!-- Final Review Modal -->
+                                            <div id="si-final-modal-{{ $activeReq->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeSiFinalModal({{ $activeReq->id }})"></div>
+
+                                                <div class="relative w-full max-w-4xl rounded-xl bg-white shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                                                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100/50">
+                                                    <div>
+                                                        <h3 class="text-lg font-semibold text-gray-900">Final Review: Draft vs Original</h3>
+                                                        <p class="text-xs text-gray-600 mt-0.5">Compare changes and make final decision</p>
+                                                    </div>
+                                                    <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeSiFinalModal({{ $activeReq->id }})">
+                                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                    </button>
+                                                </div>
+
+                                                @php
+                                                    $labels = [
+                                                    'shipper' => 'Shipper', 'shipper_address'=>'Shipper Address',
+                                                    'consignee'=>'Consignee','consignee_address'=>'Consignee Address',
+                                                    'notify_party'=>'Notify Party','notify_party_address'=>'Notify Party Address',
+                                                    'cargo_description'=>'Cargo Description','hs_code'=>'HS Code',
+                                                    'gross_weight'=>'Gross Weight','volume'=>'Volume','box_operator'=>'Box Operator',
+                                                    'containers'=>'Containers List',
+                                                    ];
+                                                    $pre  = collect($activeReq->prechange_snapshot ?? []);
+                                                    $draft= collect($activeReq->draft_changes ?? []);
+                                                    $approved = collect($activeReq->approved_fields ?? []);
+                                                    $keys = $approved->all(); // only approved fields are relevant
+                                                @endphp
+
+                                                <div class="overflow-y-auto flex-1 p-6">
+                                                    <div class="space-y-5">
+                                                    @forelse($keys as $field)
+                                                        @php
+                                                        $before = $pre->get($field);
+                                                        $after  = $draft->get($field);
+                                                        
+                                                        // Special handling for containers - show diff instead of full list
+                                                        if ($field === 'containers') {
+                                                            // Normalize containers to a comparable format (key by container_number)
+                                                            $normalizeContainers = function($containers) {
+                                                                if (empty($containers) || !is_array($containers)) {
+                                                                    return [];
+                                                                }
+                                                                
+                                                                $normalized = [];
+                                                                foreach ($containers as $cargoId => $containerGroup) {
+                                                                    // Handle both formats: indexed array or cargo_id keyed array
+                                                                    if (isset($containerGroup['container_number']) || isset($containerGroup['cargo_id'])) {
+                                                                        $containerGroup = [$containerGroup];
+                                                                    }
+                                                                    
+                                                                    foreach ($containerGroup as $container) {
+                                                                        $cargoId = $container['cargo_id'] ?? $cargoId;
+                                                                        $containerNum = trim($container['container_number'] ?? '');
+                                                                        if (!empty($containerNum)) {
+                                                                            $normalized[$containerNum] = [
+                                                                                'cargo_id' => (int)$cargoId,
+                                                                                'container_number' => $containerNum,
+                                                                                'seal_number' => trim($container['seal_number'] ?? ''),
+                                                                            ];
+                                                                        }
+                                                                    }
+                                                                }
+                                                                return $normalized;
+                                                            };
+                                                            
+                                                            $beforeNormalized = $normalizeContainers($before ?? []);
+                                                            $afterNormalized = $normalizeContainers($after ?? []);
+                                                            
+                                                            // Find differences
+                                                            $added = [];
+                                                            $deleted = [];
+                                                            $modified = [];
+                                                            
+                                                            foreach ($afterNormalized as $containerNum => $afterContainer) {
+                                                                if (!isset($beforeNormalized[$containerNum])) {
+                                                                    $added[$containerNum] = $afterContainer;
+                                                                } elseif (
+                                                                    $beforeNormalized[$containerNum]['seal_number'] !== $afterContainer['seal_number'] ||
+                                                                    $beforeNormalized[$containerNum]['cargo_id'] !== $afterContainer['cargo_id']
+                                                                ) {
+                                                                    $modified[$containerNum] = [
+                                                                        'before' => $beforeNormalized[$containerNum],
+                                                                        'after' => $afterContainer,
+                                                                    ];
+                                                                }
+                                                            }
+                                                            
+                                                            foreach ($beforeNormalized as $containerNum => $beforeContainer) {
+                                                                if (!isset($afterNormalized[$containerNum])) {
+                                                                    $deleted[$containerNum] = $beforeContainer;
+                                                                }
+                                                            }
+                                                            
+                                                            $hasChanges = !empty($added) || !empty($deleted) || !empty($modified);
+                                                        } else {
+                                                            // format arrays (addresses) nicely
+                                                            $fmt = fn($v) => is_array($v) ? implode("\n", $v) : (string)($v ?? '');
+                                                            $fmtBefore = $fmt($before);
+                                                            $fmtAfter = $fmt($after);
+                                                        }
+                                                        @endphp
+
+                                                        <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                                        <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 border-b border-gray-200">
+                                                            <h4 class="text-sm font-semibold text-gray-900">{{ $labels[$field] ?? ucfirst(str_replace('_',' ', $field)) }}</h4>
+                                                        </div>
+                                                        
+                                                        @if($field === 'containers')
+                                                            <div class="p-4 space-y-4">
+                                                                @if(!$hasChanges)
+                                                                    <p class="text-sm text-gray-500">No container changes detected.</p>
+                                                                @else
+                                                                    {{-- Added Containers --}}
+                                                                    @if(!empty($added))
+                                                                        <div>
+                                                                            <div class="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
+                                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                                                </svg>
+                                                                                Added ({{ count($added) }})
+                                                                            </div>
+                                                                            <div class="bg-green-50 rounded-md p-3 space-y-1">
+                                                                                @foreach($added as $container)
+                                                                                    <div class="text-sm text-green-800">
+                                                                                        <strong>{{ $container['container_number'] }}</strong> / {{ $container['seal_number'] ?: 'N/A' }}
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                    
+                                                                    {{-- Deleted Containers --}}
+                                                                    @if(!empty($deleted))
+                                                                        <div>
+                                                                            <div class="text-xs font-semibold text-red-700 mb-2 flex items-center gap-1">
+                                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                                </svg>
+                                                                                Deleted ({{ count($deleted) }})
+                                                                            </div>
+                                                                            <div class="bg-red-50 rounded-md p-3 space-y-1">
+                                                                                @foreach($deleted as $container)
+                                                                                    <div class="text-sm text-red-800">
+                                                                                        <strong>{{ $container['container_number'] }}</strong> / {{ $container['seal_number'] ?: 'N/A' }}
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                    
+                                                                    {{-- Modified Containers --}}
+                                                                    @if(!empty($modified))
+                                                                        <div>
+                                                                            <div class="text-xs font-semibold text-amber-700 mb-2 flex items-center gap-1">
+                                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                                </svg>
+                                                                                Modified ({{ count($modified) }})
+                                                                            </div>
+                                                                            <div class="space-y-2">
+                                                                                @foreach($modified as $containerNum => $change)
+                                                                                    <div class="border rounded-md overflow-hidden">
+                                                                                        <div class="bg-amber-50 px-3 py-2 border-b">
+                                                                                            <span class="text-sm font-medium text-amber-900">Container: <strong>{{ $containerNum }}</strong></span>
+                                                                                        </div>
+                                                                                        <div class="grid grid-cols-2 gap-0">
+                                                                                            <div class="p-3 text-sm bg-red-50">
+                                                                                                <div class="text-gray-500 text-xs mb-1">Before</div>
+                                                                                                <div class="text-red-800">
+                                                                                                    Seal: {{ $change['before']['seal_number'] ?: 'N/A' }}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="p-3 text-sm bg-green-50">
+                                                                                                <div class="text-gray-500 text-xs mb-1">After</div>
+                                                                                                <div class="text-green-800">
+                                                                                                    Seal: {{ $change['after']['seal_number'] ?: 'N/A' }}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        @else
+                                                            <div class="grid grid-cols-2 gap-0">
+                                                                <div class="p-3 text-sm">
+                                                                <div class="text-gray-500 text-xs mb-1">Before</div>
+                                                                <pre class="bg-red-50 text-red-800 rounded p-2 whitespace-pre-wrap">{{ $fmtBefore }}</pre>
+                                                                </div>
+                                                                <div class="p-3 text-sm">
+                                                                <div class="text-gray-500 text-xs mb-1">After (Draft)</div>
+                                                                <pre class="bg-green-50 text-green-800 rounded p-2 whitespace-pre-wrap">{{ $fmtAfter }}</pre>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                        </div>
+                                                    @empty
+                                                        <p class="text-sm text-gray-600">No fields to review.</p>
+                                                    @endforelse
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('si-change-requests.final-decide', $activeReq) }}" class="mt-6 space-y-4 border-t-2 border-gray-200 pt-6">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div>
+                                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Final note <span class="text-red-500">*</span></label>
+                                                            <textarea name="final_note" rows="3"
+                                                                    class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-sm transition-colors"
+                                                                    placeholder="Add any note for audit / customer..." required></textarea>
+                                                            <p class="mt-2 text-xs text-gray-500">This note will be recorded for audit purposes.</p>
+                                                        </div>
+
+                                                        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                                            <button type="button"
+                                                                    onclick="closeSiFinalModal({{ $activeReq->id }})"
+                                                                    class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                                                                Close
+                                                            </button>
+
+                                                            <div class="flex gap-3">
+                                                                <button type="submit" name="decision" value="reject"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors"
+                                                                        onclick="return confirm('Reject this change request?');">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                    Reject
+                                                                </button>
+
+                                                                <button type="submit" name="decision" value="approve"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    Approve & Apply
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            <!-- End of Admin final approve button for change request -->
+
+
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <h1 class="text-lg font-medium">{{ $si->shipper }}</h1>
@@ -582,6 +1149,191 @@
                                             </div>
                                         </div>
                                         <div class="text-right mt-4">
+
+                                            <!-- New customer change request function -->
+                                            @php
+                                                // Preconditions
+                                                $isCustomer = auth()->user()->role === 'customer';
+                                                $isBlConfirmed = $booking->status == $status::BL_CONFIRMED;
+
+                                                // All SIs telex released?
+                                                $allTelexReleased = $booking->shippingInstructions->every(function($s) {
+                                                    return (bool) $s->telex_bl_released;
+                                                });
+
+                                                // No active request for THIS SI?
+                                                // (active = not in terminal statuses)
+                                                $hasActiveRequest = $si->changeRequests()
+                                                    ->whereNotIn('status', [
+                                                        \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
+                                                        \App\Models\SiChangeRequest::STATUS_REJECTED,
+                                                        \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                                                        \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                                                    ])
+                                                    ->exists();
+
+                                                $canRequestChange = $isCustomer && $isBlConfirmed && $allTelexReleased && !$hasActiveRequest;
+                                            @endphp
+
+                                            @if($canRequestChange)
+                                                <button type="button"
+                                                onclick="openSiChangeModal({{ $si->id }})"
+                                                class="ml-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    Request Change
+                                                </button>
+                                            @endif
+                                            
+                                            <!-- Customer change request form -->
+                                            @php
+                                                // Minimal field options to start (adjust later as needed)
+                                                $siFieldOptions = [
+                                                    'shipper'              => 'Shipper',
+                                                    'shipper_address'      => 'Shipper Address',
+                                                    'consignee'            => 'Consignee',
+                                                    'consignee_address'    => 'Consignee Address',
+                                                    'notify_party'         => 'Notify Party',
+                                                    'notify_party_address' => 'Notify Party Address',
+                                                    'cargo_description'    => 'Cargo Description',
+                                                    'hs_code'              => 'HS Code',
+                                                    'gross_weight'         => 'Gross Weight',
+                                                    'volume'               => 'Volume',
+                                                    'containers'           => 'Containers List',
+                                                ];
+                                            @endphp
+
+                                            <div id="si-change-modal-{{ $si->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <!-- backdrop -->
+                                                <div class="absolute inset-0 bg-gradient-to-br from-gray-900/60 to-gray-900/40 backdrop-blur-sm transition-opacity" onclick="closeSiChangeModal({{ $si->id }})"></div>
+
+                                                <!-- dialog -->
+                                                <div class="relative w-full max-w-2xl transform transition-all">
+                                                    <div class="relative rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+                                                        <!-- Header -->
+                                                        <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                                                            <div>
+                                                                <h3 class="text-lg font-semibold text-gray-900">Request Shipping Instruction Change</h3>
+                                                                <p class="text-sm text-gray-500 mt-0.5">Submit changes for review and approval</p>
+                                                            </div>
+                                                            <button class="flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" onclick="closeSiChangeModal({{ $si->id }})">
+                                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Warning -->
+                                                        <div class="px-6 pt-5">
+                                                            <div class="relative rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 p-4 border border-amber-200/60 shadow-sm">
+                                                                <div class="flex gap-3">
+                                                                    <div class="flex-shrink-0">
+                                                                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="flex-1">
+                                                                        <h4 class="text-sm font-semibold text-amber-900 mb-1">Important Notice</h4>
+                                                                        <p class="text-sm text-amber-800 leading-relaxed">
+                                                                            Telex BL has been released. Approved changes may incur an additional fee.
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Form (test-mode: previews only) -->
+                                                        <form method="POST" action="{{ route('si-change-requests.store', $si) }}" class="px-6 py-5 space-y-6">
+                                                            @csrf
+                                                            <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                                                            <input type="hidden" name="shipping_instruction_id" value="{{ $si->id }}">
+
+                                                            <!-- Fields checklist -->
+                                                            <div>
+                                                                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                                                                    Select fields to change
+                                                                    <span class="text-gray-400 font-normal ml-1">(check all that apply)</span>
+                                                                </label>
+                                                                <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                                                                    <div class="grid grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                                                        @foreach($siFieldOptions as $key => $label)
+                                                                            <label class="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50 cursor-pointer transition-all duration-200">
+                                                                                <input type="checkbox"
+                                                                                    name="requested_fields[]"
+                                                                                    value="{{ $key }}"
+                                                                                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 transition-colors cursor-pointer">
+                                                                                <span class="text-sm text-gray-700 group-hover:text-indigo-900 font-medium select-none">{{ $label }}</span>
+                                                                            </label>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Reason -->
+                                                            <div>
+                                                                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                                                                    Reason for change
+                                                                    <span class="text-red-500 ml-0.5">*</span>
+                                                                </label>
+                                                                <textarea name="reason" rows="4"
+                                                                        class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 text-sm placeholder-gray-400 transition-colors resize-none"
+                                                                        placeholder="Please provide a detailed explanation of what needs to be changed and why..." required></textarea>
+                                                                <p class="mt-2 text-xs text-gray-500">Be as specific as possible to help expedite the approval process.</p>
+                                                            </div>
+
+                                                            <div class="flex items-center justify-end gap-3 pt-5 border-t border-gray-100">
+                                                                <button type="button"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 hover:ring-gray-400 transition-all duration-200"
+                                                                        onclick="closeSiChangeModal({{ $si->id }})">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                    </svg>
+                                                                    Cancel
+                                                                </button>
+                                                                <button type="submit"
+                                                                        class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200">
+                                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                    </svg>
+                                                                    Submit Request
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--End of Customer change request form -->
+
+                                            <!-- Timeline Modal -->
+                                            <div id="si-timeline-modal-{{ $si->id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeSiTimelineModal({{ $si->id }})"></div>
+
+                                                <div class="relative w-full max-w-3xl rounded-xl bg-white shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                                                    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100/50">
+                                                        <div>
+                                                            <h3 class="text-base font-semibold text-gray-900">Change Request Timeline</h3>
+                                                            <p class="text-xs text-gray-600">View all events and changes</p>
+                                                        </div>
+                                                        <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeSiTimelineModal({{ $si->id }})">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="px-4 py-4 overflow-y-auto flex-1 bg-gray-50/50">
+                                                        <div id="si-timeline-content-{{ $si->id }}" class="space-y-4">
+                                                            <div class="text-center py-8">
+                                                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-indigo-200 border-t-indigo-600"></div>
+                                                                <p class="mt-3 text-sm font-medium text-gray-600">Loading timeline...</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- End Timeline Modal -->
 
                                             <p class="text-left italic text-red-500 text-sm">
                                                 @php
@@ -2209,5 +2961,375 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 });
+
+function openSiChangeModal(siId) {
+    document.getElementById(`si-change-modal-${siId}`)?.classList.remove('hidden');
+}
+
+function closeSiChangeModal(siId) {
+    document.getElementById(`si-change-modal-${siId}`)?.classList.add('hidden');
+}
+
+/**
+ * Test-only: intercept submit and show the payload instead of posting.
+ * Next step we'll wire a real POST route.
+ */
+function previewSiChangeRequest(bookingId, siId) {
+    const modal = document.getElementById(`si-change-modal-${siId}`);
+    if (!modal) return false;
+
+    const form = modal.querySelector('form');
+    const reason = form.querySelector('[name="reason"]').value.trim();
+
+    const fields = Array.from(form.querySelectorAll('input[name="requested_fields[]"]:checked'))
+        .map(el => el.value);
+
+    if (fields.length === 0) {
+        alert('Please select at least one field to change.');
+        return false;
+    }
+    if (!reason) {
+        alert('Please provide a reason for the change.');
+        return false;
+    }
+
+    // Preview payload
+    console.log('Preview SI Change Request', {
+        booking_id: bookingId,
+        shipping_instruction_id: siId,
+        requested_fields: fields,
+        reason: reason
+    });
+
+    alert(
+        'Preview only (no save yet):\n' +
+        JSON.stringify({ booking_id: bookingId, si_id: siId, requested_fields: fields, reason }, null, 2)
+    );
+
+    // keep modal open for now; return false to prevent submit
+    return false;
+}
+
+function openSiApproveModal(id){ document.getElementById(`si-approve-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiApproveModal(id){ document.getElementById(`si-approve-modal-${id}`)?.classList.add('hidden'); }
+function openSiCancelModal(id){ document.getElementById(`si-cancel-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiCancelModal(id){ document.getElementById(`si-cancel-modal-${id}`)?.classList.add('hidden'); }
+function openSiFinalModal(id){ document.getElementById(`si-final-modal-${id}`)?.classList.remove('hidden'); }
+function closeSiFinalModal(id){ document.getElementById(`si-final-modal-${id}`)?.classList.add('hidden'); }
+
+// Timeline modal functions
+function openSiTimelineModal(siId) {
+    const modal = document.getElementById(`si-timeline-modal-${siId}`);
+    if (!modal) return;
+    
+    modal.classList.remove('hidden');
+    loadSiTimeline(siId);
+}
+
+function closeSiTimelineModal(siId) {
+    document.getElementById(`si-timeline-modal-${siId}`)?.classList.add('hidden');
+}
+
+function loadSiTimeline(siId) {
+    const contentDiv = document.getElementById(`si-timeline-content-${siId}`);
+    if (!contentDiv) return;
+
+    // Get all change request IDs for this SI from data attribute
+    const siElement = document.querySelector(`[data-si-id="${siId}"]`);
+    if (!siElement) {
+        contentDiv.innerHTML = '<p class="text-center text-gray-500 py-8">No change requests found.</p>';
+        return;
+    }
+
+    const requestIds = JSON.parse(siElement.getAttribute('data-request-ids') || '[]');
+    
+    if (requestIds.length === 0) {
+        contentDiv.innerHTML = '<p class="text-center text-gray-500 py-8">No change requests found.</p>';
+        return;
+    }
+
+    // Load timelines for all requests
+    Promise.all(requestIds.map(id => 
+        fetch(`/si-change-requests/${id}/timeline`)
+            .then(res => res.json())
+            .catch(() => null)
+    )).then(results => {
+        renderTimelines(contentDiv, results.filter(r => r !== null));
+    });
+}
+
+function renderTimelines(container, timelines) {
+    if (timelines.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="mt-3 text-sm font-medium text-gray-600">No timeline data available.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    
+    timelines.forEach((data, index) => {
+        const { timeline, request } = data;
+        
+        if (index > 0) {
+            html += '<div class="border-t border-gray-200 my-4"></div>';
+        }
+
+        // Format submission date
+        let submissionDate = '';
+        if (request.created_at) {
+            try {
+                const date = typeof request.created_at === 'string' ? new Date(request.created_at) : new Date(request.created_at.date || request.created_at);
+                if (!isNaN(date.getTime())) {
+                    submissionDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+            } catch (e) {
+                submissionDate = '';
+            }
+        }
+
+        html += `
+            <div class="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-50 to-indigo-100/50 px-4 py-2.5 border-b border-indigo-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-shrink-0">
+                                <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-semibold text-gray-900">
+                                    Change Request${submissionDate ? ` • ${submissionDate}` : ''}
+                                </h4>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${getStatusBadgeClasses(request.status)}">
+                            ${getStatusIcon(request.status)}
+                            ${getStatusLabel(request.status)}
+                        </span>
+                    </div>
+                </div>
+                <div class="px-4 py-3">
+                    <div class="relative">
+                        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-200 via-indigo-300 to-indigo-200"></div>
+                        <div class="space-y-3">
+        `;
+
+        timeline.forEach((event, eventIndex) => {
+            const isLast = eventIndex === timeline.length - 1;
+            const eventType = getEventType(event.label);
+            let timeStr = 'N/A';
+            if (event.at) {
+                try {
+                    // Handle both string and object formats from Laravel
+                    const date = typeof event.at === 'string' ? new Date(event.at) : new Date(event.at.date || event.at);
+                    if (!isNaN(date.getTime())) {
+                        timeStr = date.toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+                } catch (e) {
+                    timeStr = typeof event.at === 'string' ? event.at : 'N/A';
+                }
+            }
+
+            html += `
+                <div class="relative flex gap-3 pl-1">
+                    <div class="relative z-10 flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full ${eventType.bg} ring-2 ring-white shadow-sm">
+                        ${isLast ? eventType.iconActive : eventType.icon}
+                    </div>
+                    <div class="flex-1 pb-3 min-w-0">
+                        <div class="bg-white rounded-md border border-gray-200 p-2.5 hover:shadow-sm transition-shadow">
+                            <div class="flex items-start justify-between gap-2 mb-1.5">
+                                <div class="flex-1 min-w-0">
+                                    <h5 class="text-xs font-semibold ${eventType.textColor} mb-0.5">
+                                        ${escapeHtml(event.label)}
+                                    </h5>
+                                    <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="truncate">${timeStr}</span>
+                                        ${event.by ? `
+                                            <span class="text-gray-400">•</span>
+                                            <span class="font-medium truncate">${escapeHtml(event.by)}</span>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ${event.note ? `
+                                <div class="mt-2 pt-2 border-t border-gray-100">
+                                    <div class="flex items-start gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                        </svg>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-medium text-gray-500 mb-0.5">Note</p>
+                                            <p class="text-xs text-gray-700 leading-snug">${escapeHtml(event.note)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${event.meta && event.meta.approved_fields && event.meta.approved_fields.length > 0 ? `
+                                <div class="mt-2 pt-2 border-t border-gray-100">
+                                    <div class="flex items-start gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-medium text-gray-500 mb-1.5">Approved Fields</p>
+                                            <div class="flex flex-wrap gap-1">
+                                                ${event.meta.approved_fields.map(f => `
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                                        ${escapeHtml(f.replace(/_/g, ' '))}
+                                                    </span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${event.meta && event.meta.draft_changes_keys && event.meta.draft_changes_keys.length > 0 ? `
+                                <div class="mt-2 pt-2 border-t border-gray-100">
+                                    <div class="flex items-start gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-medium text-gray-500 mb-1.5">Draft Changes</p>
+                                            <div class="flex flex-wrap gap-1">
+                                                ${event.meta.draft_changes_keys.map(f => `
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                                        ${escapeHtml(f.replace(/_/g, ' '))}
+                                                    </span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function getEventType(label) {
+    const lowerLabel = label.toLowerCase();
+    if (lowerLabel.includes('submitted') || lowerLabel.includes('created')) {
+        return {
+            bg: 'bg-blue-100',
+            textColor: 'text-blue-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-blue-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>'
+        };
+    } else if (lowerLabel.includes('approved')) {
+        return {
+            bg: 'bg-green-100',
+            textColor: 'text-green-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-green-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+        };
+    } else if (lowerLabel.includes('rejected')) {
+        return {
+            bg: 'bg-red-100',
+            textColor: 'text-red-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-red-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>'
+        };
+    } else if (lowerLabel.includes('edit') || lowerLabel.includes('updated')) {
+        return {
+            bg: 'bg-indigo-100',
+            textColor: 'text-indigo-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-indigo-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>'
+        };
+    } else if (lowerLabel.includes('expired') || lowerLabel.includes('cancelled')) {
+        return {
+            bg: 'bg-gray-100',
+            textColor: 'text-gray-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-gray-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>'
+        };
+    } else {
+        return {
+            bg: 'bg-indigo-100',
+            textColor: 'text-indigo-900',
+            icon: '<div class="h-2 w-2 rounded-full bg-indigo-600"></div>',
+            iconActive: '<svg class="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
+        };
+    }
+}
+
+function getStatusIcon(status) {
+    const icons = {
+        'under_review': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        'approved_for_edit': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        'pending_final_review': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>',
+        'approved_applied': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>',
+        'rejected': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>',
+        'cancelled': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>',
+        'expired': '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
+    };
+    return icons[status] || '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        'under_review': 'Under Review',
+        'approved_for_edit': 'Approved for Edit',
+        'pending_final_review': 'Pending Final Review',
+        'approved_applied': 'Approved & Applied',
+        'rejected': 'Rejected',
+        'cancelled': 'Cancelled',
+        'expired': 'Expired'
+    };
+    return labels[status] || status;
+}
+
+function getStatusBadgeClasses(status) {
+    const classes = {
+        'under_review': 'bg-amber-100 text-amber-800',
+        'approved_for_edit': 'bg-blue-100 text-blue-800',
+        'pending_final_review': 'bg-indigo-100 text-indigo-800',
+        'approved_applied': 'bg-green-100 text-green-800',
+        'rejected': 'bg-red-100 text-red-800',
+        'cancelled': 'bg-gray-100 text-gray-800',
+        'expired': 'bg-gray-100 text-gray-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 </script>
 
