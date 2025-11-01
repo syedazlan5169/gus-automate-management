@@ -64,6 +64,101 @@ class SiChangeRequest extends Model
         ], true);
     }
 
+    // Derived, read-only timeline for quick audit
+    public function timeline(): array
+    {
+        $events = [];
+
+        // 1) Submitted (under_review)
+        $events[] = [
+            'label' => 'Submitted (Under review)',
+            'at'    => $this->created_at,
+            'by'    => optional($this->requester)->name ?? 'Customer',
+            'note'  => $this->reason,
+        ];
+
+        // 2) Approved for edit
+        if ($this->status === self::STATUS_APPROVED_FOR_EDIT || !empty($this->approved_fields)) {
+            // If draft was submitted, approval happened before submission
+            // Use a timestamp between created_at and submitted_at to maintain correct order
+            if (!empty($this->submitted_at) && $this->submitted_at->isAfter($this->created_at)) {
+                // Use midpoint between created_at and submitted_at as proxy
+                $approvalTime = $this->created_at->copy()->addSeconds(
+                    $this->created_at->diffInSeconds($this->submitted_at) / 2
+                );
+            } else {
+                // No submission yet, or edge case - use updated_at but ensure it's after created_at
+                $approvalTime = $this->updated_at;
+                if ($this->created_at && $approvalTime->isBefore($this->created_at)) {
+                    $approvalTime = $this->created_at->copy()->addMinutes(1);
+                }
+            }
+            
+            $events[] = [
+                'label' => 'Approved for edit',
+                'at'    => $approvalTime,
+                'by'    => optional($this->approver)->name,
+                'note'  => $this->approver_note,
+                'meta'  => [
+                    'approved_fields' => $this->approved_fields ?: [],
+                ],
+            ];
+        }
+
+        // 3) Customer canceled (optional)
+        if (!empty($this->cancelled_at)) {
+            $events[] = [
+                'label' => 'Canceled by customer',
+                'at'    => $this->cancelled_at,
+                'by'    => optional($this->requester)->name ?? 'Customer',
+                'note'  => $this->cancel_reason,
+            ];
+        }
+
+        // 4) Draft submitted (pending_final_review)
+        if (!empty($this->submitted_at)) {
+            $events[] = [
+                'label' => 'Draft submitted (Pending final review)',
+                'at'    => $this->submitted_at,
+                'by'    => optional($this->requester)->name ?? 'Customer',
+                'meta'  => [
+                    'draft_changes_keys' => array_keys($this->draft_changes ?? []),
+                ],
+            ];
+        }
+
+        // 5) Final decision (approved/rejected/expired)
+        if (!empty($this->final_decision_at)) {
+            $events[] = [
+                'label' => match ($this->status) {
+                    self::STATUS_APPROVED_APPLIED => 'Approved & Applied',
+                    self::STATUS_REJECTED         => 'Rejected',
+                    self::STATUS_EXPIRED          => 'Expired',
+                    default                       => 'Finalized',
+                },
+                'at'   => $this->final_decision_at,
+                'by'   => optional($this->finalReviewer)->name ?? optional($this->approver)->name,
+                'note' => $this->final_note ?? $this->approver_note, // Use approver_note if final_note is empty (for early rejections)
+            ];
+        }
+
+        // 6) Rejection at fields phase (if rejected early without final_decision_at)
+        if ($this->status === self::STATUS_REJECTED && empty($this->final_decision_at) && !empty($this->approver_note)) {
+            $events[] = [
+                'label' => 'Rejected',
+                'at'    => $this->updated_at,
+                'by'    => optional($this->approver)->name,
+                'note'  => $this->approver_note,
+            ];
+        }
+
+        // Sort by time asc just in case
+        usort($events, fn($a,$b) => ($a['at']?->timestamp ?? 0) <=> ($b['at']?->timestamp ?? 0));
+
+        return $events;
+    }
+
+
     public function canCustomerCancel(): bool
     {
         return $this->status === self::STATUS_APPROVED_FOR_EDIT;
@@ -85,9 +180,20 @@ class SiChangeRequest extends Model
         return $this->belongsTo(User::class, 'requested_by_user_id');
     }
 
+    // Alias for consistency in timeline
+    public function requester(): BelongsTo
+    {
+        return $this->requestedBy();
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approver_user_id');
+    }
+
+    public function finalReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'final_reviewer_user_id');
     }
 
     public function appliedBy(): BelongsTo

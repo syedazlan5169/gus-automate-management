@@ -42,6 +42,7 @@ class SiApprovedEditController extends Controller
             'gross_weight'         => 'Gross Weight',
             'volume'               => 'Volume',
             'box_operator'         => 'Box Operator',
+            'containers'           => 'Containers List',
         ];
 
         return view('si-change-requests.edit-approved', [
@@ -81,13 +82,29 @@ class SiApprovedEditController extends Controller
 
         // Build validation rules dynamically for the approved fields
         $rules = [];
+        $hasContainers = $approved->contains('containers');
+        
         foreach ($approved as $field) {
+            // Containers are handled separately
+            if ($field === 'containers') {
+                continue;
+            }
+            
             // simple, conservative rules; adjust per field if needed later
             if (in_array($field, ['shipper_address','consignee_address','notify_party_address'], true)) {
-                $rules[$field] = ['nullable','string','max:5000']; // textarea text; we’ll split to array
+                $rules[$field] = ['nullable','string','max:5000']; // textarea text; we'll split to array
             } else {
                 $rules[$field] = ['nullable','string','max:1000'];
             }
+        }
+
+        // Add containers validation if approved
+        if ($hasContainers) {
+            $rules['containers'] = ['nullable', 'array'];
+            $rules['containers.*'] = ['array'];
+            $rules['containers.*.*.container_number'] = ['nullable', 'string', 'max:50'];
+            $rules['containers.*.*.seal_number'] = ['nullable', 'string', 'max:50'];
+            $rules['containers.*.*.container_type'] = ['nullable', 'integer', 'exists:cargos,id'];
         }
 
         $data = $http->validate($rules);
@@ -98,6 +115,30 @@ class SiApprovedEditController extends Controller
                 $lines = preg_split('/\r\n|\r|\n/', (string)$data[$addrField]);
                 $data[$addrField] = array_values(array_filter(array_map('trim', $lines), fn($v) => $v !== ''));
             }
+        }
+
+        // Process containers if approved - clean and structure the data
+        if ($hasContainers && isset($data['containers'])) {
+            // Ensure containers data is properly structured
+            $containersData = [];
+            foreach ($data['containers'] as $cargoId => $containerGroup) {
+                if (!is_array($containerGroup)) {
+                    continue;
+                }
+                foreach ($containerGroup as $index => $container) {
+                    if (!empty($container['container_number']) || !empty($container['seal_number'])) {
+                        $containersData[$cargoId][] = [
+                            'container_number' => $container['container_number'] ?? '',
+                            'seal_number' => $container['seal_number'] ?? '',
+                            'cargo_id' => (int)$cargoId,
+                        ];
+                    }
+                }
+            }
+            $data['containers'] = $containersData;
+        } elseif ($hasContainers) {
+            // If containers was approved but no data provided, set empty array
+            $data['containers'] = [];
         }
 
         // Save draft & flip state

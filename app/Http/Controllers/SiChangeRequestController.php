@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\ShippingInstruction;
 use App\Models\SiChangeRequest;
+use App\Models\CargoContainer;
+use App\Models\Cargo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+
 
 class SiChangeRequestController extends Controller
 {
@@ -61,7 +64,7 @@ class SiChangeRequestController extends Controller
         return back()->with('success', 'Change request submitted. We’ll review it shortly.');
     }
 
-    public function approveFields(Request $http, \App\Models\SiChangeRequest $request)
+    public function approveFields(Request $http, SiChangeRequest $request)
     {
         $user = $http->user();
 
@@ -71,7 +74,7 @@ class SiChangeRequestController extends Controller
         }
 
         // Must be in under_review to approve
-        if ($request->status !== \App\Models\SiChangeRequest::STATUS_UNDER_REVIEW) {
+        if ($request->status !== SiChangeRequest::STATUS_UNDER_REVIEW) {
             return back()->with('warning', 'Only requests under review can be approved.');
         }
 
@@ -102,8 +105,21 @@ class SiChangeRequestController extends Controller
             'hs_code','gross_weight','volume','box_operator','sub_booking_number'
         ]);
 
+        // If containers are approved, capture containers snapshot
+        if ($approved->contains('containers')) {
+            $containersSnapshot = $si->containers->map(function ($container) {
+                return [
+                    'id' => $container->id,
+                    'cargo_id' => $container->cargo_id,
+                    'container_number' => $container->container_number,
+                    'seal_number' => $container->seal_number,
+                ];
+            })->toArray();
+            $snapshot['containers'] = $containersSnapshot;
+        }
+
         $request->update([
-            'status'             => \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT,
+            'status'             => SiChangeRequest::STATUS_APPROVED_FOR_EDIT,
             'approved_fields'    => $approved->values()->all(),
             'approver_user_id'   => $user->id,
             'approver_note'      => $data['approver_note'] ?? null,
@@ -115,7 +131,40 @@ class SiChangeRequestController extends Controller
         return back()->with('success', 'Fields approved. Customer may edit approved fields only.');
     }
 
-    public function customerCancel(\Illuminate\Http\Request $http, \App\Models\SiChangeRequest $request)
+    public function rejectRequest(Request $http, SiChangeRequest $request)
+    {
+        $user = $http->user();
+
+        // BASIC AUTHZ: only non-customer can reject
+        if ($user->role === 'customer') {
+            abort(403, 'Unauthorized');
+        }
+
+        // Must be in under_review to reject
+        if ($request->status !== SiChangeRequest::STATUS_UNDER_REVIEW) {
+            return back()->with('warning', 'Only requests under review can be rejected.');
+        }
+
+        // Validate rejection note (required)
+        $data = $http->validate([
+            'rejection_note' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+
+        // Reject the request
+        $request->update([
+            'status'             => SiChangeRequest::STATUS_REJECTED,
+            'approver_user_id'   => $user->id,
+            'approver_note'      => $data['rejection_note'],
+            'final_reviewer_user_id' => $user->id,
+            'final_decision_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('booking.show', $request->booking)
+            ->with('success', 'Change request has been rejected and the customer has been notified.');
+    }
+
+    public function customerCancel(Request $http, SiChangeRequest $request)
     {
         $user = $http->user();
 
@@ -126,7 +175,7 @@ class SiChangeRequestController extends Controller
         if (!$booking || (int)$booking->user_id !== (int)$user->id || $user->role !== 'customer') {
             abort(403, 'Unauthorized');
         }
-        if ($request->status !== \App\Models\SiChangeRequest::STATUS_APPROVED_FOR_EDIT) {
+        if ($request->status !== SiChangeRequest::STATUS_APPROVED_FOR_EDIT) {
             return back()->with('warning', 'You can only cancel while the request is approved for edit.');
         }
 
@@ -144,94 +193,111 @@ class SiChangeRequestController extends Controller
         return back()->with('success', 'Your change request has been cancelled.');
     }
 
-    public function finalApprove(\Illuminate\Http\Request $http, \App\Models\SiChangeRequest $request)
+    public function finalDecide(Request $http, SiChangeRequest $changeRequest)
     {
         $user = $http->user();
         if ($user->role === 'customer') abort(403);
 
-        if ($request->status !== \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW) {
+        if ($changeRequest->status !== SiChangeRequest::STATUS_PENDING_FINAL_REVIEW) {
             return back()->with('warning', 'Request is not pending final review.');
         }
 
-        $data = $http->validate([
-            'final_note' => ['nullable','string','max:2000'],
-        ]);
-
-        $si = $request->shippingInstruction;
-        $booking = $si?->booking;
-        if (!$si || !$booking) return back()->with('warning', 'Related SI/Booking not found.');
-
-        // Only apply approved fields that were actually submitted in draft_changes
-        $approved  = collect($request->approved_fields ?? []);
-        $draft     = collect($request->draft_changes ?? []);
-        $toApply   = $draft->only($approved->all()); // intersection
-
-        if ($toApply->isEmpty()) {
-            return back()->with('warning', 'Nothing to apply. Draft is empty or no approved fields present.');
+        // decide: 'approve' or 'reject'
+        $decision = $http->string('decision'); // returns Strable; fine to compare
+        if (!in_array((string) $decision, ['approve', 'reject'], true)) {
+            return back()->with('warning', 'Invalid decision.');
         }
 
-        // Normalize address arrays back to expected casts (already arrays)
-        $fillable = [
-            'shipper','shipper_address','consignee','consignee_address',
-            'notify_party','notify_party_address','cargo_description',
-            'hs_code','gross_weight','volume','box_operator','sub_booking_number'
+        // Shared lookups
+        $si = $changeRequest->shippingInstruction;
+        $booking = $si?->booking;
+        if (!$si || !$booking) {
+            return back()->with('warning', 'Related SI/Booking not found.');
+        }
+
+        // Validation differs slightly based on decision
+        $rules = [
+            'final_note' => ['nullable','string','max:2000'],
         ];
+        if ((string) $decision === 'reject') {
+            $rules['final_note'] = ['required','string','min:3','max:2000'];
+        }
 
-        // Apply only known/whitelisted SI columns
-        $applyPayload = $toApply->only($fillable)->toArray();
+        $data = $http->validate($rules);
 
-        DB::transaction(function () use ($si, $applyPayload, $request, $user, $data) {
-            // OPTIONAL: bump your post-BL edit counter on the SI (you referenced it in the UI)
-            if (Schema::hasColumn($si->getTable(), 'post_bl_edit_count')) {
-                $si->post_bl_edit_count = (int) $si->post_bl_edit_count + 1;
+        if ((string) $decision === 'approve') {
+            // Only apply approved fields that were submitted in draft_changes
+            $approved = collect($changeRequest->approved_fields ?? []);
+            $draft    = collect($changeRequest->draft_changes ?? []);
+            $toApply  = $draft->only($approved->all()); // intersection
+
+            if ($toApply->isEmpty()) {
+                return back()->with('warning', 'Nothing to apply. Draft is empty or no approved fields present.');
             }
 
-            $si->fill($applyPayload);
-            $si->save();
-
-            // Save postchange snapshot (after apply) for audit
-            $postSnap = $si->only([
-                'id','shipper','shipper_address','consignee','consignee_address',
+            // Whitelist SI columns that are safe to fill
+            $fillable = [
+                'shipper','shipper_address','consignee','consignee_address',
                 'notify_party','notify_party_address','cargo_description',
-                'hs_code','gross_weight','volume','box_operator','sub_booking_number'
-            ]);
+                'hs_code','gross_weight','volume','box_operator','sub_booking_number',
+            ];
+            $applyPayload = $toApply->only($fillable)->toArray();
+            $hasContainers = $approved->contains('containers') && isset($toApply['containers']);
 
-            $request->update([
-                'status'                => \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
-                'postchange_snapshot'   => $postSnap,
-                'final_note'            => $data['final_note'] ?? null,
-                'final_reviewer_user_id'=> $user->id,
-                'final_decision_at'     => now(),
-            ]);
-        });
+            DB::transaction(function () use ($si, $applyPayload, $changeRequest, $user, $data, $toApply, $hasContainers) {
+                // Optional post-BL edit counter
+                if (Schema::hasColumn($si->getTable(), 'post_bl_edit_count')) {
+                    $si->post_bl_edit_count = (int) $si->post_bl_edit_count + 1;
+                }
 
-        return redirect()
-            ->route('booking.show', $booking)
-            ->with('success', 'Changes approved and applied to the Shipping Instruction.');
-    }
+                $si->fill($applyPayload);
+                $si->save();
 
-    public function finalReject(\Illuminate\Http\Request $http, \App\Models\SiChangeRequest $request)
-    {
-        $user = $http->user();
-        if ($user->role === 'customer') abort(403);
+                // Handle containers if approved and in draft_changes
+                if ($hasContainers && isset($toApply['containers'])) {
+                    $this->applyContainerChanges($si, $toApply['containers']);
+                }
 
-        if ($request->status !== \App\Models\SiChangeRequest::STATUS_PENDING_FINAL_REVIEW) {
-            return back()->with('warning', 'Request is not pending final review.');
+                // Snapshot after apply for audit
+                $postSnap = $si->only([
+                    'id','shipper','shipper_address','consignee','consignee_address',
+                    'notify_party','notify_party_address','cargo_description',
+                    'hs_code','gross_weight','volume','box_operator','sub_booking_number',
+                ]);
+
+                // Include containers in post-change snapshot if they were changed
+                if ($hasContainers) {
+                    $containersSnapshot = $si->containers->map(function ($container) {
+                        return [
+                            'id' => $container->id,
+                            'cargo_id' => $container->cargo_id,
+                            'container_number' => $container->container_number,
+                            'seal_number' => $container->seal_number,
+                        ];
+                    })->toArray();
+                    $postSnap['containers'] = $containersSnapshot;
+                }
+
+                $changeRequest->update([
+                    'status'                  => SiChangeRequest::STATUS_APPROVED_APPLIED,
+                    'postchange_snapshot'     => $postSnap,
+                    'final_note'              => $data['final_note'] ?? null,
+                    'final_reviewer_user_id'  => $user->id,
+                    'final_decision_at'       => now(),
+                ]);
+            });
+
+            return redirect()
+                ->route('booking.show', $booking)
+                ->with('success', 'Changes approved and applied to the Shipping Instruction.');
         }
 
-        $data = $http->validate([
-            'final_note' => ['required','string','min:3','max:2000'], // reason required on reject
-        ]);
-
-        $si = $request->shippingInstruction;
-        $booking = $si?->booking;
-        if (!$si || !$booking) return back()->with('warning', 'Related SI/Booking not found.');
-
-        $request->update([
-            'status'                 => \App\Models\SiChangeRequest::STATUS_REJECTED,
-            'final_note'             => $data['final_note'],
-            'final_reviewer_user_id' => $user->id,
-            'final_decision_at'      => now(),
+        // Reject path
+        $changeRequest->update([
+            'status'                  => SiChangeRequest::STATUS_REJECTED,
+            'final_note'              => $data['final_note'],
+            'final_reviewer_user_id'  => $user->id,
+            'final_decision_at'       => now(),
         ]);
 
         return redirect()
@@ -239,5 +305,128 @@ class SiChangeRequestController extends Controller
             ->with('success', 'Change request rejected and the customer has been notified.');
     }
 
+    public function timeline(SiChangeRequest $changeRequest)
+    {
+        // Basic authorization: user should have access to the booking
+        $booking = $changeRequest->booking;
+        $user = request()->user();
+
+        // Check if user has access (customer owns booking, or staff/admin)
+        $hasAccess = false;
+        if ($user->role === 'customer') {
+            $hasAccess = (int)$booking->user_id === (int)$user->id;
+        } else {
+            $hasAccess = true; // Staff/admin have access
+        }
+
+        if (!$hasAccess) {
+            abort(403, 'Unauthorized');
+        }
+
+        return response()->json([
+            'timeline' => $changeRequest->timeline(),
+            'request' => [
+                'id' => $changeRequest->id,
+                'status' => $changeRequest->status,
+                'created_at' => $changeRequest->created_at?->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Apply container changes to the shipping instruction
+     */
+    private function applyContainerChanges(ShippingInstruction $si, array $containersData): void
+    {
+        // Track new container counts per cargo
+        $cargoContainerCounts = [];
+
+        // Get all container numbers from the draft changes
+        $requestContainers = collect($containersData)
+            ->flatMap(function ($containerGroup) {
+                return collect($containerGroup)->pluck('container_number');
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Get existing containers for this shipping instruction
+        $existingContainers = $si->containers()
+            ->pluck('container_number')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Find containers that need to be released (in existing but not in request)
+        $containersToRelease = array_diff($existingContainers, $requestContainers);
+
+        // Release containers that are no longer in the request
+        if (!empty($containersToRelease)) {
+            CargoContainer::whereIn('container_number', $containersToRelease)
+                ->where('shipping_instruction_id', $si->id)
+                ->update(['shipping_instruction_id' => null]);
+        }
+
+        // Update or create containers
+        foreach ($containersData as $cargoId => $containerGroup) {
+            // Initialize counter for this cargo if not exists
+            if (!isset($cargoContainerCounts[$cargoId])) {
+                $cargoContainerCounts[$cargoId] = 0;
+            }
+
+            foreach ($containerGroup as $container) {
+                if (empty($container['container_number']) && empty($container['seal_number'])) {
+                    continue;
+                }
+
+                $containerNumber = $container['container_number'] ?? '';
+
+                // Check if this container already exists in this shipping instruction
+                if (!empty($containerNumber) && in_array($containerNumber, $existingContainers)) {
+                    // Update the existing container
+                    CargoContainer::where('container_number', $containerNumber)
+                        ->where('shipping_instruction_id', $si->id)
+                        ->update([
+                            'seal_number' => $container['seal_number'] ?? '',
+                        ]);
+                } elseif (!empty($containerNumber)) {
+                    // This is a new container, look for an available container to reuse
+                    $availableContainer = CargoContainer::where('cargo_id', $cargoId)
+                        ->whereNull('shipping_instruction_id')
+                        ->first();
+
+                    if ($availableContainer) {
+                        // Reuse the available container
+                        $availableContainer->update([
+                            'container_number' => $containerNumber,
+                            'shipping_instruction_id' => $si->id,
+                            'seal_number' => $container['seal_number'] ?? '',
+                        ]);
+                    } else {
+                        // Create a new container and increment the counter
+                        CargoContainer::create([
+                            'cargo_id' => $cargoId,
+                            'shipping_instruction_id' => $si->id,
+                            'container_number' => $containerNumber,
+                            'seal_number' => $container['seal_number'] ?? '',
+                        ]);
+                        $cargoContainerCounts[$cargoId]++;
+                    }
+                }
+            }
+        }
+
+        // Update cargo container_count for any cargo that had new containers added
+        foreach ($cargoContainerCounts as $cargoId => $addedCount) {
+            if ($addedCount > 0) {
+                $cargo = Cargo::find($cargoId);
+                if ($cargo) {
+                    $cargo->container_count += $addedCount;
+                    $cargo->save();
+                }
+            }
+        }
+    }
 
 }
