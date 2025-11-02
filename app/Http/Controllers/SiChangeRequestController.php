@@ -10,6 +10,13 @@ use App\Models\Cargo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SiChangeRequestUnderReview;
+use App\Mail\SiChangeRequestRejected;
+use App\Mail\SiChangeRequestApprovedForEdit;
+use App\Mail\SiChangeRequestRejectedFinal;
+use App\Mail\SiChangeRequestApprovedApplied;
+use App\Mail\SiChangeRequestCancelledByCustomer;
 
 
 class SiChangeRequestController extends Controller
@@ -51,7 +58,7 @@ class SiChangeRequestController extends Controller
         ]);
 
         // Create request
-        SiChangeRequest::create([
+        $changeRequest = SiChangeRequest::create([
             'booking_id'              => $booking->id,
             'shipping_instruction_id' => $si->id,
             'requested_by_user_id'    => $user->id,
@@ -61,7 +68,26 @@ class SiChangeRequestController extends Controller
             // we'll fill prechange_snapshot later when admin approves fields
         ]);
 
-        return back()->with('success', 'Change request submitted. We’ll review it shortly.');
+        // Send notification emails
+        try {
+            if ($user->email) {
+                Mail::to($user->email)->send(new SiChangeRequestUnderReview($changeRequest, 'customer'));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send customer email for SI change request under review: ' . $e->getMessage());
+        }
+        
+        try {
+            if (config('mail.admin_to')) {
+                Mail::to(config('mail.admin_to'))->send(new SiChangeRequestUnderReview($changeRequest, 'admin'));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send admin email for SI change request under review: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Change request submitted. We\'ll review it shortly.');
     }
 
     public function approveFields(Request $http, SiChangeRequest $request)
@@ -128,6 +154,17 @@ class SiChangeRequestController extends Controller
             // 'expires_at' => now()->addHours(24),
         ]);
 
+        // Send approval notification to customer
+        try {
+            $requester = $request->requester;
+            if ($requester && $requester->email) {
+                Mail::to($requester->email)->send(new SiChangeRequestApprovedForEdit($request->fresh()));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send customer email for SI change request approved for edit: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Fields approved. Customer may edit approved fields only.');
     }
 
@@ -159,6 +196,17 @@ class SiChangeRequestController extends Controller
             'final_decision_at' => now(),
         ]);
 
+        // Send rejection notification to customer
+        try {
+            $requester = $request->requester;
+            if ($requester && $requester->email) {
+                Mail::to($requester->email)->send(new SiChangeRequestRejected($request->fresh()));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send customer email for SI change request rejected: ' . $e->getMessage());
+        }
+
         return redirect()
             ->route('booking.show', $request->booking)
             ->with('success', 'Change request has been rejected and the customer has been notified.');
@@ -189,6 +237,16 @@ class SiChangeRequestController extends Controller
             'cancel_reason'       => $data['cancel_reason'],
             'cancelled_at'         => now(),
         ]);
+
+        // Send cancellation notification to admin
+        try {
+            if (config('mail.admin_to')) {
+                Mail::to(config('mail.admin_to'))->send(new SiChangeRequestCancelledByCustomer($request->fresh()));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send admin email for SI change request cancelled by customer: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Your change request has been cancelled.');
     }
@@ -287,6 +345,17 @@ class SiChangeRequestController extends Controller
                 ]);
             });
 
+            // Send approval notification to customer after transaction completes
+            try {
+                $requester = $changeRequest->fresh()->requester;
+                if ($requester && $requester->email) {
+                    Mail::to($requester->email)->send(new SiChangeRequestApprovedApplied($changeRequest->fresh()));
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the request
+                \Log::error('Failed to send customer email for SI change request approved and applied: ' . $e->getMessage());
+            }
+
             return redirect()
                 ->route('booking.show', $booking)
                 ->with('success', 'Changes approved and applied to the Shipping Instruction.');
@@ -299,6 +368,17 @@ class SiChangeRequestController extends Controller
             'final_reviewer_user_id'  => $user->id,
             'final_decision_at'       => now(),
         ]);
+
+        // Send final rejection notification to customer
+        try {
+            $requester = $changeRequest->requester;
+            if ($requester && $requester->email) {
+                Mail::to($requester->email)->send(new SiChangeRequestRejectedFinal($changeRequest->fresh()));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send customer email for SI change request rejected final: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('booking.show', $booking)
