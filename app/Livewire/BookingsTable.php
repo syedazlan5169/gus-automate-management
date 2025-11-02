@@ -81,7 +81,7 @@ class BookingsTable extends Component
             }
         }
         
-        $bookings = $query->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
+        $bookings = $query->with(['voyage', 'user'])->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
         
         // Get status labels for each booking
         $statusLabels = [];

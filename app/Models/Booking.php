@@ -28,11 +28,15 @@ class Booking extends Model
     {
         if($term)
         {
-            $query->where('booking_number', 'like', '%'.$term.'%')
-                ->orWhere('vessel', 'like', '%'.$term.'%')
-                ->orWhere('voyage', 'like', '%'.$term.'%')
-                ->orWhere('pol', 'like', '%'.$term.'%')
-                ->orWhere('pod', 'like', '%'.$term.'%');
+            $query->where(function($q) use ($term) {
+                $q->where('booking_number', 'like', '%'.$term.'%')
+                    ->orWhere('vessel', 'like', '%'.$term.'%')
+                    ->orWhere('pol', 'like', '%'.$term.'%')
+                    ->orWhere('pod', 'like', '%'.$term.'%')
+                    ->orWhereHas('voyage', function($voyageQuery) use ($term) {
+                        $voyageQuery->where('voyage_number', 'like', '%'.$term.'%');
+                    });
+            });
         }
         return $query;
     }
