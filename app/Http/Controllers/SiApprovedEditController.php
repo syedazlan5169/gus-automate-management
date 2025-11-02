@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ShippingInstruction;
 use App\Models\SiChangeRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SiChangeRequestPendingFinalReview;
 
 class SiApprovedEditController extends Controller
 {
@@ -147,6 +149,26 @@ class SiApprovedEditController extends Controller
             'status'        => SiChangeRequest::STATUS_PENDING_FINAL_REVIEW,
             'submitted_at'  => now(),
         ]);
+
+        // Send notification emails to both customer and admin
+        try {
+            $requester = $request->requester;
+            if ($requester && $requester->email) {
+                Mail::to($requester->email)->send(new SiChangeRequestPendingFinalReview($request->fresh(), 'customer'));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send customer email for SI change request pending final review: ' . $e->getMessage());
+        }
+        
+        try {
+            if (config('mail.admin_to')) {
+                Mail::to(config('mail.admin_to'))->send(new SiChangeRequestPendingFinalReview($request->fresh(), 'admin'));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Failed to send admin email for SI change request pending final review: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('booking.show', $booking)

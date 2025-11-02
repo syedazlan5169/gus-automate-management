@@ -113,4 +113,6 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'admin_to' => env('MAIL_TO_ADDRESS', 'admin@gushipping.com.my'),
+
 ];
