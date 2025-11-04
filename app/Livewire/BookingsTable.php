@@ -81,11 +81,12 @@ class BookingsTable extends Component
             }
         }
         
-        $bookings = $query->with(['voyage', 'user'])->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
+        $bookings = $query->with(['voyage', 'user', 'siChangeRequests'])->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
         
         // Get status labels for each booking
         $statusLabels = [];
         $nextStatusLabels = [];
+        $siChangeRequestStatuses = [];
         foreach ($bookings as $booking) {
             $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
             
@@ -96,12 +97,33 @@ class BookingsTable extends Component
             } else {
                 $nextStatusLabels[$booking->id] = '-'; // No next status (terminal states)
             }
+
+            // Get latest SI change request for this booking
+            // Priority: active requests first, then rejected/approved_applied, but exclude cancelled/expired
+            $activeSiChangeRequest = $booking->siChangeRequests()
+                ->whereNotIn('status', [
+                    \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                    \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                ])
+                ->latest()
+                ->first();
+
+            if ($activeSiChangeRequest) {
+                $siChangeRequestStatuses[$booking->id] = [
+                    'status' => $activeSiChangeRequest->status,
+                    'label' => \App\Models\SiChangeRequest::getStatusLabel($activeSiChangeRequest->status),
+                    'classes' => \App\Models\SiChangeRequest::getStatusBadgeClasses($activeSiChangeRequest->status),
+                ];
+            } else {
+                $siChangeRequestStatuses[$booking->id] = null;
+            }
         }
         
         return view('livewire.bookings-table', [
             'bookings' => $bookings,
             'statusLabels' => $statusLabels,
             'nextStatusLabels' => $nextStatusLabels,
+            'siChangeRequestStatuses' => $siChangeRequestStatuses,
         ]);
     }
     

@@ -108,11 +108,38 @@
                                     $statusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
                                 }
                             @endphp
-                            <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                                {{ $statusLabels[$booking->id] }}
-                            </div>
-                            <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                                {{ $statusLabels[$booking->id] }}
+                            <div class="flex flex-col items-center space-y-1">
+                                <div class="sm:hidden whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                    {{ $statusLabels[$booking->id] }}
+                                </div>
+                                <div class="hidden sm:block whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                    {{ $statusLabels[$booking->id] }}
+                                </div>
+                                @if(isset($siChangeRequestStatuses[$booking->id]) && $siChangeRequestStatuses[$booking->id])
+                                    @php
+                                        $siStatus = $siChangeRequestStatuses[$booking->id];
+                                    @endphp
+                                    <div class="relative" x-data="{ showTooltip: false }">
+                                        <div class="whitespace-nowrap rounded-md {{ $siStatus['classes'] }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset cursor-help"
+                                            @mouseover="showTooltip = true"
+                                            @mouseleave="showTooltip = false">
+                                            SI: {{ $siStatus['label'] }}
+                                        </div>
+                                        <!-- Tooltip -->
+                                        <div x-show="showTooltip" 
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-150"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95"
+                                            class="absolute z-10 px-3 py-2 mt-1 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap bottom-full left-1/2 transform -translate-x-1/2 mb-2"
+                                            style="display: none;">
+                                            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                            This badge shows the current status of a Shipping Instruction (SI) change request for this booking.
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </td>
                         <td class="text-center px-3 py-3.5 text-sm text-gray-500">
