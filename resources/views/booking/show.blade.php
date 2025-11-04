@@ -2178,7 +2178,7 @@
 
                             <!-- Rejected SI Change Request Modal -->
                             @if($rejectedRequest)
-                            <div id="rejected-request-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div id="rejected-request-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" data-rejected-request-id="{{ $rejectedRequest->id }}">
                                 <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeRejectedRequestModal()"></div>
                                 
                                 <div class="relative w-full max-w-2xl transform transition-all">
@@ -2275,6 +2275,26 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            @endif
+
+                            <!-- Rejected Request Notification Balloon -->
+                            @if($rejectedRequest)
+                            <div id="rejected-request-balloon" class="hidden fixed bottom-6 right-6 z-50">
+                                <button onclick="openRejectedRequestModalFromBalloon()" 
+                                    class="flex items-center gap-3 px-4 py-3 bg-red-600 text-white rounded-lg shadow-lg hover:bg-red-700 transition-colors cursor-pointer group">
+                                    
+                                    <div class="text-left">
+                                        <p class="text-sm font-semibold">SI Change Request Rejected</p>
+                                        <p class="text-xs text-red-100">Click to view details</p>
+                                    </div>
+                                    <button onclick="event.stopPropagation(); dismissRejectedRequestBalloon()" 
+                                        class="ml-2 text-red-200 hover:text-white transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </button>
                             </div>
                             @endif
 
@@ -3482,16 +3502,71 @@ function escapeHtml(text) {
 @if($rejectedRequest)
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('rejected-request-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
+    const balloon = document.getElementById('rejected-request-balloon');
+    const rejectedRequestId = {{ $rejectedRequest->id }};
+    const storageKey = 'rejected_request_dismissed_' + rejectedRequestId;
+    
+    // Check if this rejection was previously dismissed
+    const wasDismissed = localStorage.getItem(storageKey) === 'true';
+    
+    if (wasDismissed) {
+        // Show balloon instead of modal
+        if (balloon) {
+            balloon.classList.remove('hidden');
+        }
+    } else {
+        // Show full modal
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
     }
 });
 
 function closeRejectedRequestModal() {
     const modal = document.getElementById('rejected-request-modal');
+    const balloon = document.getElementById('rejected-request-balloon');
+    const rejectedRequestId = modal ? parseInt(modal.getAttribute('data-rejected-request-id')) : null;
+    
     if (modal) {
         modal.classList.add('hidden');
     }
+    
+    // Save dismissal to localStorage and show balloon
+    if (rejectedRequestId) {
+        const storageKey = 'rejected_request_dismissed_' + rejectedRequestId;
+        localStorage.setItem(storageKey, 'true');
+        
+        // Show balloon
+        if (balloon) {
+            balloon.classList.remove('hidden');
+        }
+    }
+}
+
+function openRejectedRequestModalFromBalloon() {
+    const modal = document.getElementById('rejected-request-modal');
+    const balloon = document.getElementById('rejected-request-balloon');
+    
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+    // Hide balloon when modal opens, but it will reappear when modal is closed
+    if (balloon) {
+        balloon.classList.add('hidden');
+    }
+}
+
+function dismissRejectedRequestBalloon() {
+    const balloon = document.getElementById('rejected-request-balloon');
+    const modal = document.getElementById('rejected-request-modal');
+    const rejectedRequestId = modal ? parseInt(modal.getAttribute('data-rejected-request-id')) : null;
+    
+    if (balloon) {
+        balloon.classList.add('hidden');
+    }
+    
+    // Optionally, you could also remove from localStorage if you want to show modal again on next visit
+    // For now, we'll keep it dismissed permanently until a new request is created
 }
 @endif
 

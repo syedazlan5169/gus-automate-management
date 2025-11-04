@@ -44,6 +44,9 @@
                         <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
                             Status
                         </th>
+                        <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
+                            Next Status
+                        </th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                             <span class="sr-only">Action</span>
                         </th>
@@ -105,11 +108,66 @@
                                     $statusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
                                 }
                             @endphp
-                            <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                                {{ $statusLabels[$booking->id] }}
+                            <div class="flex flex-col items-center space-y-1">
+                                <div class="sm:hidden whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                    {{ $statusLabels[$booking->id] }}
+                                </div>
+                                <div class="hidden sm:block whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                    {{ $statusLabels[$booking->id] }}
+                                </div>
+                                @if(isset($siChangeRequestStatuses[$booking->id]) && $siChangeRequestStatuses[$booking->id])
+                                    @php
+                                        $siStatus = $siChangeRequestStatuses[$booking->id];
+                                    @endphp
+                                    <div class="relative" x-data="{ showTooltip: false }">
+                                        <div class="whitespace-nowrap rounded-md {{ $siStatus['classes'] }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset cursor-help"
+                                            @mouseover="showTooltip = true"
+                                            @mouseleave="showTooltip = false">
+                                            SI: {{ $siStatus['label'] }}
+                                        </div>
+                                        <!-- Tooltip -->
+                                        <div x-show="showTooltip" 
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-150"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95"
+                                            class="absolute z-10 px-3 py-2 mt-1 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap bottom-full left-1/2 transform -translate-x-1/2 mb-2"
+                                            style="display: none;">
+                                            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                            This badge shows the current status of a Shipping Instruction (SI) change request for this booking.
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
-                                {{ $statusLabels[$booking->id] }}
+                        </td>
+                        <td class="text-center px-3 py-3.5 text-sm text-gray-500">
+                            @php
+                                $nextStatus = \App\Models\BookingStatus::getNextStatus($booking->status);
+                                $nextStatusClass = 'bg-gray-50 text-gray-700 ring-gray-600/20';
+                                if ($nextStatus !== null) {
+                                    // Style based on the next status
+                                    if ($nextStatus == \App\Models\BookingStatus::BOOKING_CONFIRMED) {
+                                        $nextStatusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::BL_VERIFICATION) {
+                                        $nextStatusClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::BL_CONFIRMED) {
+                                        $nextStatusClass = 'bg-indigo-50 text-indigo-700 ring-indigo-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::SAILING) {
+                                        $nextStatusClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::ARRIVED) {
+                                        $nextStatusClass = 'bg-cyan-50 text-cyan-700 ring-cyan-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::COMPLETED) {
+                                        $nextStatusClass = 'bg-green-50 text-green-700 ring-green-600/20';
+                                    }
+                                }
+                            @endphp
+                            <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $nextStatusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $nextStatusLabels[$booking->id] }}
+                            </div>
+                            <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $nextStatusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $nextStatusLabels[$booking->id] }}
                             </div>
                         </td>
                         <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

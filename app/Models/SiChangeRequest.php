@@ -164,6 +164,48 @@ class SiChangeRequest extends Model
         return $this->status === self::STATUS_APPROVED_FOR_EDIT;
     }
 
+    /**
+     * Get human-readable label for status
+     * 
+     * @param string $status
+     * @return string
+     */
+    public static function getStatusLabel($status)
+    {
+        $labels = [
+            self::STATUS_UNDER_REVIEW => 'Under Review',
+            self::STATUS_APPROVED_FOR_EDIT => 'Approved for Edit',
+            self::STATUS_PENDING_FINAL_REVIEW => 'Pending Final Review',
+            self::STATUS_APPROVED_APPLIED => 'Approved & Applied',
+            self::STATUS_REJECTED => 'Rejected',
+            self::STATUS_CANCELLED => 'Cancelled',
+            self::STATUS_EXPIRED => 'Expired',
+        ];
+
+        return $labels[$status] ?? ucfirst(str_replace('_', ' ', $status));
+    }
+
+    /**
+     * Get CSS classes for status badge
+     * 
+     * @param string $status
+     * @return string
+     */
+    public static function getStatusBadgeClasses($status)
+    {
+        $classes = [
+            self::STATUS_UNDER_REVIEW => 'bg-amber-50 text-amber-700 ring-amber-600/20',
+            self::STATUS_APPROVED_FOR_EDIT => 'bg-blue-50 text-blue-700 ring-blue-600/20',
+            self::STATUS_PENDING_FINAL_REVIEW => 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
+            self::STATUS_APPROVED_APPLIED => 'bg-green-50 text-green-700 ring-green-600/20',
+            self::STATUS_REJECTED => 'bg-red-50 text-red-700 ring-red-600/20',
+            self::STATUS_CANCELLED => 'bg-gray-50 text-gray-700 ring-gray-600/20',
+            self::STATUS_EXPIRED => 'bg-gray-50 text-gray-700 ring-gray-600/20',
+        ];
+
+        return $classes[$status] ?? 'bg-gray-50 text-gray-700 ring-gray-600/20';
+    }
+
     /** Relationships */
     public function booking(): BelongsTo
     {
