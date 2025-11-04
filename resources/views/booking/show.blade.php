@@ -1,4 +1,38 @@
 <x-app-layout>
+    @php
+        // Check for the most recent rejected SI change request for this booking (customer side only)
+        // Only show modal if there's a rejected request AND no active request exists
+        // AND the most recent request is not approved_applied
+        $rejectedRequest = null;
+        if (auth()->check() && auth()->user()->role === 'customer') {
+            // Check if there are any active requests (if there is, don't show the modal)
+            $hasActiveRequest = \App\Models\SiChangeRequest::where('booking_id', $booking->id)
+                ->whereNotIn('status', [
+                    \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED,
+                    \App\Models\SiChangeRequest::STATUS_REJECTED,
+                    \App\Models\SiChangeRequest::STATUS_CANCELLED,
+                    \App\Models\SiChangeRequest::STATUS_EXPIRED,
+                ])
+                ->exists();
+            
+            // Check the most recent request - if it's approved_applied, don't show rejection modal
+            $mostRecentRequest = \App\Models\SiChangeRequest::where('booking_id', $booking->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            // Only show rejected request modal if:
+            // 1. No active request exists
+            // 2. Most recent request is not approved_applied (or doesn't exist)
+            if (!$hasActiveRequest && (!$mostRecentRequest || $mostRecentRequest->status !== \App\Models\SiChangeRequest::STATUS_APPROVED_APPLIED)) {
+                $rejectedRequest = \App\Models\SiChangeRequest::where('booking_id', $booking->id)
+                    ->where('status', \App\Models\SiChangeRequest::STATUS_REJECTED)
+                    ->with(['shippingInstruction', 'approver', 'finalReviewer'])
+                    ->orderBy('final_decision_at', 'desc')
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
+            }
+        }
+    @endphp
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             {{ Breadcrumbs::render('booking.show', $booking) }}
@@ -1178,7 +1212,7 @@
                                             @if($canRequestChange)
                                                 <button type="button"
                                                 onclick="openSiChangeModal({{ $si->id }})"
-                                                class="ml-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all">
+                                                class="ml-4 my-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1340,11 +1374,22 @@
                                                     $freeRevisionsLimit = 3;
                                                     $remainingFreeRevisions = max(0, $freeRevisionsLimit - $si->post_bl_edit_count);
                                                 @endphp
-                                                <span class="{{ $remainingFreeRevisions > 0 ? 'text-green-500' : 'text-red-500' }}">
-                                                    Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
-                                                </span>
-                                                <br>
-                                                Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
+
+                                                @if(!$si->telex_bl_released)
+                                                    <span class="{{ $remainingFreeRevisions > 0 ? 'text-green-500' : 'text-red-500' }}">
+                                                        Remaining free revisions: {{ $remainingFreeRevisions }} of {{ $freeRevisionsLimit }}
+                                                    </span>
+                                                    <br>
+                                                    Total SI Revisions after BL confirmed: {{ $si->post_bl_edit_count }}
+                                                @else
+                                                    <span class="text-red-500">
+                                                        Revision(s) requested: {{ $si->number_of_revisions_requested }}
+                                                    </span>
+                                                    <br>
+                                                    <span class="text-green-500">
+                                                        Revision(s) applied: {{ $si->number_of_revisions_applied }}
+                                                    </span>
+                                                @endif
                                                 
                                             </p>
                                             @if ($booking->enable_edit)
@@ -2130,6 +2175,108 @@
                                     modal.classList.remove('hidden');
                                 }
                             </script>
+
+                            <!-- Rejected SI Change Request Modal -->
+                            @if($rejectedRequest)
+                            <div id="rejected-request-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+                                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeRejectedRequestModal()"></div>
+                                
+                                <div class="relative w-full max-w-2xl transform transition-all">
+                                    <div class="relative rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+                                        <!-- Header -->
+                                        <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-100">
+                                                    <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-semibold text-gray-900">SI Change Request Rejected</h3>
+                                                    <p class="text-sm text-gray-500">Your previous change request has been rejected</p>
+                                                </div>
+                                            </div>
+                                            <button class="text-gray-400 hover:text-gray-600 transition-colors" onclick="closeRejectedRequestModal()">
+                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <!-- Body -->
+                                        <div class="px-6 py-5 space-y-4">
+                                            <!-- Shipping Instruction Info -->
+                                            @if($rejectedRequest->shippingInstruction)
+                                            <div class="bg-gray-50 rounded-lg p-4">
+                                                <p class="text-sm font-medium text-gray-700 mb-1">Shipping Instruction</p>
+                                                <p class="text-sm text-gray-900">SI #{{ $rejectedRequest->shippingInstruction->sub_booking_number }}</p>
+                                            </div>
+                                            @endif
+
+                                            <!-- Requested Fields -->
+                                            @if(!empty($rejectedRequest->requested_fields))
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Requested Fields</p>
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach($rejectedRequest->requested_fields as $field)
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                                        {{ str_replace('_', ' ', ucwords($field, '_')) }}
+                                                    </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            <!-- Your Reason -->
+                                            @if($rejectedRequest->reason)
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Your Reason for Change</p>
+                                                <div class="bg-gray-50 rounded-lg p-3">
+                                                    <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ $rejectedRequest->reason }}</p>
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            <!-- Rejection Note -->
+                                            @if($rejectedRequest->approver_note || $rejectedRequest->final_note)
+                                            <div>
+                                                <p class="text-sm font-medium text-red-700 mb-2">Rejection Reason</p>
+                                                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                                    <p class="text-sm text-red-900 whitespace-pre-wrap">{{ $rejectedRequest->final_note ?? $rejectedRequest->approver_note }}</p>
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            <!-- Rejected By -->
+                                            @if($rejectedRequest->finalReviewer || $rejectedRequest->approver)
+                                            <div class="border-t border-gray-200 pt-4">
+                                                <div class="flex items-center justify-between text-sm">
+                                                    <span class="text-gray-500">Rejected by</span>
+                                                    <span class="font-medium text-gray-900">
+                                                        {{ $rejectedRequest->finalReviewer->name ?? $rejectedRequest->approver->name ?? 'Administrator' }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center justify-between text-sm mt-1">
+                                                    <span class="text-gray-500">Rejected on</span>
+                                                    <span class="font-medium text-gray-900">
+                                                        {{ $rejectedRequest->final_decision_at ? $rejectedRequest->final_decision_at->format('F d, Y \a\t H:i') : $rejectedRequest->updated_at->format('F d, Y \a\t H:i') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                                            <button type="button" onclick="closeRejectedRequestModal()"
+                                                class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
 
                             <!-- Disable Edit Confirmation Modal -->
                             <div id="disable-edit-confirmation-modal" class="hidden relative z-10" aria-labelledby="modal-title"
@@ -3330,6 +3477,23 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Show rejected request modal on page load if there's a rejected request
+@if($rejectedRequest)
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('rejected-request-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+});
+
+function closeRejectedRequestModal() {
+    const modal = document.getElementById('rejected-request-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+@endif
 
 </script>
 
