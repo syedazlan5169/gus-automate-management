@@ -50,7 +50,7 @@ class UserController extends Controller
             'industries' => $request->industries,
         ]);
         
-        Mail::to(env('MAIL_TO_ADDRESS'))->send(new NewUser($user));
+        Mail::to(config('mail.admin_to'))->send(new NewUser($user));
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }

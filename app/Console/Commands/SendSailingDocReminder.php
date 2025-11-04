@@ -31,7 +31,7 @@ class SendSailingDocReminder extends Command
             ->get();
 
         foreach ($bookings as $booking) {
-            Mail::to(env('MAIL_TO_ADDRESS'))->send(new SailingDocReminder($booking));
+            Mail::to(config('mail.admin_to'))->send(new SailingDocReminder($booking));
             $this->info("Sent reminder for booking #{$booking->booking_number}");
         }
 
