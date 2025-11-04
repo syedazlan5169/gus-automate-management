@@ -44,6 +44,9 @@
                         <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
                             Status
                         </th>
+                        <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
+                            Next Status
+                        </th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                             <span class="sr-only">Action</span>
                         </th>
@@ -110,6 +113,34 @@
                             </div>
                             <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $statusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
                                 {{ $statusLabels[$booking->id] }}
+                            </div>
+                        </td>
+                        <td class="text-center px-3 py-3.5 text-sm text-gray-500">
+                            @php
+                                $nextStatus = \App\Models\BookingStatus::getNextStatus($booking->status);
+                                $nextStatusClass = 'bg-gray-50 text-gray-700 ring-gray-600/20';
+                                if ($nextStatus !== null) {
+                                    // Style based on the next status
+                                    if ($nextStatus == \App\Models\BookingStatus::BOOKING_CONFIRMED) {
+                                        $nextStatusClass = 'bg-yellow-50 text-yellow-700 ring-yellow-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::BL_VERIFICATION) {
+                                        $nextStatusClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::BL_CONFIRMED) {
+                                        $nextStatusClass = 'bg-indigo-50 text-indigo-700 ring-indigo-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::SAILING) {
+                                        $nextStatusClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::ARRIVED) {
+                                        $nextStatusClass = 'bg-cyan-50 text-cyan-700 ring-cyan-600/20';
+                                    } elseif ($nextStatus == \App\Models\BookingStatus::COMPLETED) {
+                                        $nextStatusClass = 'bg-green-50 text-green-700 ring-green-600/20';
+                                    }
+                                }
+                            @endphp
+                            <div class="sm:hidden mt-0.5 whitespace-nowrap rounded-md {{ $nextStatusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $nextStatusLabels[$booking->id] }}
+                            </div>
+                            <div class="hidden sm:block mt-0.5 whitespace-nowrap rounded-md {{ $nextStatusClass }} px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                                {{ $nextStatusLabels[$booking->id] }}
                             </div>
                         </td>
                         <td class="relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

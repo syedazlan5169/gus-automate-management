@@ -43,4 +43,26 @@ class BookingStatus extends Model
             self::CANCELLED,
         ];
     }
+
+    /**
+     * Get the next status in the workflow
+     * 
+     * @param int $currentStatus
+     * @return int|null
+     */
+    public static function getNextStatus($currentStatus)
+    {
+        $statusFlow = [
+            self::NEW => self::BOOKING_CONFIRMED,
+            self::BOOKING_CONFIRMED => self::BL_VERIFICATION,
+            self::BL_VERIFICATION => self::BL_CONFIRMED,
+            self::BL_CONFIRMED => self::SAILING,
+            self::SAILING => self::ARRIVED,
+            self::ARRIVED => self::COMPLETED,
+            self::COMPLETED => null, // Terminal status
+            self::CANCELLED => null, // Terminal status
+        ];
+
+        return $statusFlow[$currentStatus] ?? null;
+    }
 }

@@ -85,13 +85,23 @@ class BookingsTable extends Component
         
         // Get status labels for each booking
         $statusLabels = [];
+        $nextStatusLabels = [];
         foreach ($bookings as $booking) {
             $statusLabels[$booking->id] = BookingStatus::labels($booking->status)[$booking->status] ?? 'Unknown';
+            
+            // Get next status label
+            $nextStatus = BookingStatus::getNextStatus($booking->status);
+            if ($nextStatus !== null) {
+                $nextStatusLabels[$booking->id] = BookingStatus::labels($nextStatus)[$nextStatus] ?? 'Unknown';
+            } else {
+                $nextStatusLabels[$booking->id] = '-'; // No next status (terminal states)
+            }
         }
         
         return view('livewire.bookings-table', [
             'bookings' => $bookings,
             'statusLabels' => $statusLabels,
+            'nextStatusLabels' => $nextStatusLabels,
         ]);
     }
     
