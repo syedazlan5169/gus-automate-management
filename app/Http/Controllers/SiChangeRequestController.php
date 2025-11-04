@@ -86,6 +86,8 @@ class SiChangeRequestController extends Controller
             // Log error but don't fail the request
             \Log::error('Failed to send admin email for SI change request under review: ' . $e->getMessage());
         }
+        $si->number_of_revisions_requested = $si->number_of_revisions_requested + 1;
+        $si->save();
 
         return back()->with('success', 'Change request submitted. We\'ll review it shortly.');
     }
@@ -355,6 +357,9 @@ class SiChangeRequestController extends Controller
                 // Log error but don't fail the request
                 \Log::error('Failed to send customer email for SI change request approved and applied: ' . $e->getMessage());
             }
+
+            $si->number_of_revisions_applied = $si->number_of_revisions_applied + 1;
+            $si->save();
 
             return redirect()
                 ->route('booking.show', $booking)

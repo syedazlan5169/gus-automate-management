@@ -473,9 +473,22 @@ function handleFileUpload() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(async response => {
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error('Server returned non-JSON response. Please check the server logs.');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
+            // Show info message if any invalid containers were found (they're still included in the form)
+            if (data.warnings && data.warnings.invalid_containers && data.warnings.invalid_containers.length > 0) {
+                // Just show the message, invalid containers are already highlighted in the form
+                showError(data.message);
+            }
             // Populate form fields with shipping data
             if (data.shippingData) {
                 // Box Operator
@@ -587,7 +600,9 @@ function handleFileUpload() {
                     return {
                         container: container.number,
                         seal: container.seal,
-                        type: containerType 
+                        type: containerType,
+                        is_invalid: container.is_invalid || false,
+                        validation_error: container.validation_error || null
                     };
                 });
                 
@@ -708,10 +723,18 @@ function processContainers(containers) {
             let div = document.createElement("div");
             div.classList.add("flex", "items-center", "gap-x-4", "w-full");
             
+            // Determine if this container is invalid
+            const isInvalid = entry.is_invalid || false;
+            const validationError = entry.validation_error || '';
+            const containerInputClass = isInvalid 
+                ? 'block w-full rounded-md bg-red-50 px-3 py-1.5 text-base text-gray-900 outline outline-2 -outline-offset-1 outline-red-500 sm:text-sm/6'
+                : 'block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6';
+            
             div.innerHTML = `
                 <input type="hidden" name="containers[${cargoId}][${index}][container_type]" value="${containerType}">
                 <input type="text" name="containers[${cargoId}][${index}][container_number]" value="${entry.container}" 
-                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
+                    class="${containerInputClass}"
+                    ${isInvalid ? 'title="' + validationError + '"' : ''}>
                 <input type="text" name="containers[${cargoId}][${index}][seal_number]" value="${entry.seal}" 
                     class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 sm:text-sm/6">
                 <button type="button" class="text-gray-400 hover:text-red-600" onclick="removeContainer(this)">
