@@ -1702,7 +1702,7 @@
                                     <x-input-label for="document_name_select" :value="__('Document Type')" />
                                     <select id="document_name_select" 
                                         name="document_name_select" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" x-model="documentType">
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" x-model="documentType" required>
                                         <option value="">Select Document Type</option>
                                         <option value="Manifest" {{ old('document_type') == 'manifest' ? 'selected' : '' }}>Manifest</option>
                                         <option value="K4" {{ old('document_type') == 'k4' ? 'selected' : '' }}>K4</option>
