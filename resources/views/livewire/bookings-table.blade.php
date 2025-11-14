@@ -42,7 +42,7 @@
                             Invoice
                         </th>
                         <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
-                            Status
+                            Current Status
                         </th>
                         <th scope="col" class="text-center px-3 py-3.5 text-sm font-semibold text-gray-900">
                             Next Status
