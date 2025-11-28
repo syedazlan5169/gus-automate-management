@@ -113,4 +113,8 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'admin_to' => array_filter(
+        array_map('trim', explode(',', env('MAIL_TO_ADDRESS', 'notifications@gushipping.com.my')))
+    ),
+
 ];

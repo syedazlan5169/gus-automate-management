@@ -408,7 +408,7 @@ class ShippingInstructionController extends Controller
                 $shippingInstruction->update([
                     'post_bl_edit_count' => $shippingInstruction->post_bl_edit_count + 1,
                 ]);
-                Mail::to(env('MAIL_TO_ADDRESS'))->send(new UpdateSI($shippingInstruction));
+                Mail::to(config('mail.admin_to'))->send(new UpdateSI($shippingInstruction));
             }
 
             // Handle containers
@@ -656,53 +656,86 @@ class ShippingInstructionController extends Controller
 
             // Extract container data starting from row 19
             $containers = [];
+            $invalidContainers = [];
             $row = 19;
             
             while (true) {
-                $containerNumber = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
-                $sealNumber = trim($worksheet->getCell('C' . $row)->getValue() ?? 'NIL');
-                $containerType = trim($worksheet->getCell('D' . $row)->getValue() ?? '');
-                
-                // Break if we find an empty container number
-                if (empty($containerNumber)) {
-                    break;
-                }
+                try {
+                    $containerNumber = trim($worksheet->getCell('B' . $row)->getValue() ?? '');
+                    $sealNumber = trim($worksheet->getCell('C' . $row)->getValue() ?? 'NIL');
+                    $containerType = trim($worksheet->getCell('D' . $row)->getValue() ?? '');
+                    
+                    // Break if we find an empty container number
+                    if (empty($containerNumber)) {
+                        break;
+                    }
 
-                // Validate container number format (you can adjust this regex as needed)
-                if (!preg_match('/^[A-Z]{4}\d{7}$/', $containerNumber)) {
-                    \Log::warning('Invalid container number format', [
-                        'row' => $row,
-                        'container_number' => $containerNumber
+                    // Validate container number format (you can adjust this regex as needed)
+                    $isValid = preg_match('/^[A-Z]{4}\d{7}$/', $containerNumber);
+                    
+                    if (!$isValid) {
+                        \Log::warning('Invalid container number format', [
+                            'row' => $row,
+                            'container_number' => $containerNumber
+                        ]);
+                        $invalidContainers[] = [
+                            'row' => $row,
+                            'container_number' => $containerNumber,
+                            'reason' => 'Invalid container number format. Expected format: 4 uppercase letters followed by 7 digits (e.g., ABCD1234567)'
+                        ];
+                    }
+
+                    // Include all containers in the list, even invalid ones, so users can edit them
+                    $containers[] = [
+                        'number' => $containerNumber,
+                        'seal' => $sealNumber,
+                        'type' => $containerType,
+                        'is_invalid' => !$isValid,
+                        'validation_error' => !$isValid ? 'Invalid container number format. Expected format: 4 uppercase letters followed by 7 digits (e.g., ABCD1234567)' : null
+                    ];
+                    
+                    $row++;
+                } catch (\Exception $e) {
+                    \Log::error('Error processing container row ' . $row, [
+                        'exception' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
-                    continue;
+                    $row++;
+                    continue; // Continue processing other rows
                 }
-
-                $containers[] = [
-                    'number' => $containerNumber,
-                    'seal' => $sealNumber,
-                    'type' => $containerType
-                ];
-                
-                $row++;
             }
 
             \Log::info('Extracted containers', [
                 'count' => count($containers),
+                'invalid_count' => count($invalidContainers),
                 'containers' => $containers
             ]);
+
+            // Build response message
+            $message = 'File processed successfully';
+            if (!empty($invalidContainers)) {
+                $message .= '. ' . count($invalidContainers) . ' invalid container number(s) found. Please review and edit them in the form below or upload a new file.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'File processed successfully',
+                'message' => $message,
                 'shippingData' => $shippingData,
-                'containers' => $containers
+                'containers' => $containers,
+                'warnings' => !empty($invalidContainers) ? [
+                    'invalid_containers' => $invalidContainers
+                ] : null
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Error parsing shipping instruction: ' . $e->getMessage(), [
                 'exception' => $e,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
+            
+            // Always return JSON response, never HTML
             return response()->json([
                 'success' => false,
                 'message' => 'Error processing file: ' . $e->getMessage()

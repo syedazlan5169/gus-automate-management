@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ShippingInstruction;
 use App\Models\Cargo;
 use App\Models\User;
+use App\Models\SiChangeRequest;
 use App\Models\Invoice;
 use App\Models\Voyage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,11 +28,15 @@ class Booking extends Model
     {
         if($term)
         {
-            $query->where('booking_number', 'like', '%'.$term.'%')
-                ->orWhere('vessel', 'like', '%'.$term.'%')
-                ->orWhere('voyage', 'like', '%'.$term.'%')
-                ->orWhere('pol', 'like', '%'.$term.'%')
-                ->orWhere('pod', 'like', '%'.$term.'%');
+            $query->where(function($q) use ($term) {
+                $q->where('booking_number', 'like', '%'.$term.'%')
+                    ->orWhere('vessel', 'like', '%'.$term.'%')
+                    ->orWhere('pol', 'like', '%'.$term.'%')
+                    ->orWhere('pod', 'like', '%'.$term.'%')
+                    ->orWhereHas('voyage', function($voyageQuery) use ($term) {
+                        $voyageQuery->where('voyage_number', 'like', '%'.$term.'%');
+                    });
+            });
         }
         return $query;
     }
@@ -74,6 +79,11 @@ class Booking extends Model
     public function editAfterTelex()
     {
         return $this->hasMany(EditAfterTelex::class);
+    }
+
+    public function siChangeRequests(): HasMany
+    {
+        return $this->hasMany(SiChangeRequest::class);
     }
    
 }
