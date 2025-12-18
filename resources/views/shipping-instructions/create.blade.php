@@ -338,11 +338,33 @@ function showError(message) {
     const errorAlert = document.getElementById('error-alert');
     const errorMessage = document.getElementById('error-message');
     
-    errorMessage.textContent = message;
+    // If message is an array, format as bulleted list
+    if (Array.isArray(message)) {
+        errorMessage.innerHTML = '<ul class="list-disc list-inside space-y-1">' + 
+            message.map(msg => `<li>${msg}</li>`).join('') + 
+            '</ul>';
+    } else if (typeof message === 'string' && message.includes('\n')) {
+        // If string contains newlines, convert to bulleted list
+        const messages = message.split('\n').filter(msg => msg.trim());
+        errorMessage.innerHTML = '<ul class="list-disc list-inside space-y-1">' + 
+            messages.map(msg => `<li>${msg}</li>`).join('') + 
+            '</ul>';
+    } else {
+        errorMessage.textContent = message;
+    }
+    
     errorAlert.classList.remove('hidden');
     
     // Scroll to the error message
     errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Function to clear error message
+function clearError() {
+    const errorAlert = document.getElementById('error-alert');
+    if (errorAlert) {
+        errorAlert.classList.add('hidden');
+    }
 }
 
 function updateContainerCounts(containerType, change) {
@@ -463,6 +485,9 @@ function addShippingInstruction() {
 }
 
 function handleFileUpload() {
+    // Clear any previous error messages
+    clearError();
+    
     const fileInput = document.getElementById("shipping_instruction_file");
     const file = fileInput.files[0];
     const formData = new FormData();
@@ -484,11 +509,13 @@ function handleFileUpload() {
     })
     .then(data => {
         if (data.success) {
-            // Show info message if any invalid containers were found (they're still included in the form)
+            // Track invalid container number message to show later with other errors
+            let invalidContainerNumberMessage = null;
             if (data.warnings && data.warnings.invalid_containers && data.warnings.invalid_containers.length > 0) {
-                // Just show the message, invalid containers are already highlighted in the form
-                showError(data.message);
+                // Remove "File processed successfully" prefix from the message
+                invalidContainerNumberMessage = data.message.replace(/^File processed successfully\.?\s*/i, '');
             }
+            
             // Populate form fields with shipping data
             if (data.shippingData) {
                 // Box Operator
@@ -573,7 +600,7 @@ function handleFileUpload() {
             
             // Process the containers
             if (data.containers && data.containers.length > 0) {
-                console.log("Processing containers:", data.containers);
+                //console.log("Processing containers:", data.containers);
                 
                 // Create a mapping of container type codes to cargo IDs
                 containerTypeToCargoId = {};
@@ -583,18 +610,33 @@ function handleFileUpload() {
                     containerTypeToCargoId[containerType] = cargoId;
                 });
                 
-                console.log("Container type to cargo ID mapping:", containerTypeToCargoId);
+                //console.log("Container type to cargo ID mapping:", containerTypeToCargoId);
+                
+                // Track containers with missing or invalid container types
+                const containersWithMissingType = [];
+                const containersWithInvalidType = [];
                 
                 // Map the container data to the format expected by processContainers
                 const formattedContainers = data.containers.map(container => {
                     // Get the container type from the Excel file
-                    const containerType = container.type;
+                    const containerType = container.type ? container.type.trim() : '';
+                    
+                    // Check if container type is missing or empty
+                    if (!containerType || containerType === '') {
+                        containersWithMissingType.push(container.number);
+                        return null; // Mark for filtering
+                    }
                     
                     // Find the corresponding cargo ID
                     const cargoId = containerTypeToCargoId[containerType];
                     
                     if (!cargoId) {
+                        containersWithInvalidType.push({
+                            number: container.number,
+                            type: containerType
+                        });
                         console.warn(`No matching cargo ID found for container type: ${containerType}`);
+                        return null; // Mark for filtering - invalid container type
                     }
                     
                     return {
@@ -604,9 +646,43 @@ function handleFileUpload() {
                         is_invalid: container.is_invalid || false,
                         validation_error: container.validation_error || null
                     };
-                });
+                }).filter(container => container !== null); // Filter out containers with missing or invalid types
                 
-                processContainers(formattedContainers);
+                // Show warnings/errors for containers with missing or invalid types
+                let warningMessages = [];
+                
+                // Add invalid container number message if present
+                if (invalidContainerNumberMessage) {
+                    warningMessages.push(invalidContainerNumberMessage);
+                }
+                
+                if (containersWithMissingType.length > 0) {
+                    warningMessages.push(
+                        `${containersWithMissingType.length} container(s) skipped due to missing container type. ` +
+                        `Please specify a container type for all containers in the Excel file.`
+                    );
+                }
+                
+                if (containersWithInvalidType.length > 0) {
+                    warningMessages.push(
+                        `${containersWithInvalidType.length} container(s) skipped due to invalid container type. ` +
+                        `Please ensure the container type matches one of the available types in the allocation.`
+                    );
+                }
+                
+                if (warningMessages.length > 0) {
+                    showError(warningMessages);
+                } else {
+                    // Clear any previous error messages if processing is successful
+                    clearError();
+                }
+                
+                // Only process containers if we have valid ones
+                if (formattedContainers.length > 0) {
+                    processContainers(formattedContainers);
+                } else {
+                    showError("No valid containers found. All containers were skipped due to missing or invalid container types.");
+                }
             } else {
                 console.log("No containers found in the uploaded file");
                 showError("No containers found in the uploaded file");
