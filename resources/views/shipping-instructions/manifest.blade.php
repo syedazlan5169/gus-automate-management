@@ -138,61 +138,61 @@
         </tbody>
     </table>
 
-    <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
+    <table style="width: 1029px; table-layout: fixed; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
         <tbody>
             <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 6%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 8%;">
                     <strong>B/L</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 18%;">
                     <strong>SHIPPER</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 18%;">
                     <strong>CONSIGNEE</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 19%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 18%;">
                     <strong>CONTAINER / SEAL NO</strong><br>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
                     <strong>PKG</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 20%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 18%;">
                     <strong>GOODS DESCRIPTION</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 8%;">
                     <strong>WEIGHT</strong><br>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 7%;">
                     <strong>VOLUME</strong><br>
                 </th>
             </tr>
         </tbody>
     </table>
 
-    <table style="width: 1029px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
+    <table style="width: 1029px; table-layout: fixed; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; font-size: 8px; !important;">
         <tbody>
             <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 6%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 8%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
                         {{ $shippingInstruction->bl_number }}<br>
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">{{ $shippingInstruction->shipper }}<br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">{{ $shippingInstruction->shipper }}<br>
                     {{ $shippingInstruction->shipper_address['line1'] ? $shippingInstruction->shipper_address['line1'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line2'] ? $shippingInstruction->shipper_address['line2'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line3'] ? $shippingInstruction->shipper_address['line3'] : '' }}<br>
                     {{ $shippingInstruction->shipper_address['line4'] ? $shippingInstruction->shipper_address['line4'] : '' }}<br></span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">{{ $shippingInstruction->consignee }}<br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">{{ $shippingInstruction->consignee }}<br>
                     {{ $shippingInstruction->consignee_address['line1'] ? $shippingInstruction->consignee_address['line1'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line2'] ? $shippingInstruction->consignee_address['line2'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line3'] ? $shippingInstruction->consignee_address['line3'] : '' }}<br>
                     {{ $shippingInstruction->consignee_address['line4'] ? $shippingInstruction->consignee_address['line4'] : '' }}<br></span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 19%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 18%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
                         @foreach ($chunk as $container)
                             {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                         @endforeach
@@ -202,29 +202,25 @@
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
                         {{ $allContainers->count() }}<br>
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 20%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
-                        @foreach ($containersByType as $type => $group)
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; display: block; text-align: center; font-family: 'Courier New', Courier, monospace;"><!-- @foreach ($containersByType as $type => $group)
                             ({{ $type }} x {{ $group['count'] }})
                         @endforeach
-                        CONTAINER/S STC:<br>
-                        {{ $shippingInstruction->cargo_description}}<br>
-                        HS CODE : {{ $shippingInstruction->hs_code }}<br>
-                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
+                        CONTAINER/S STC:<br> --><span style="white-space: pre-wrap; text-align: center;">{{ trim($shippingInstruction->cargo_description) }}</span><br><!-- HS CODE : {{ $shippingInstruction->hs_code }}<br>
+                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br> --></span>
+                </th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 8%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->cargos->sum('total_weight'), 2, '.', ',') }}<br>
                     </span>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->cargos->sum('total_weight') }}<br>
-                    </span>
-                </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 5%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->volume }}<br>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 7%; word-wrap: break-word; white-space: normal;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->volume, 2, '.', ',') }}<br>
                     </span>
                 </th>
             </tr>
