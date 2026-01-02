@@ -170,35 +170,33 @@
             
             <tr>
                 <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 40%;">
+                    <span style="font-family: 'Courier New', Courier, monospace;">
                     @foreach ($chunk as $container)
                         {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
                     @for ($i = count($chunk); $i < 29; $i++)
                         <br>
                     @endfor
+                    </span>
                 </td>
-                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
-                    <span style="font-weight: normal;">
-                    @foreach ($containersByType as $type => $group)
+                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 30%;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; display: block; text-align: center;"><!-- @foreach ($containersByType as $type => $group)
                         ({{ $type }} x {{ $group['count'] }})
                     @endforeach
-                    CONTAINER/S STC:<br>
-                    {{ $shippingInstruction->cargo_description}}<br>
-                    HS CODE : {{ $shippingInstruction->hs_code }}<br>
-                    BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
-                    </span>
+                    CONTAINER/S STC:<br> -->{{ trim($shippingInstruction->cargo_description) }}<br><!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
+                    <!-- BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br> --></span>
                     @if($loop->last)
                         <img src="{{ public_path('images/telex-release.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 70px; padding-top: 80px;">
                     @endif
                 </td>
                 <td style="border: 1px solid #000; vertical-align: top; padding: 8px; text-align: center; width: 15%;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->gross_weight }}<br>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->gross_weight, 2, '.', ',') }}<br>
                     </span>
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 15%;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->volume }}<br>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->volume, 2, '.', ',') }}<br>
                     </span>
                 </td>
             </tr>
