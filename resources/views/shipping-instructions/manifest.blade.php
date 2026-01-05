@@ -207,11 +207,14 @@
                     </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
-                    <span style="font-weight: normal; display: block; text-align: center; font-family: 'Courier New', Courier, monospace;"><!-- @foreach ($containersByType as $type => $group)
-                            ({{ $type }} x {{ $group['count'] }})
+                    <span style="font-weight: normal; display: block; text-align: center; font-family: 'Courier New', Courier, monospace;">
+                        @foreach ($containersByType as $type => $group)
+                            ({{ $type }} x {{ $group['count'] }}) CONTAINER(S) STC:<br><br>
                         @endforeach
-                        CONTAINER/S STC:<br> --><span style="white-space: pre-wrap; text-align: center;">{{ trim($shippingInstruction->cargo_description) }}</span><br><!-- HS CODE : {{ $shippingInstruction->hs_code }}<br>
-                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br> --></span>
+                        <span style="white-space: pre-wrap; text-align: center;">{{ trim($shippingInstruction->cargo_description) }}</span><br><br>
+                        <!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
+                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
+                    </span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 8%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
