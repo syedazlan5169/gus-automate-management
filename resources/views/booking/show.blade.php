@@ -530,7 +530,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($booking->status > 1 && $booking->status < 4)
+                            @if($booking->status > 1 && $booking->status < 4 && $booking->shippingInstructions->isEmpty())
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -542,7 +542,7 @@
                                     Add Shipping Instruction
                                 </a>
                             </div>
-                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer' && $booking->shippingInstructions->isEmpty())
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
