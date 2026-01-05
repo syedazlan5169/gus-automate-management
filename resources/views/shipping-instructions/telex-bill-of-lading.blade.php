@@ -180,11 +180,16 @@
                     </span>
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 30%;">
-                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; display: block; text-align: center;"><!-- @foreach ($containersByType as $type => $group)
-                        ({{ $type }} x {{ $group['count'] }})
-                    @endforeach
-                    CONTAINER/S STC:<br> -->{{ trim($shippingInstruction->cargo_description) }}<br><!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
-                    <!-- BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br> --></span>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; display: block; text-align: center;">
+                        @foreach ($containersByType as $type => $group)
+                            ({{ $type }} x {{ $group['count'] }}) CONTAINER(S) STC:<br>
+                        @endforeach
+                        {{ trim($shippingInstruction->cargo_description) }}<br>
+                    </span>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        <!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
+                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
+                    </span>
                     @if($loop->last)
                         <img src="{{ public_path('images/telex-release.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 70px; padding-top: 80px;">
                     @endif
