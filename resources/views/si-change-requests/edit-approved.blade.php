@@ -69,6 +69,14 @@
                                     @disabled(!$editable)
                                     @if(!$editable) readonly @endif
                                 >{{ is_array($si->{$name}) ? implode("\n", array_filter($si->{$name})) : ($si->{$name} ?? '') }}</textarea>
+                            @elseif($name === 'cargo_description')
+                                <textarea
+                                    name="{{ $name }}"
+                                    class="block w-full rounded-lg @if($editable) border-indigo-300 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 @else border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed @endif text-sm transition-colors"
+                                    rows="4"
+                                    @disabled(!$editable)
+                                    @if(!$editable) readonly @endif
+                                >{{ old($name, $si->{$name} ?? '') }}</textarea>
                             @elseif(in_array($name, ['gross_weight', 'volume'], true))
                                 <input type="number"
                                     name="{{ $name }}"
