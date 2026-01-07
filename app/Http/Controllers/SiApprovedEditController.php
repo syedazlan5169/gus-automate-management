@@ -95,6 +95,8 @@ class SiApprovedEditController extends Controller
             // simple, conservative rules; adjust per field if needed later
             if (in_array($field, ['shipper_address','consignee_address','notify_party_address'], true)) {
                 $rules[$field] = ['nullable','string','max:5000']; // textarea text; we'll split to array
+            } elseif (in_array($field, ['gross_weight', 'volume'], true)) {
+                $rules[$field] = ['nullable','numeric','min:0'];
             } else {
                 $rules[$field] = ['nullable','string','max:1000'];
             }
