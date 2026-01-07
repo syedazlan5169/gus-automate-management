@@ -2289,9 +2289,9 @@
                                         <p class="text-xs text-red-100">Click to view details</p>
                                     </div>
                                     <button onclick="event.stopPropagation(); dismissRejectedRequestBalloon()" 
-                                        class="ml-2 text-red-200 hover:text-white transition-colors">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        class="ml-2 p-1 text-red-500 hover:bg-red-100 rounded transition-colors flex-shrink-0">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
                                     </button>
                                 </button>
