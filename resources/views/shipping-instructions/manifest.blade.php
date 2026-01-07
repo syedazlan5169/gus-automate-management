@@ -179,17 +179,17 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">{{ $shippingInstruction->shipper }}<br>
-                    {{ $shippingInstruction->shipper_address['line1'] ? $shippingInstruction->shipper_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line2'] ? $shippingInstruction->shipper_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line3'] ? $shippingInstruction->shipper_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line4'] ? $shippingInstruction->shipper_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'shipper_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; width: 18%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">{{ $shippingInstruction->consignee }}<br>
-                    {{ $shippingInstruction->consignee_address['line1'] ? $shippingInstruction->consignee_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line2'] ? $shippingInstruction->consignee_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line3'] ? $shippingInstruction->consignee_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line4'] ? $shippingInstruction->consignee_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'consignee_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 18%; word-wrap: break-word; white-space: normal;">
                     <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">

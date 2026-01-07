@@ -49,10 +49,10 @@
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Shipper</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->shipper }}<br>
-                    {{ $shippingInstruction->shipper_address['line1'] ? $shippingInstruction->shipper_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line2'] ? $shippingInstruction->shipper_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line3'] ? $shippingInstruction->shipper_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line4'] ? $shippingInstruction->shipper_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'shipper_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 25%;">
                     <img src="{{ public_path('images/logo-header.webp') }}" alt="Logo" style="max-width: 150px; max-height: 60px;">
@@ -70,18 +70,18 @@
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Consignee</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->consignee }}<br>
-                    {{ $shippingInstruction->consignee_address['line1'] ? $shippingInstruction->consignee_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line2'] ? $shippingInstruction->consignee_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line3'] ? $shippingInstruction->consignee_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line4'] ? $shippingInstruction->consignee_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'consignee_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Notify Party</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->notify_party }}<br>
-                    {{ $shippingInstruction->notify_party_address['line1'] ? $shippingInstruction->notify_party_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line2'] ? $shippingInstruction->notify_party_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line3'] ? $shippingInstruction->notify_party_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line4'] ? $shippingInstruction->notify_party_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line4', '') }}<br></span>
                 </th>
             </tr>
         </tbody>
