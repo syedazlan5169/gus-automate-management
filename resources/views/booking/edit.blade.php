@@ -156,6 +156,7 @@
                                 </div>
 
                                 <!-- Cargo Information -->
+                                @if($booking->status < 3)
                                 <div class="border-b border-gray-900/10 pb-12 space-y-6">
                                     <h2 class="text-base/7 font-semibold text-gray-900">Cargo Information</h2>
 
@@ -250,6 +251,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 <!-- Submit button -->
                                 <div class="mt-6 flex items-center justify-end gap-x-6">
