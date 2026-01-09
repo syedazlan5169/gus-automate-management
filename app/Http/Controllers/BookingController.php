@@ -423,15 +423,8 @@ class BookingController extends Controller
 
         try {
 
-            // Create a new voyage
-            $voyageNumber = strtoupper(trim($request->voyage));
-            $voyageExists = false;
-            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
-            $voyage = Voyage::firstOrCreate(
-                ['voyage_number' => $voyageNumber],
-                ['last_bl_suffix' => 400]
-            );
-            $booking->update(['voyage_id' => $voyage->id]);
+            // Store the old voyage_id to check if it changed
+            $oldVoyageId = $booking->voyage_id;
 
             // Separate booking and cargo validation
             $bookingValidated = $request->validate([
@@ -461,6 +454,16 @@ class BookingController extends Controller
             ]);
 
             \DB::beginTransaction();
+
+            // Create a new voyage (inside transaction for atomicity)
+            $voyageNumber = strtoupper(trim($request->voyage));
+            $voyageExists = false;
+            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
+            $voyage = Voyage::firstOrCreate(
+                ['voyage_number' => $voyageNumber],
+                ['last_bl_suffix' => 400]
+            );
+            $booking->update(['voyage_id' => $voyage->id]);
             \Log::info('Transaction started');
 
             \Log::info('Updating booking with validated data');
@@ -565,6 +568,46 @@ class BookingController extends Controller
                 }
             } else {
                 \Log::info('No cargo information provided in request');
+            }
+
+            // Update BL numbers if voyage changed
+            if ($oldVoyageId !== $voyage->id) {
+                \Log::info('Voyage changed, updating BL numbers', [
+                    'old_voyage_id' => $oldVoyageId,
+                    'new_voyage_id' => $voyage->id,
+                    'new_voyage_number' => $voyage->voyage_number
+                ]);
+                
+                // Reload booking with shipping instructions
+                $booking->load('shippingInstructions');
+                
+                // Update BL numbers for all shipping instructions
+                foreach ($booking->shippingInstructions as $shippingInstruction) {
+                    if ($shippingInstruction->bl_number) {
+                        // Store the old BL number for logging
+                        $oldBlNumber = $shippingInstruction->bl_number;
+                        
+                        // Extract the suffix from existing BL number (everything after '/')
+                        $blParts = explode('/', $shippingInstruction->bl_number);
+                        if (count($blParts) === 2) {
+                            $blSuffix = $blParts[1];
+                            // Update BL number with new voyage number but keep the same suffix
+                            $newBlNumber = $voyage->voyage_number . '/' . $blSuffix;
+                            $shippingInstruction->update(['bl_number' => $newBlNumber]);
+                            
+                            \Log::info('Updated BL number', [
+                                'si_id' => $shippingInstruction->id,
+                                'old_bl_number' => $oldBlNumber,
+                                'new_bl_number' => $newBlNumber
+                            ]);
+                        } else {
+                            \Log::warning('Invalid BL number format, skipping update', [
+                                'si_id' => $shippingInstruction->id,
+                                'bl_number' => $shippingInstruction->bl_number
+                            ]);
+                        }
+                    }
+                }
             }
 
             ActivityLog::logBookingEdited(auth()->user(), $booking);
