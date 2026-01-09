@@ -468,11 +468,29 @@ class BookingController extends Controller
             $booking->update($bookingValidated);
             \Log::info('Booking updated successfully');
 
-            // Update cargo information if provided
-            if (isset($cargoValidated['container_type'])) {
+            // Update cargo information if provided (only if status < 3)
+            if (isset($cargoValidated['container_type']) && $booking->status < 3) {
                 \Log::info('Updating cargo information');
                 
-                // Delete existing cargos
+                // Before deleting, preserve container relationships to shipping instructions
+                // Group containers by container_type for easier matching
+                $existingContainersByType = [];
+                foreach ($booking->cargos as $cargo) {
+                    if (!isset($existingContainersByType[$cargo->container_type])) {
+                        $existingContainersByType[$cargo->container_type] = [];
+                    }
+                    foreach ($cargo->containers as $container) {
+                        $existingContainersByType[$cargo->container_type][] = [
+                            'shipping_instruction_id' => $container->shipping_instruction_id,
+                            'container_number' => $container->container_number,
+                            'seal_number' => $container->seal_number,
+                        ];
+                    }
+                }
+                
+                \Log::info('Preserved containers by type:', array_map('count', $existingContainersByType));
+                
+                // Delete existing cargos (this will cascade delete containers)
                 $booking->cargos()->delete();
                 \Log::info('Existing cargos deleted');
 
@@ -491,13 +509,58 @@ class BookingController extends Controller
                         'total_weight' => $cargoValidated['total_weight'][$index]
                     ]);
 
-                    // Create placeholder container records
+                    // Get available containers for this type
+                    $availableContainers = $existingContainersByType[$containerType] ?? [];
+                    
+                    // Create container records and restore shipping_instruction_id links
                     for ($i = 0; $i < $cargoValidated['container_count'][$index]; $i++) {
-                        $container = $cargo->containers()->create([
+                        // Try to find a matching container from the preserved list
+                        // Priority: containers with shipping_instruction_id (allocated containers)
+                        $matchingContainer = null;
+                        $matchingIndex = null;
+                        
+                        // First, try to match containers that have shipping_instruction_id (allocated)
+                        foreach ($availableContainers as $key => $existing) {
+                            if ($existing['shipping_instruction_id']) {
+                                $matchingContainer = $existing;
+                                $matchingIndex = $key;
+                                break;
+                            }
+                        }
+                        
+                        // If no allocated container found, use the first available (unallocated)
+                        if (!$matchingContainer && !empty($availableContainers)) {
+                            $matchingContainer = $availableContainers[0];
+                            $matchingIndex = 0;
+                        }
+                        
+                        // Remove matched container from available list
+                        if ($matchingIndex !== null) {
+                            unset($availableContainers[$matchingIndex]);
+                            $availableContainers = array_values($availableContainers); // Re-index
+                        }
+                        
+                        // Create container with preserved shipping_instruction_id if available
+                        $containerData = [
                             'container_number' => null,
                             'seal_number' => null,
+                        ];
+                        
+                        if ($matchingContainer) {
+                            $containerData['container_number'] = $matchingContainer['container_number'];
+                            $containerData['seal_number'] = $matchingContainer['seal_number'];
+                            
+                            if ($matchingContainer['shipping_instruction_id']) {
+                                $containerData['shipping_instruction_id'] = $matchingContainer['shipping_instruction_id'];
+                            }
+                        }
+                        
+                        $container = $cargo->containers()->create($containerData);
+                        \Log::info('Created container:', [
+                            'container_id' => $container->id,
+                            'shipping_instruction_id' => $containerData['shipping_instruction_id'] ?? null,
+                            'container_number' => $containerData['container_number']
                         ]);
-                        \Log::info('Created container:', ['container_id' => $container->id]);
                     }
                 }
             } else {
