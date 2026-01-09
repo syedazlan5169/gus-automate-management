@@ -581,32 +581,66 @@ class BookingController extends Controller
                 // Reload booking with shipping instructions
                 $booking->load('shippingInstructions');
                 
-                // Update BL numbers for all shipping instructions
+                // Find all existing shipping instructions for this voyage (from other bookings)
+                $currentBookingSIIds = $booking->shippingInstructions->pluck('id')->toArray();
+                $existingSIs = ShippingInstruction::whereHas('booking', function ($query) use ($voyage) {
+                    $query->where('voyage_id', $voyage->id);
+                })->whereNotIn('id', $currentBookingSIIds)
+                  ->whereNotNull('bl_number')
+                  ->get();
+                
+                // Find the highest suffix used for this voyage
+                $maxSuffix = 400; // Default starting point
+                foreach ($existingSIs as $existingSI) {
+                    $blParts = explode('/', $existingSI->bl_number);
+                    if (count($blParts) === 2 && is_numeric($blParts[1])) {
+                        $suffix = (int) $blParts[1];
+                        if ($suffix > $maxSuffix) {
+                            $maxSuffix = $suffix;
+                        }
+                    }
+                }
+                
+                // Start with 401 if no existing SIs (maxSuffix == 400), otherwise use next available
+                $nextSuffix = ($maxSuffix == 400) ? 401 : $maxSuffix + 1;
+                
+                \Log::info('BL suffix calculation', [
+                    'existing_sis_count' => $existingSIs->count(),
+                    'max_suffix_found' => $maxSuffix,
+                    'starting_suffix' => $nextSuffix
+                ]);
+                
+                // Update BL numbers for all shipping instructions in this booking
                 foreach ($booking->shippingInstructions as $shippingInstruction) {
                     if ($shippingInstruction->bl_number) {
                         // Store the old BL number for logging
                         $oldBlNumber = $shippingInstruction->bl_number;
                         
-                        // Extract the suffix from existing BL number (everything after '/')
-                        $blParts = explode('/', $shippingInstruction->bl_number);
-                        if (count($blParts) === 2) {
-                            $blSuffix = $blParts[1];
-                            // Update BL number with new voyage number but keep the same suffix
-                            $newBlNumber = $voyage->voyage_number . '/' . $blSuffix;
-                            $shippingInstruction->update(['bl_number' => $newBlNumber]);
-                            
-                            \Log::info('Updated BL number', [
-                                'si_id' => $shippingInstruction->id,
-                                'old_bl_number' => $oldBlNumber,
-                                'new_bl_number' => $newBlNumber
-                            ]);
-                        } else {
-                            \Log::warning('Invalid BL number format, skipping update', [
-                                'si_id' => $shippingInstruction->id,
-                                'bl_number' => $shippingInstruction->bl_number
-                            ]);
-                        }
+                        // Update BL number with new voyage number and next available suffix
+                        $newBlNumber = $voyage->voyage_number . '/' . $nextSuffix;
+                        $shippingInstruction->update(['bl_number' => $newBlNumber]);
+                        
+                        \Log::info('Updated BL number', [
+                            'si_id' => $shippingInstruction->id,
+                            'old_bl_number' => $oldBlNumber,
+                            'new_bl_number' => $newBlNumber,
+                            'suffix_used' => $nextSuffix
+                        ]);
+                        
+                        // Increment suffix for next SI
+                        $nextSuffix++;
                     }
+                }
+                
+                // Update voyage's last_bl_suffix to reflect the highest suffix we've used
+                if ($nextSuffix - 1 > $voyage->last_bl_suffix) {
+                    $voyage->last_bl_suffix = $nextSuffix - 1;
+                    $voyage->save();
+                    
+                    \Log::info('Updated voyage last_bl_suffix', [
+                        'voyage_id' => $voyage->id,
+                        'new_last_bl_suffix' => $voyage->last_bl_suffix
+                    ]);
                 }
             }
 
