@@ -174,28 +174,28 @@
                   <div class="sm:col-span-1">
                     <x-input-label for="cargo_description">Cargo Description</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="cargo_description" id="cargo_description" required/>
+                      <textarea name="cargo_description" id="cargo_description" rows="4" required class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"></textarea>
                     </div>
                   </div>
 
                   <div class="sm:col-span-1">
                     <x-input-label for="hs_code">HS Code</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="text" name="hs_code" id="hs_code" required/>
+                      <x-text-input type="text" name="hs_code" id="hs_code"/>
                     </div>
                   </div>
 
                   <div class="sm:col-span-1">
                     <x-input-label for="gross_weight">Gross Weight</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="number" step="0.01" name="gross_weight" id="gross_weight" required/>
+                      <x-text-input type="text" name="gross_weight" id="gross_weight" required/>
                     </div>
                   </div>
 
                   <div class="sm:col-span-1">
                     <x-input-label for="volume">Volume</x-input-label>
                     <div class="mt-2">
-                      <x-text-input type="number" step="0.01" name="volume" id="volume" required/>
+                      <x-text-input type="text" name="volume" id="volume" required/>
                     </div>
                   </div>
                 </div>
@@ -591,10 +591,10 @@ function handleFileUpload() {
                     document.getElementById('hs_code').value = data.shippingData.hs_code;
                 }
                 if (data.shippingData.gross_weight) {
-                    document.getElementById('gross_weight').value = data.shippingData.gross_weight;
+                    document.getElementById('gross_weight').value = formatNumber(data.shippingData.gross_weight);
                 }
                 if (data.shippingData.volume) {
-                    document.getElementById('volume').value = data.shippingData.volume;
+                    document.getElementById('volume').value = formatNumber(data.shippingData.volume);
                 }
             }
             
@@ -857,6 +857,72 @@ document.querySelector = ((function(original) {
     };
 })(document.querySelector));
 
+// Format number with 2 decimal places and comma separator
+function formatNumber(value) {
+    if (!value || value.toString().trim() === '') return '';
+    
+    // Remove all non-numeric characters except decimal point
+    let numStr = value.toString().replace(/[^\d.]/g, '');
+    
+    // Handle multiple decimal points - keep only the first one
+    const parts = numStr.split('.');
+    if (parts.length > 2) {
+        numStr = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Handle trailing decimal point
+    if (numStr.endsWith('.')) {
+        numStr = numStr.slice(0, -1);
+    }
+    
+    // Parse to number
+    const num = parseFloat(numStr);
+    if (isNaN(num)) return '';
+    
+    // Format with 2 decimal places and comma separator
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Remove formatting (commas) from number string
+function removeFormatting(value) {
+    if (!value) return '';
+    return value.toString().replace(/,/g, '');
+}
+
+// Initialize number formatting for gross_weight and volume inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const grossWeightInput = document.getElementById('gross_weight');
+    const volumeInput = document.getElementById('volume');
+    
+    // Format on blur and paste
+    if (grossWeightInput) {
+        grossWeightInput.addEventListener('blur', function(e) {
+            e.target.value = formatNumber(e.target.value);
+        });
+        
+        grossWeightInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                e.target.value = formatNumber(e.target.value);
+            }, 0);
+        });
+    }
+    
+    if (volumeInput) {
+        volumeInput.addEventListener('blur', function(e) {
+            e.target.value = formatNumber(e.target.value);
+        });
+        
+        volumeInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                e.target.value = formatNumber(e.target.value);
+            }, 0);
+        });
+    }
+});
+
 // Modify the form submission validation
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -874,7 +940,6 @@ document.querySelector('form').addEventListener('submit', function(e) {
         'notify_party_contact',
         'notify_party_address_line1',
         'cargo_description',
-        'hs_code',
         'gross_weight',
     ];
 
@@ -901,6 +966,16 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
 
     if (isValid) {
+        // Remove formatting from gross_weight and volume before submission
+        const grossWeightInput = document.getElementById('gross_weight');
+        const volumeInput = document.getElementById('volume');
+        if (grossWeightInput) {
+            grossWeightInput.value = removeFormatting(grossWeightInput.value);
+        }
+        if (volumeInput) {
+            volumeInput.value = removeFormatting(volumeInput.value);
+        }
+        
         // Check for exceeding containers
         const exceedingContainers = [];
         document.querySelectorAll('#allocation-info p').forEach(p => {

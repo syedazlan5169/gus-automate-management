@@ -95,6 +95,8 @@ class SiApprovedEditController extends Controller
             // simple, conservative rules; adjust per field if needed later
             if (in_array($field, ['shipper_address','consignee_address','notify_party_address'], true)) {
                 $rules[$field] = ['nullable','string','max:5000']; // textarea text; we'll split to array
+            } elseif (in_array($field, ['gross_weight', 'volume'], true)) {
+                $rules[$field] = ['nullable','numeric','min:0'];
             } else {
                 $rules[$field] = ['nullable','string','max:1000'];
             }
@@ -115,7 +117,15 @@ class SiApprovedEditController extends Controller
         foreach (['shipper_address','consignee_address','notify_party_address'] as $addrField) {
             if ($approved->contains($addrField) && array_key_exists($addrField, $data)) {
                 $lines = preg_split('/\r\n|\r|\n/', (string)$data[$addrField]);
-                $data[$addrField] = array_values(array_filter(array_map('trim', $lines), fn($v) => $v !== ''));
+                $lines = array_values(array_filter(array_map('trim', $lines), fn($v) => $v !== ''));
+
+                // Always return associative keys to avoid undefined index errors in views
+                $data[$addrField] = [
+                    'line1' => $lines[0] ?? null,
+                    'line2' => $lines[1] ?? null,
+                    'line3' => $lines[2] ?? null,
+                    'line4' => $lines[3] ?? null,
+                ];
             }
         }
 

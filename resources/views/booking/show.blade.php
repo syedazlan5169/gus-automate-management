@@ -530,7 +530,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($booking->status > 1 && $booking->status < 4)
+                            @if($booking->status > 1 && $booking->status < 4 && $booking->shippingInstructions->isEmpty())
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -542,7 +542,7 @@
                                     Add Shipping Instruction
                                 </a>
                             </div>
-                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer')
+                            @elseif($booking->status == 4 && $booking->enable_edit && auth()->user()->role != 'customer' && $booking->shippingInstructions->isEmpty())
                             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                                 <a href="{{ route('shipping-instructions.create', $booking) }}"
                                     class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 uppercase tracking-widest">
@@ -860,10 +860,10 @@
 
                                                                 <div>
                                                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                                                        Reason for rejection
+                                                                        Reason for rejection (minimum 3 characters)
                                                                         <span class="text-red-500 ml-1">*</span>
                                                                     </label>
-                                                                    <textarea name="rejection_note" rows="4" required
+                                                                    <textarea name="rejection_note" rows="4" required minlength="3"
                                                                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 text-sm transition-colors"
                                                                             placeholder="Please provide a detailed reason for rejecting this change request..."></textarea>
                                                                     <p class="mt-2 text-xs text-gray-600">This reason will be shared with the customer.</p>
@@ -1308,10 +1308,10 @@
                                                             <!-- Reason -->
                                                             <div>
                                                                 <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                                                    Reason for change
+                                                                    Reason for change (minimum 3 characters)
                                                                     <span class="text-red-500 ml-0.5">*</span>
                                                                 </label>
-                                                                <textarea name="reason" rows="4"
+                                                                <textarea name="reason" rows="4" required minlength="3"
                                                                         class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 text-sm placeholder-gray-400 transition-colors resize-none"
                                                                         placeholder="Please provide a detailed explanation of what needs to be changed and why..." required></textarea>
                                                                 <p class="mt-2 text-xs text-gray-500">Be as specific as possible to help expedite the approval process.</p>
@@ -2289,9 +2289,9 @@
                                         <p class="text-xs text-red-100">Click to view details</p>
                                     </div>
                                     <button onclick="event.stopPropagation(); dismissRejectedRequestBalloon()" 
-                                        class="ml-2 text-red-200 hover:text-white transition-colors">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        class="ml-2 p-1 text-red-500 hover:bg-red-100 rounded transition-colors flex-shrink-0">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
                                     </button>
                                 </button>

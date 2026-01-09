@@ -423,15 +423,8 @@ class BookingController extends Controller
 
         try {
 
-            // Create a new voyage
-            $voyageNumber = strtoupper(trim($request->voyage));
-            $voyageExists = false;
-            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
-            $voyage = Voyage::firstOrCreate(
-                ['voyage_number' => $voyageNumber],
-                ['last_bl_suffix' => 400]
-            );
-            $booking->update(['voyage_id' => $voyage->id]);
+            // Store the old voyage_id to check if it changed
+            $oldVoyageId = $booking->voyage_id;
 
             // Separate booking and cargo validation
             $bookingValidated = $request->validate([
@@ -461,6 +454,16 @@ class BookingController extends Controller
             ]);
 
             \DB::beginTransaction();
+
+            // Create a new voyage (inside transaction for atomicity)
+            $voyageNumber = strtoupper(trim($request->voyage));
+            $voyageExists = false;
+            $voyageExists = Voyage::where('voyage_number', $voyageNumber)->exists();
+            $voyage = Voyage::firstOrCreate(
+                ['voyage_number' => $voyageNumber],
+                ['last_bl_suffix' => 400]
+            );
+            $booking->update(['voyage_id' => $voyage->id]);
             \Log::info('Transaction started');
 
             \Log::info('Updating booking with validated data');
@@ -468,11 +471,29 @@ class BookingController extends Controller
             $booking->update($bookingValidated);
             \Log::info('Booking updated successfully');
 
-            // Update cargo information if provided
-            if (isset($cargoValidated['container_type'])) {
+            // Update cargo information if provided (only if status < 3)
+            if (isset($cargoValidated['container_type']) && $booking->status < 3) {
                 \Log::info('Updating cargo information');
                 
-                // Delete existing cargos
+                // Before deleting, preserve container relationships to shipping instructions
+                // Group containers by container_type for easier matching
+                $existingContainersByType = [];
+                foreach ($booking->cargos as $cargo) {
+                    if (!isset($existingContainersByType[$cargo->container_type])) {
+                        $existingContainersByType[$cargo->container_type] = [];
+                    }
+                    foreach ($cargo->containers as $container) {
+                        $existingContainersByType[$cargo->container_type][] = [
+                            'shipping_instruction_id' => $container->shipping_instruction_id,
+                            'container_number' => $container->container_number,
+                            'seal_number' => $container->seal_number,
+                        ];
+                    }
+                }
+                
+                \Log::info('Preserved containers by type:', array_map('count', $existingContainersByType));
+                
+                // Delete existing cargos (this will cascade delete containers)
                 $booking->cargos()->delete();
                 \Log::info('Existing cargos deleted');
 
@@ -491,17 +512,136 @@ class BookingController extends Controller
                         'total_weight' => $cargoValidated['total_weight'][$index]
                     ]);
 
-                    // Create placeholder container records
+                    // Get available containers for this type
+                    $availableContainers = $existingContainersByType[$containerType] ?? [];
+                    
+                    // Create container records and restore shipping_instruction_id links
                     for ($i = 0; $i < $cargoValidated['container_count'][$index]; $i++) {
-                        $container = $cargo->containers()->create([
+                        // Try to find a matching container from the preserved list
+                        // Priority: containers with shipping_instruction_id (allocated containers)
+                        $matchingContainer = null;
+                        $matchingIndex = null;
+                        
+                        // First, try to match containers that have shipping_instruction_id (allocated)
+                        foreach ($availableContainers as $key => $existing) {
+                            if ($existing['shipping_instruction_id']) {
+                                $matchingContainer = $existing;
+                                $matchingIndex = $key;
+                                break;
+                            }
+                        }
+                        
+                        // If no allocated container found, use the first available (unallocated)
+                        if (!$matchingContainer && !empty($availableContainers)) {
+                            $matchingContainer = $availableContainers[0];
+                            $matchingIndex = 0;
+                        }
+                        
+                        // Remove matched container from available list
+                        if ($matchingIndex !== null) {
+                            unset($availableContainers[$matchingIndex]);
+                            $availableContainers = array_values($availableContainers); // Re-index
+                        }
+                        
+                        // Create container with preserved shipping_instruction_id if available
+                        $containerData = [
                             'container_number' => null,
                             'seal_number' => null,
+                        ];
+                        
+                        if ($matchingContainer) {
+                            $containerData['container_number'] = $matchingContainer['container_number'];
+                            $containerData['seal_number'] = $matchingContainer['seal_number'];
+                            
+                            if ($matchingContainer['shipping_instruction_id']) {
+                                $containerData['shipping_instruction_id'] = $matchingContainer['shipping_instruction_id'];
+                            }
+                        }
+                        
+                        $container = $cargo->containers()->create($containerData);
+                        \Log::info('Created container:', [
+                            'container_id' => $container->id,
+                            'shipping_instruction_id' => $containerData['shipping_instruction_id'] ?? null,
+                            'container_number' => $containerData['container_number']
                         ]);
-                        \Log::info('Created container:', ['container_id' => $container->id]);
                     }
                 }
             } else {
                 \Log::info('No cargo information provided in request');
+            }
+
+            // Update BL numbers if voyage changed
+            if ($oldVoyageId !== $voyage->id) {
+                \Log::info('Voyage changed, updating BL numbers', [
+                    'old_voyage_id' => $oldVoyageId,
+                    'new_voyage_id' => $voyage->id,
+                    'new_voyage_number' => $voyage->voyage_number
+                ]);
+                
+                // Reload booking with shipping instructions
+                $booking->load('shippingInstructions');
+                
+                // Find all existing shipping instructions for this voyage (from other bookings)
+                $currentBookingSIIds = $booking->shippingInstructions->pluck('id')->toArray();
+                $existingSIs = ShippingInstruction::whereHas('booking', function ($query) use ($voyage) {
+                    $query->where('voyage_id', $voyage->id);
+                })->whereNotIn('id', $currentBookingSIIds)
+                  ->whereNotNull('bl_number')
+                  ->get();
+                
+                // Find the highest suffix used for this voyage
+                $maxSuffix = 400; // Default starting point
+                foreach ($existingSIs as $existingSI) {
+                    $blParts = explode('/', $existingSI->bl_number);
+                    if (count($blParts) === 2 && is_numeric($blParts[1])) {
+                        $suffix = (int) $blParts[1];
+                        if ($suffix > $maxSuffix) {
+                            $maxSuffix = $suffix;
+                        }
+                    }
+                }
+                
+                // Start with 401 if no existing SIs (maxSuffix == 400), otherwise use next available
+                $nextSuffix = ($maxSuffix == 400) ? 401 : $maxSuffix + 1;
+                
+                \Log::info('BL suffix calculation', [
+                    'existing_sis_count' => $existingSIs->count(),
+                    'max_suffix_found' => $maxSuffix,
+                    'starting_suffix' => $nextSuffix
+                ]);
+                
+                // Update BL numbers for all shipping instructions in this booking
+                foreach ($booking->shippingInstructions as $shippingInstruction) {
+                    if ($shippingInstruction->bl_number) {
+                        // Store the old BL number for logging
+                        $oldBlNumber = $shippingInstruction->bl_number;
+                        
+                        // Update BL number with new voyage number and next available suffix
+                        $newBlNumber = $voyage->voyage_number . '/' . $nextSuffix;
+                        $shippingInstruction->update(['bl_number' => $newBlNumber]);
+                        
+                        \Log::info('Updated BL number', [
+                            'si_id' => $shippingInstruction->id,
+                            'old_bl_number' => $oldBlNumber,
+                            'new_bl_number' => $newBlNumber,
+                            'suffix_used' => $nextSuffix
+                        ]);
+                        
+                        // Increment suffix for next SI
+                        $nextSuffix++;
+                    }
+                }
+                
+                // Update voyage's last_bl_suffix to reflect the highest suffix we've used
+                if ($nextSuffix - 1 > $voyage->last_bl_suffix) {
+                    $voyage->last_bl_suffix = $nextSuffix - 1;
+                    $voyage->save();
+                    
+                    \Log::info('Updated voyage last_bl_suffix', [
+                        'voyage_id' => $voyage->id,
+                        'new_last_bl_suffix' => $voyage->last_bl_suffix
+                    ]);
+                }
             }
 
             ActivityLog::logBookingEdited(auth()->user(), $booking);

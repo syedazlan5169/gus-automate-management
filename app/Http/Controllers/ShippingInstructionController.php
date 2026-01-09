@@ -82,7 +82,7 @@ class ShippingInstructionController extends Controller
                 'notify_party_address.line3' => 'nullable|string',
                 'notify_party_address.line4' => 'nullable|string',
                 'cargo_description' => 'required|string',
-                'hs_code' => 'required|string',
+                'hs_code' => 'nullable|string',
                 'gross_weight' => 'required|numeric',
                 'volume' => 'required|numeric',
                 'containers' => 'required|array',
@@ -93,9 +93,9 @@ class ShippingInstructionController extends Controller
             ]);
 
             // Generate sub booking number and bl number
-            $siCount = $booking->shippingInstructions()->count() + 1;
-            $letter = chr(64 + $siCount); // Convert number to letter (65 is ASCII for 'A')
-            $subBookingNumber = $booking->booking_number . $letter;
+            //$siCount = $booking->shippingInstructions()->count() + 1;
+            //$letter = chr(64 + $siCount); // Convert number to letter (65 is ASCII for 'A')
+            //$subBookingNumber = $booking->booking_number . $letter;
 
             // generate bl number
             $voyage = Voyage::find($booking->voyage_id);
@@ -107,7 +107,7 @@ class ShippingInstructionController extends Controller
             // Create shipping instruction
             $shippingInstruction = ShippingInstruction::create([
                 'booking_id' => $booking->id,
-                'sub_booking_number' => $subBookingNumber,
+                'sub_booking_number' => $booking->booking_number,
                 'bl_number' => $blNumber,
                 'box_operator' => $validated['box_operator'],
                 'shipper' => $validated['shipper'],
@@ -120,7 +120,7 @@ class ShippingInstructionController extends Controller
                 'notify_party_contact' => $validated['notify_party_contact'],
                 'notify_party_address' => $validated['notify_party_address'],
                 'cargo_description' => $validated['cargo_description'],
-                'hs_code' => $validated['hs_code'],
+                'hs_code' => $validated['hs_code'] ?? null,
                 'gross_weight' => $validated['gross_weight'],
                 'volume' => $validated['volume'],
             ]);
@@ -378,7 +378,7 @@ class ShippingInstructionController extends Controller
                 'notify_party_address.line3' => 'nullable|string|max:255',
                 'notify_party_address.line4' => 'nullable|string|max:255',
                 'cargo_description' => 'required|string|max:255',
-                'hs_code' => 'required|string|max:255',
+                'hs_code' => 'nullable|string|max:255',
                 'gross_weight' => 'required|numeric|min:0',
                 'volume' => 'nullable|numeric|min:0',
                 'containers' => 'required|array',
@@ -399,7 +399,7 @@ class ShippingInstructionController extends Controller
                 'notify_party_contact' => $validated['notify_party_contact'],
                 'notify_party_address' => $validated['notify_party_address'],
                 'cargo_description' => $validated['cargo_description'],
-                'hs_code' => $validated['hs_code'],
+                'hs_code' => $validated['hs_code'] ?? null,
                 'gross_weight' => $validated['gross_weight'],
                 'volume' => $validated['volume'],
             ]);

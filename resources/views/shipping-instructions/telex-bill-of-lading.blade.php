@@ -49,10 +49,10 @@
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Shipper</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->shipper }}<br>
-                    {{ $shippingInstruction->shipper_address['line1'] ? $shippingInstruction->shipper_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line2'] ? $shippingInstruction->shipper_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line3'] ? $shippingInstruction->shipper_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->shipper_address['line4'] ? $shippingInstruction->shipper_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'shipper_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'shipper_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 25%;">
                     <img src="{{ public_path('images/logo-header.webp') }}" alt="Logo" style="max-width: 150px; max-height: 60px;">
@@ -70,18 +70,18 @@
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Consignee</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->consignee }}<br>
-                    {{ $shippingInstruction->consignee_address['line1'] ? $shippingInstruction->consignee_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line2'] ? $shippingInstruction->consignee_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line3'] ? $shippingInstruction->consignee_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->consignee_address['line4'] ? $shippingInstruction->consignee_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'consignee_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'consignee_address.line4', '') }}<br></span>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
                     <strong>Notify Party</strong><br>
                     <span style="font-weight: normal;">{{ $shippingInstruction->notify_party }}<br>
-                    {{ $shippingInstruction->notify_party_address['line1'] ? $shippingInstruction->notify_party_address['line1'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line2'] ? $shippingInstruction->notify_party_address['line2'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line3'] ? $shippingInstruction->notify_party_address['line3'] : '' }}<br>
-                    {{ $shippingInstruction->notify_party_address['line4'] ? $shippingInstruction->notify_party_address['line4'] : '' }}<br></span>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line1', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line2', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line3', '') }}<br>
+                    {{ data_get($shippingInstruction, 'notify_party_address.line4', '') }}<br></span>
                 </th>
             </tr>
         </tbody>
@@ -170,35 +170,38 @@
             
             <tr>
                 <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 40%;">
+                    <span style="font-family: 'Courier New', Courier, monospace;">
                     @foreach ($chunk as $container)
                         {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
                     @endforeach
                     @for ($i = count($chunk); $i < 29; $i++)
                         <br>
                     @endfor
+                    </span>
                 </td>
-                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: left; width: 30%;">
-                    <span style="font-weight: normal;">
-                    @foreach ($containersByType as $type => $group)
-                        ({{ $type }} x {{ $group['count'] }})
-                    @endforeach
-                    CONTAINER/S STC:<br>
-                    {{ $shippingInstruction->cargo_description}}<br>
-                    HS CODE : {{ $shippingInstruction->hs_code }}<br>
-                    BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
+                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 30%;">
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; display: block; text-align: center;">
+                        @foreach ($containersByType as $type => $group)
+                            ({{ $type }} x {{ $group['count'] }}) CONTAINER(S) STC:<br>
+                        @endforeach
+                        {{ trim($shippingInstruction->cargo_description) }}<br>
+                    </span>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        <!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
+                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
                     </span>
                     @if($loop->last)
                         <img src="{{ public_path('images/telex-release.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 70px; padding-top: 80px;">
                     @endif
                 </td>
                 <td style="border: 1px solid #000; vertical-align: top; padding: 8px; text-align: center; width: 15%;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->gross_weight }}<br>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->gross_weight, 2, '.', ',') }}<br>
                     </span>
                 </td>
                 <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 15%;">
-                    <span style="font-weight: normal;">
-                        {{ $shippingInstruction->volume }}<br>
+                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                        {{ number_format($shippingInstruction->volume, 2, '.', ',') }}<br>
                     </span>
                 </td>
             </tr>
