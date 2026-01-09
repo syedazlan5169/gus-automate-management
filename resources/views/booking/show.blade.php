@@ -860,10 +860,10 @@
 
                                                                 <div>
                                                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                                                        Reason for rejection
+                                                                        Reason for rejection (minimum 3 characters)
                                                                         <span class="text-red-500 ml-1">*</span>
                                                                     </label>
-                                                                    <textarea name="rejection_note" rows="4" required
+                                                                    <textarea name="rejection_note" rows="4" required minlength="3"
                                                                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-500 text-sm transition-colors"
                                                                             placeholder="Please provide a detailed reason for rejecting this change request..."></textarea>
                                                                     <p class="mt-2 text-xs text-gray-600">This reason will be shared with the customer.</p>
@@ -1308,10 +1308,10 @@
                                                             <!-- Reason -->
                                                             <div>
                                                                 <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                                                    Reason for change
+                                                                    Reason for change (minimum 3 characters)
                                                                     <span class="text-red-500 ml-0.5">*</span>
                                                                 </label>
-                                                                <textarea name="reason" rows="4"
+                                                                <textarea name="reason" rows="4" required minlength="3"
                                                                         class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 text-sm placeholder-gray-400 transition-colors resize-none"
                                                                         placeholder="Please provide a detailed explanation of what needs to be changed and why..." required></textarea>
                                                                 <p class="mt-2 text-xs text-gray-500">Be as specific as possible to help expedite the approval process.</p>
