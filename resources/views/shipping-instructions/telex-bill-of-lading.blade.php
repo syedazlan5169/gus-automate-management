@@ -16,6 +16,16 @@
     }
     $containerChunks = $allContainers->chunk(29); // split into groups of 30
 
+    // Split cargo description into lines and chunk into 25 lines per page
+    $cargoDescription = trim($shippingInstruction->cargo_description ?? '');
+    $descriptionLines = !empty($cargoDescription) ? explode("\n", $cargoDescription) : [];
+    $descriptionChunks = collect($descriptionLines)->chunk(25);
+    $totalDescriptionChunks = $descriptionChunks->count();
+    
+    // Calculate total pages needed (max of container pages and description pages)
+    $totalContainerPages = $containerChunks->count();
+    $totalPages = max($totalContainerPages, $totalDescriptionChunks);
+
     function numberToWords($number) {
         $ones = array(
             0 => "", 1 => "ONE", 2 => "TWO", 3 => "THREE", 4 => "FOUR",
@@ -40,7 +50,11 @@
     }
 @endphp
 
-@foreach ($containerChunks as $chunkIndex => $chunk)
+@for ($pageIndex = 0; $pageIndex < $totalPages; $pageIndex++)
+@php
+    $chunk = $containerChunks->get($pageIndex);
+    $hasContainers = $chunk !== null;
+@endphp
 <body style="width: 700px; margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #000;">
 
     <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
@@ -59,7 +73,7 @@
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: right; width: 25%;">
                     <strong>B/L NO </strong><span style="font-weight: normal;">{{ $shippingInstruction->bl_number }}</span><br>
-                    <strong>Page </strong><span style="font-weight: normal;">{{ $chunkIndex + 1 }}/{{ $containerChunks->count() }}</span>
+                    <strong>Page </strong><span style="font-weight: normal;">{{ $pageIndex + 1 }}/{{ $totalPages }}</span>
                 </th>
             </tr>
         </tbody>
@@ -150,13 +164,13 @@
             </tr>
         </tbody>
     </table>
-    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif;">
+    <table style="width: 700px; border-collapse: collapse; margin: 0 auto; font-family: Arial, sans-serif; table-layout: fixed;">
         <tbody>
             <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 40%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 30%;">
                     <strong>Marks and Numbers</strong>
                 </th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 30%;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 40%;">
                     <strong>Goods Description</strong>
                 </th>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">
@@ -169,28 +183,51 @@
             <!-- Data details here -->
             
             <tr>
-                <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 40%;">
+                <td style="font-weight: normal; border: 1px solid #000; padding: 8px; text-align: left; width: 30%;">
                     <span style="font-family: 'Courier New', Courier, monospace;">
-                    @foreach ($chunk as $container)
-                        {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
-                    @endforeach
-                    @for ($i = count($chunk); $i < 29; $i++)
-                        <br>
-                    @endfor
+                    @if($hasContainers)
+                        @foreach ($chunk as $container)
+                            {{ $container['container_number'] }} / {{ $container['seal_number'] }} / {{ $container['container_type'] }}<br>
+                        @endforeach
+                        @for ($i = count($chunk); $i < 29; $i++)
+                            <br>
+                        @endfor
+                    @else
+                        @for ($i = 0; $i < 29; $i++)
+                            <br>
+                        @endfor
+                    @endif
                     </span>
                 </td>
-                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 30%;">
-                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; display: block; text-align: center;">
-                        @foreach ($containersByType as $type => $group)
-                            ({{ $type }} x {{ $group['count'] }}) CONTAINER(S) STC:<br>
-                        @endforeach
-                        {{ trim($shippingInstruction->cargo_description) }}<br>
-                    </span>
-                    <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
-                        <!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
-                        BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
-                    </span>
-                    @if($loop->last)
+                <td style="border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; width: 40%;">
+                    @if($pageIndex === 0)
+                        <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; display: block; text-align: center; line-height: 1.2;">
+                            @foreach ($containersByType as $type => $group)
+                                ({{ $type }} x {{ $group['count'] }}) CONTAINER(S) STC:<br>
+                            @endforeach
+                            @if($descriptionChunks->count() > 0)
+                                @foreach($descriptionChunks->first() as $line)
+                                    {{ $line }}<br>
+                                @endforeach
+                            @endif
+                        </span>
+                        <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace;">
+                            <!-- HS CODE : {{ $shippingInstruction->hs_code }}<br> -->
+                            BOOKING NO : {{ $shippingInstruction->sub_booking_number }}<br>
+                        </span>
+                    @else
+                        @php
+                            $currentDescriptionChunk = $descriptionChunks->get($pageIndex);
+                        @endphp
+                        @if($currentDescriptionChunk)
+                            <span style="font-weight: normal; font-family: 'Courier New', Courier, monospace; display: block; text-align: center; line-height: 1.2;">
+                                @foreach($currentDescriptionChunk as $line)
+                                    {{ $line }}<br>
+                                @endforeach
+                            </span>
+                        @endif
+                    @endif
+                    @if($pageIndex === $totalPages - 1)
                         <img src="{{ public_path('images/telex-release.png') }}" alt="Telex Release" style="align-items: center; width: 200px; height: 70px; padding-top: 80px;">
                     @endif
                 </td>
@@ -212,7 +249,7 @@
             <tr>
                 <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100%;">
                     <span style="font-weight: normal;">
-                        @if($loop->last)
+                        @if($pageIndex === $totalPages - 1)
                             SHIPPED ON BOARD {{ $shippingInstruction->booking->eta->format('d/m/Y') }}<br>
                             TOTAL {{ strtoupper(numberToWords($allContainers->count())) }} ( {{ $allContainers->count() }} )  CONTAINER(S) ONLY
                         @else
@@ -294,7 +331,7 @@
                 <th style="border: 1px solid #000; padding: 8px; text-align: left; width: 25%;">
                     <strong>No. of Original B/L</strong><br>
                     <span style="font-weight: normal;">
-                        {{ $containerChunks->count() }}
+                        {{ $totalPages }}
                     </span>
                 </th>
                 <th style="border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 8px; text-align: left; width: 50%;">
@@ -304,5 +341,5 @@
         </tbody>
     </table>
 </body>
-@endforeach
+@endfor
 </html>

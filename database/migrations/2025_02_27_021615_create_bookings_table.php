@@ -47,7 +47,7 @@ return new class extends Migration
             $table->string('notify_party');
             $table->string('notify_party_contact');
             $table->string('notify_party_address');
-            $table->string('cargo_description');
+            $table->text('cargo_description');
             $table->string('hs_code')->nullable();
             $table->timestamps();
         });
